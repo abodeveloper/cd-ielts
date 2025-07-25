@@ -3,10 +3,10 @@ import FlowPage from "../../components/FlowPage";
 import ReadyStep from "./steps/ReadyStep";
 import TestStep from "./steps/TestStep";
 
-const WritingPage = () => {
+const ReadingTestPage = () => {
   return (
     <FlowPage steps={[<ConfirmDetailsStep />, <ReadyStep />, <TestStep />]} />
   );
 };
 
-export default WritingPage;
+export default ReadingTestPage;

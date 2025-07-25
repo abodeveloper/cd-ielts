@@ -18,7 +18,7 @@ import {
   RiAwardLine,
   RiBookLine,
   RiHome2Line,
-  RiUserLine
+  RiUserLine,
 } from "@remixicon/react";
 import { NavMain } from "./nav-main";
 import { NavSecondary } from "./nav-secondary";
@@ -43,7 +43,7 @@ const data = {
     },
     {
       title: "Profile",
-      url: "detail",
+      url: "/profile/detail",
       icon: RiUserLine,
     },
     {
@@ -52,10 +52,10 @@ const data = {
       icon: RiBookLine,
       isActive: false, // dinamik holat useLocation orqali boshqariladi
       items: [
-        { title: "Speaking", url: "/profile/speaking" },
-        { title: "Listening", url: "/profile/listening" },
-        { title: "Reading", url: "/profile/reading" },
-        { title: "Wtiring", url: "/profile/writing" },
+        { title: "Speaking", url: "/profile/exams/speakings" },
+        { title: "Listening", url: "/profile/exams/listenings" },
+        { title: "Reading", url: "/profile/exams/readings" },
+        { title: "Wtiring", url: "/profile/exams/writings" },
       ],
     },
   ],
@@ -91,7 +91,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
                   <IconInnerShadowTop className="!size-5" />
                 </div>
-                <span className="text-base font-semibold">CD IELTS</span>
+                <span className="text-base font-semibold">MOCK IELTS</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>

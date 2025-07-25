@@ -3,7 +3,7 @@ import axios from "axios";
 
 // Axios instance
 const api = axios.create({
-  baseURL: "/", // Proxy orqali boradi
+  baseURL: import.meta.env.VITE_API_URL,
   withCredentials: true, // Cookie yuboriladi
   headers: {
     "Content-Type": "application/json",

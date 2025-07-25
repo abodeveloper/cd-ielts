@@ -2,11 +2,11 @@ import IllustrationImage from "@/assets/skyMen.webp"; // Adjust the path as nece
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import {
-    RiBookOpenLine,
-    RiHeadphoneLine,
-    RiLayout2Line,
-    RiMic2Line,
-    RiPencilLine,
+  RiBookOpenLine,
+  RiHeadphoneLine,
+  RiLayout2Line,
+  RiMic2Line,
+  RiPencilLine,
 } from "@remixicon/react";
 import React from "react";
 import { useNavigate } from "react-router-dom";
@@ -23,31 +23,31 @@ const skills: SkillCardProps[] = [
     title: "Speaking",
     icon: <RiMic2Line className="h-6 w-6 " />,
     count: 0,
-    path: "/speaking",
+    path: "/profile/exams/speakings",
   },
   {
     title: "Listening",
     icon: <RiHeadphoneLine className="h-6 w-6" />,
     count: 0,
-    path: "/listening",
+    path: "/profile/exams/listenings",
   },
   {
     title: "Reading",
     icon: <RiBookOpenLine className="h-6 w-6" />,
     count: 0,
-    path: "/reading",
+    path: "/profile/exams/readings",
   },
   {
     title: "Writing",
     icon: <RiPencilLine className="h-6 w-6 " />,
     count: 1,
-    path: "/writing",
+    path: "/profile/exams/writings",
   },
   {
     title: "Full exam",
     icon: <RiLayout2Line className="h-6 w-6 " />,
     count: 0,
-    path: "/full-exam",
+    path: "/profile/exams/full-exam",
   },
 ];
 
@@ -75,7 +75,6 @@ export default function Home() {
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
         {skills.map((skill) => (
           <Card key={skill.title} className="p-6 space-y-4">
-
             <Button
               className="pointer-events-none"
               variant={"outline"}

@@ -1,8 +1,18 @@
+// schemas/reading-schema.ts
 import { z } from "zod";
 
 export const readingSchema = z.object({
-  username: z.string(),
-  password: z.string().min(1, "Parol kamida 1 belgidan iborat bo‘lishi kerak"),
+  answers: z
+    .array(
+      z.object({
+        reading_question: z
+          .number()
+          .min(1, "Question ID is required")
+          .optional(),
+        answer: z.string().optional(),
+      })
+    )
+    .optional(),
 });
 
 export type ReadingFormValues = z.infer<typeof readingSchema>;
