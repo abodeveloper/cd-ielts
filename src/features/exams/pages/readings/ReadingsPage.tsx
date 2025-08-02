@@ -11,6 +11,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import LoadingSpinner from "@/shared/components/atoms/loading-spinner/LoadingSpinner";
+import ErrorMessage from "@/shared/components/atoms/error-message/ErrorMessage";
 
 const ReadingsPage = () => {
   const { data, isLoading, isError } = useQuery({
@@ -20,8 +22,8 @@ const ReadingsPage = () => {
 
   const navigate = useNavigate();
 
-  if (isLoading) return <div className="p-4">Loading...</div>;
-  if (isError) return <div className="p-4">Error loading readings.</div>;
+  if (isLoading) return <LoadingSpinner />
+  if (isError) return <ErrorMessage message="Error"/>;
 
   return (
     <div className="p-4">
