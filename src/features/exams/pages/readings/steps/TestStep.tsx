@@ -30,7 +30,7 @@ const TestPage = () => {
   } = useTestLogic<Reading>(3000, data, form.handleSubmit(onSubmit));
 
   // Prevent page leave when test is not finished
-  usePreventPageLeave(!isTestFinished);
+  // usePreventPageLeave(!isTestFinished);
 
   if (query.isLoading) return <LoadingSpinner message="Loading test data..." />;
   if (query.isError)
