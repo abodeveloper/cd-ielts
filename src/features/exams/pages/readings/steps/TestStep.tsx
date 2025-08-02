@@ -27,7 +27,7 @@ const TestPage = () => {
     handlePrevious,
     handleNext,
     isTestFinished,
-  } = useTestLogic<Reading>(5, data, form.handleSubmit(onSubmit));
+  } = useTestLogic<Reading>(3000, data, form.handleSubmit(onSubmit));
 
   // Prevent page leave when test is not finished
   usePreventPageLeave(!isTestFinished);
