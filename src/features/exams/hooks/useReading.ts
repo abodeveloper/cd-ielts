@@ -10,6 +10,5 @@ export const useReading = (
     queryKey: ["readings", id],
     queryFn: () => getReadingOne(id as string), // id ni string sifatida tekshirish
     enabled: !!id, // id mavjud bo'lganda faqat chaqirilsin
-    staleTime: 5 * 60 * 1000, // 5 daqiqa kesh saqlansin
   });
 };

@@ -4,6 +4,8 @@ import { useLoginForm } from "../hooks/useLoginForm";
 import MyInput from "@/shared/components/atoms/form-elements/MyInput";
 import { LoginDto } from "@/shared/interfaces/auth";
 import { cn } from "@/lib/utils";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import MyQuestionRadio from "@/shared/components/atoms/question-inputs/MyQuestionRadio";
 
 export const LoginForm = () => {
   const { form, onSubmit, loginMutation } = useLoginForm();
@@ -53,8 +55,33 @@ export const LoginForm = () => {
               name="password"
               type="password"
             />
+
+            <RadioGroup>
+              <MyQuestionRadio<LoginDto>
+                control={form.control}
+                name={`answers.answer`}
+                value="true"
+                label={"True"}
+              />
+              <MyQuestionRadio<LoginDto>
+                control={form.control}
+                name={`answers.answer`}
+                value="false"
+                label={"False"}
+              />
+              <MyQuestionRadio<LoginDto>
+                control={form.control}
+                name={`answers.answer`}
+                value="not_given"
+                label={"Not given"}
+              />
+            </RadioGroup>
           </div>
-          <Button type="submit" className="w-full" loading={loginMutation.isPending}>
+          <Button
+            type="submit"
+            className="w-full"
+            loading={loginMutation.isPending}
+          >
             Login
           </Button>
         </div>

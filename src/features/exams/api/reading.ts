@@ -1,5 +1,5 @@
 import api from "@/lib/axios";
-import { ReadingFormValues } from "../schemas/reading-schema";
+import { AnswerPayload } from "../schemas/reading-schema";
 
 export const getReadingsData = async () => {
   const response = await api.get("/api/readings/");
@@ -11,7 +11,10 @@ export const getReadingOne = async (id: string | number) => {
   return response.data;
 };
 
-export const postReadingAnswers = async (data: ReadingFormValues) => {
-  const response = await api.post("/api/readings/", data);
+export const postReadingAnswers = async (
+  id: string | undefined,
+  data: AnswerPayload
+) => {
+  const response = await api.post(`/api/reading-answers/${id}/`, data);
   return response.data;
 };

@@ -37,18 +37,18 @@ export const usePreventPageLeave = (shouldBlock: boolean) => {
 
   useEffect(() => {
     if (!shouldBlock) {
-      // Test tugaganda fullscreen’dan chiqish
       exitFullscreen();
       return;
     }
 
-    // Test boshlanganda fullscreen rejimini yoqish
     enterFullscreen();
 
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-      event.preventDefault();
-      event.returnValue =
-        "Test hali tugamadi! Chiqishni tasdiqlasangiz, natijalar saqlanmaydi!";
+      if (shouldBlock) {
+        event.preventDefault();
+        event.returnValue =
+          "Test hali tugamadi! Chiqishni tasdiqlasangiz, natijalar saqlanmaydi!";
+      }
     };
 
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -59,17 +59,14 @@ export const usePreventPageLeave = (shouldBlock: boolean) => {
         event.preventDefault();
         alert("Test tugamaguncha sahifani yangilash taqiqlangan!");
       }
-      // F11 (fullscreen toggle) ni bloklash
       if (shouldBlock && event.key === "F11") {
         event.preventDefault();
         alert("Test tugamaguncha fullscreen rejimidan chiqish taqiqlangan!");
       }
     };
 
-    // Fullscreen rejimidan chiqishni aniqlash
     const handleFullscreenChange = () => {
       if (shouldBlock && !document.fullscreenElement) {
-        // Agar foydalanuvchi fullscreen’dan chiqsa, qayta yoqish
         enterFullscreen();
         alert("Test tugamaguncha fullscreen rejimida qolishingiz kerak!");
       }

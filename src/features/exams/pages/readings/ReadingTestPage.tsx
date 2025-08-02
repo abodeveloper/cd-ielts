@@ -6,6 +6,7 @@ import TestStep from "./steps/TestStep";
 const ReadingTestPage = () => {
   return (
     <FlowPage steps={[<ConfirmDetailsStep />, <ReadyStep />, <TestStep />]} />
+    // <FlowPage steps={[<TestStep />]} />
   );
 };
 

@@ -92,6 +92,14 @@ export const routes = [
     ),
   },
   {
+    path: "abbos",
+    element: (
+      <ProtectedRoute>
+        <div>Abbos</div>
+      </ProtectedRoute>
+    ),
+  },
+  {
     path: "*",
     element: <Navigate to="/profile" />,
   },

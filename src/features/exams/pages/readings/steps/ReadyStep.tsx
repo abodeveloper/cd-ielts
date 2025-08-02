@@ -16,8 +16,8 @@ interface StepProps {
 
 export default function ReadyStep({ onNext }: StepProps) {
   return (
-    <div className="flex items-center justify-center min-h-screen py-4">
-      <Card className="w-full max-w-3xl shadow-lg">
+    <div className="flex items-center justify-center min-h-screen py-4 w-full">
+      <Card className="w-full max-w-2xl shadow-lg">
         <CardHeader className="flex items-center space-x-2">
           <RiBookOpenLine className="w-12 h-12" />
           <h1 className="scroll-m-20 text-center text-lg font-extrabold tracking-tight text-balance">

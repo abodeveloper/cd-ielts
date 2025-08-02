@@ -1,7 +1,12 @@
 import React, { useState } from "react";
 
+// Define a type for steps that can accept an onNext prop
+interface StepProps {
+  onNext?: () => void;
+}
+
 interface FlowPageProps {
-  steps: React.ReactNode[];
+  steps: React.ReactElement<StepProps>[];
 }
 
 export default function FlowPage({ steps }: FlowPageProps) {
@@ -16,8 +21,7 @@ export default function FlowPage({ steps }: FlowPageProps) {
   const CurrentStep = steps[step];
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-muted px-4">
-      {/* Current stepga `onNext` propini uzatamiz */}
+    <div>
       {React.isValidElement(CurrentStep) &&
         React.cloneElement(CurrentStep, { onNext: nextStep })}
     </div>

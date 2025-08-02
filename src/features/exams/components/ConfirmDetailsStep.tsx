@@ -14,8 +14,8 @@ interface StepProps {
 
 export default function ConfirmDetailsStep({ onNext }: StepProps) {
   return (
-    <div className="flex items-center justify-center min-h-screen bg-muted">
-      <Card className="w-full max-w-2xl shadow-lg">
+    <div className="flex items-center justify-center min-h-screen bg-muted w-full">
+      <Card className="w-full max-w-lg shadow-lg">
         <CardHeader className="flex items-center space-x-2">
           <RiInfoCardLine className="w-12 h-12" />
           <h1 className="scroll-m-20 text-center text-lg font-extrabold tracking-tight text-balance">
