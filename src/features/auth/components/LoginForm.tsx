@@ -55,27 +55,6 @@ export const LoginForm = () => {
               name="password"
               type="password"
             />
-
-            <RadioGroup>
-              <MyQuestionRadio<LoginDto>
-                control={form.control}
-                name={`answers.answer`}
-                value="true"
-                label={"True"}
-              />
-              <MyQuestionRadio<LoginDto>
-                control={form.control}
-                name={`answers.answer`}
-                value="false"
-                label={"False"}
-              />
-              <MyQuestionRadio<LoginDto>
-                control={form.control}
-                name={`answers.answer`}
-                value="not_given"
-                label={"Not given"}
-              />
-            </RadioGroup>
           </div>
           <Button
             type="submit"
