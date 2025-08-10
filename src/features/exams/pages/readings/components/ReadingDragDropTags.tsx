@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { DndContext, useDraggable, useDroppable } from "@dnd-kit/core";
 import { UseFormReturn } from "react-hook-form";
 import { ReadingFormValues } from "@/features/exams/schemas/reading-schema";
@@ -23,7 +23,7 @@ interface ReadingDragDropTagsProps {
   options: Option[];
   questions: Question[];
   form: UseFormReturn<ReadingFormValues>;
-  isReusable?: boolean; // false = bir marta ishlatiladi, true = cheksiz ishlatiladi
+  isRepeatAnswer?: boolean; // false = bir martalik, true = qayta ishlatiladigan javoblar
 }
 
 const Draggable = ({ label, value }: Option) => {
@@ -72,26 +72,32 @@ const ReadingDragDropTags: React.FC<ReadingDragDropTagsProps> = ({
   options,
   questions: initialQuestions,
   form,
-  isReusable = false,
+  isRepeatAnswer = false,
 }) => {
   const [error, setError] = useState<string | null>(null);
   const [availableOptions, setAvailableOptions] = useState<Option[]>([]);
   const [questions, setQuestions] = useState<Question[]>([]);
 
-  // Init state
+  // options va initialQuestions ni stabillashtirish
+  const stableOptions = useMemo(() => options, [options]);
+  const stableQuestions = useMemo(() => initialQuestions, [initialQuestions]);
+
+  // Boshlang‘ich holatni faqat bir marta o‘rnatish
   useEffect(() => {
-    if (!options?.length) {
-      setError("Invalid or empty options provided.");
+    console.log("useEffect triggered with options:", stableOptions);
+    if (!stableOptions?.length) {
+      setError("Noto‘g‘ri yoki bo‘sh variantlar kiritilgan.");
       return;
     }
-    if (!initialQuestions?.length) {
-      setError("Invalid or empty questions provided.");
+    if (!stableQuestions?.length) {
+      setError("Noto‘g‘ri yoki bo‘sh savollar kiritilgan.");
       return;
     }
 
-    setAvailableOptions(options);
+    console.log("Initializing availableOptions:", stableOptions);
+    setAvailableOptions(stableOptions);
     setQuestions(
-      initialQuestions.map((q) => ({
+      stableQuestions.map((q) => ({
         ...q,
         answer:
           q.answer ||
@@ -100,34 +106,44 @@ const ReadingDragDropTags: React.FC<ReadingDragDropTagsProps> = ({
       }))
     );
     setError(null);
-  }, [initialQuestions, options, form]);
+  }, []); // Bo‘sh bog‘liqliklar, faqat bir marta ishga tushadi
 
   const handleDragEnd = (event: any) => {
     const { over, active } = event;
     if (!over) return;
 
-    const draggedOption =
-      availableOptions.find((opt) => opt.value === active.id) ||
-      options.find((opt) => opt.value === active.id);
-    if (!draggedOption) return;
+    const draggedOption = stableOptions.find(
+      (opt) => String(opt.value) === String(active.id)
+    );
+    if (!draggedOption) {
+      console.error("Dragged option not found:", active.id);
+      return;
+    }
 
     const qIndex = parseInt(over.id) - 1;
     const existingAnswer = questions.find(
       (q) => q.question_number === over.id
     )?.answer;
 
-    // Eski javobni qaytarish (faqat isReusable=false bo‘lsa)
-    if (existingAnswer && !isReusable) {
-      const oldOption = options.find((o) => o.value === existingAnswer);
+    console.log("Setting answer for question", over.id, ":", draggedOption);
+
+    // Agar oldingi javob bo‘lsa va isRepeatAnswer false bo‘lsa, uni qaytarish
+    if (existingAnswer && !isRepeatAnswer) {
+      const oldOption = stableOptions.find(
+        (o) => String(o.value) === String(existingAnswer)
+      );
       if (
         oldOption &&
-        !availableOptions.some((o) => o.value === oldOption.value)
+        !availableOptions.some(
+          (o) => String(o.value) === String(oldOption.value)
+        )
       ) {
+        console.log("Returning old option to available:", oldOption);
         setAvailableOptions((prev) => [...prev, oldOption]);
       }
     }
 
-    // Yangi javob yozish
+    // Yangi javobni o‘rnatish
     form.setValue(`answers.${qIndex}.answer`, draggedOption.value);
     setQuestions((prev) =>
       prev.map((q) =>
@@ -137,11 +153,16 @@ const ReadingDragDropTags: React.FC<ReadingDragDropTagsProps> = ({
       )
     );
 
-    // Draggable variantni olib tashlash (faqat isReusable=false bo‘lsa)
-    if (!isReusable) {
-      setAvailableOptions((prev) =>
-        prev.filter((opt) => opt.value !== draggedOption.value)
-      );
+    // Agar isRepeatAnswer false bo‘lsa, ishlatilgan variantni olib tashlash
+    if (!isRepeatAnswer) {
+      console.log("Before filtering availableOptions:", availableOptions);
+      setAvailableOptions((prev) => {
+        const newOptions = prev.filter(
+          (opt) => String(opt.value) !== String(draggedOption.value)
+        );
+        console.log("After filtering availableOptions:", newOptions);
+        return newOptions;
+      });
     }
   };
 
@@ -152,25 +173,26 @@ const ReadingDragDropTags: React.FC<ReadingDragDropTagsProps> = ({
     );
     if (!question?.answer) return;
 
-    // Javobni formdan o‘chirish
+    console.log("Removing answer for question", questionNumber);
     form.setValue(`answers.${qIndex}.answer`, "");
 
-    // Javobni state’dan o‘chirish
     setQuestions((prev) =>
       prev.map((q) =>
         q.question_number === questionNumber ? { ...q, answer: undefined } : q
       )
     );
 
-    // Agar isReusable=false bo‘lsa, variantni qaytarish
-    if (!isReusable) {
-      const optionToReturn = options.find(
-        (opt) => opt.value === question.answer
+    if (!isRepeatAnswer) {
+      const optionToReturn = stableOptions.find(
+        (opt) => String(opt.value) === String(question.answer)
       );
       if (
         optionToReturn &&
-        !availableOptions.some((o) => o.value === optionToReturn.value)
+        !availableOptions.some(
+          (o) => String(o.value) === String(optionToReturn.value)
+        )
       ) {
+        console.log("Returning option to available:", optionToReturn);
         setAvailableOptions((prev) => [...prev, optionToReturn]);
       }
     }
@@ -183,7 +205,7 @@ const ReadingDragDropTags: React.FC<ReadingDragDropTagsProps> = ({
   return (
     <DndContext onDragEnd={handleDragEnd}>
       <div className="space-y-6 mt-4 mb-6">
-        {/* Draggable variantlar */}
+        {/* Mavjud variantlar */}
         <div className="flex flex-wrap gap-2">
           {availableOptions.map((opt) => (
             <Draggable key={opt.value} label={opt.label} value={opt.value} />
@@ -203,18 +225,21 @@ const ReadingDragDropTags: React.FC<ReadingDragDropTagsProps> = ({
                 {q.answer ? (
                   <div className="flex items-center gap-2">
                     <span>
-                      {options.find((opt) => opt.value === q.answer)?.label ||
-                        "?"}
+                      {stableOptions.find(
+                        (opt) => String(opt.value) === String(q.answer)
+                      )?.label || "?"}
                     </span>
                     <button
                       onClick={() => handleRemoveAnswer(q.question_number)}
                       className="text-destructive hover:text-destructive/70"
                     >
-                      <RiCloseLine size={15}/>
+                      <RiCloseLine size={15} />
                     </button>
                   </div>
                 ) : (
-                  <span className="text-muted-foreground">Drop here</span>
+                  <span className="text-muted-foreground">
+                    {q.question_number}
+                  </span>
                 )}
               </Droppable>
             </div>

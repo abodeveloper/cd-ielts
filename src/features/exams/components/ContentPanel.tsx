@@ -2,11 +2,10 @@ import { TabsContent } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { TestType } from "@/shared/enums/test-type.enum";
 import { UseFormReturn } from "react-hook-form";
-import { Reading, TestData } from "../types";
-import ReadingQuestionRenderer from "../pages/readings/components/ReadingQuestionRenderer";
 import ReadingQuestionContent from "../pages/readings/components/ReadingQuestionContent";
-import { ReadingFormValues } from "../schemas/reading-schema";
 import WritingQuestionContent from "../pages/writing/components/WritingQuestionContent";
+import { ReadingFormValues } from "../schemas/reading-schema";
+import { Reading, TestData } from "../types";
 
 // Type guard to check if part is Reading
 const isReading = (part: TestData): part is Reading => {

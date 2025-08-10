@@ -10,4 +10,5 @@ export enum ReadingQuestionType {
   SUMMARY_COMPLETION = "summary_note_table_flow_chart_completion",
   DIAGRAM_LABEL_COMPLETION = "diagram_label_completion",
   SHORT_ANSWER = "short_answer_questions",
+  LIST_SELECTION = "list_selection",
 }

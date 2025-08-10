@@ -1,8 +1,6 @@
 // QuestionInput.tsx
 import { RadioGroup } from "@/components/ui/radio-group";
 import { ReadingFormValues } from "@/features/exams/schemas/reading-schema";
-import MyQuestionCheckbox from "@/shared/components/atoms/question-inputs/MyQuestionCheckbox";
-import MyQuestionCheckboxGroup from "@/shared/components/atoms/question-inputs/MyQuestionCheckboxGroup";
 import MyQuestionInput from "@/shared/components/atoms/question-inputs/MyQuestionInput";
 import MyQuestionRadio from "@/shared/components/atoms/question-inputs/MyQuestionRadio";
 import MyQuestionSelect from "@/shared/components/atoms/question-inputs/MyQuestionSelect";
@@ -155,7 +153,7 @@ const ReadingQuestionInput: React.FC<Props> = ({
 
   if (
     type === ReadingQuestionType.MATCHING_INFORMATION ||
-    type === ReadingQuestionType.MATCHING_FEATURES
+    type === ReadingQuestionType.MATCHING_HEADINGS
   ) {
     return (
       <>
@@ -175,10 +173,6 @@ const ReadingQuestionInput: React.FC<Props> = ({
         />
       </>
     );
-  }
-
-  if (type === ReadingQuestionType.MATCHING_HEADINGS) {
-    return <></>;
   }
 
   return null;

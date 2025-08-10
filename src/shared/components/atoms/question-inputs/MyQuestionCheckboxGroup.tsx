@@ -1,18 +1,23 @@
 import { Checkbox } from "@/components/ui/checkbox.tsx";
 import {
-    FormControl,
-    FormDescription,
-    FormField,
-    FormItem,
-    FormLabel,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
 } from "@/components/ui/form.tsx";
 import { useEffect } from "react";
-import { FieldPath, FieldValues, useFormContext, useWatch } from "react-hook-form"; // useFormContext qo'shildi
+import {
+  FieldPath,
+  FieldValues,
+  useFormContext,
+  useWatch,
+} from "react-hook-form";
 
 type CheckboxGroupOption = {
   value: string;
   label: string;
   helperText?: string;
+  id?: string; // Har bir option uchun id
 };
 
 type MyQuestionCheckboxGroupProps<TFieldValues extends FieldValues> = {
@@ -23,6 +28,7 @@ type MyQuestionCheckboxGroupProps<TFieldValues extends FieldValues> = {
   orientation?: "vertical" | "horizontal";
   className?: string;
   maxSelections?: number;
+  onValueChange?: (values: string[]) => void;
 };
 
 const MyQuestionCheckboxGroup = <TFieldValues extends FieldValues>({
@@ -33,18 +39,20 @@ const MyQuestionCheckboxGroup = <TFieldValues extends FieldValues>({
   orientation = "vertical",
   className = "",
   maxSelections,
+  onValueChange,
 }: MyQuestionCheckboxGroupProps<TFieldValues>) => {
-  // useWatch bilan qiymatni kuzatish
+  const { setValue } = useFormContext();
   const formValues = useWatch({ control, name }) as string[] | undefined;
-  const { setValue } = useFormContext(); // Form kontekstidan setValue olish
 
   useEffect(() => {
     if (maxSelections && formValues && formValues.length > maxSelections) {
-      // Cheklovdan oshsa, oxirgi qo'shimchani olib tashlash
       const newValue = formValues.slice(0, maxSelections);
       setValue(name, newValue);
+      if (onValueChange) {
+        onValueChange(newValue);
+      }
     }
-  }, [formValues, maxSelections, name, setValue]);
+  }, [formValues, maxSelections, name, setValue, onValueChange]);
 
   return (
     <FormField
@@ -56,41 +64,51 @@ const MyQuestionCheckboxGroup = <TFieldValues extends FieldValues>({
             orientation === "horizontal" ? "space-x-4" : ""
           } ${className}`}
         >
-          {label && <FormLabel>{label}</FormLabel>}
-          {options.map((option) => (
-            <FormItem
-              key={option.value}
-              className="flex flex-row items-start space-x-3 space-y-0"
-            >
-              <FormControl>
-                <Checkbox
-                  checked={
-                    (field.value as string[])?.includes(option.value) || false
-                  }
-                  onCheckedChange={(checked) => {
-                    const currentValues = field.value || [];
-                    if (
-                      checked &&
-                      maxSelections &&
-                      currentValues.length >= maxSelections
-                    ) {
-                      return;
+          {label && <div className="font-medium">{label}</div>}
+          {options.map((option) => {
+            const checkboxId = option.id || `${name}_${option.value}`;
+            return (
+              <FormItem
+                key={option.value}
+                className="flex flex-row items-start space-x-3 space-y-0"
+              >
+                <FormControl>
+                  <Checkbox
+                    id={checkboxId}
+                    checked={
+                      (field.value as string[])?.includes(option.value) || false
                     }
-                    const newValue = checked
-                      ? [...currentValues, option.value]
-                      : currentValues.filter((v: string) => v !== option.value);
-                    field.onChange(newValue);
-                  }}
-                />
-              </FormControl>
-              <div className="space-y-1 leading-none">
-                <FormLabel>{option.label}</FormLabel>
-                {option.helperText && (
-                  <FormDescription>{option.helperText}</FormDescription>
-                )}
-              </div>
-            </FormItem>
-          ))}
+                    onCheckedChange={(checked) => {
+                      const currentValues = (field.value as string[]) || [];
+                      if (
+                        checked &&
+                        maxSelections &&
+                        currentValues.length >= maxSelections
+                      ) {
+                        return;
+                      }
+                      const newValue = checked
+                        ? [...currentValues, option.value]
+                        : currentValues.filter(
+                            (v: string) => v !== option.value
+                          );
+                      field.onChange(newValue);
+                      if (onValueChange) {
+                        onValueChange(newValue);
+                      }
+                    }}
+                  />
+                </FormControl>
+                <div className="space-y-1 leading-none">
+                  <span>{option.label}</span>{" "}
+                  {/* Labelni checkbox yonida ko‘rsatish */}
+                  {option.helperText && (
+                    <FormDescription>{option.helperText}</FormDescription>
+                  )}
+                </div>
+              </FormItem>
+            );
+          })}
         </FormItem>
       )}
     />

@@ -4,6 +4,7 @@ import { ReadingFormValues } from "@/features/exams/schemas/reading-schema";
 import ReadingQuestionInput from "./ReadingQuestionInput";
 import { ReadingQuestionType } from "@/shared/enums/reading-question-type.enum";
 import ReadingDragDropTags from "./ReadingDragDropTags";
+import MyQuestionCheckboxGroup from "@/shared/components/atoms/question-inputs/MyQuestionCheckboxGroup";
 
 interface QuestionRendererProps {
   htmlString: string;
@@ -73,21 +74,86 @@ const ReadingQuestionRenderer: React.FC<QuestionRendererProps> = ({
             }
 
             /** --------------------
+             * List Selection Tags
+             -------------------- **/
+            if (domNode.name === "list-selection-tegs") {
+              const { attribs } = domNode;
+              const questionNumbers = JSON.parse(
+                attribs["question_numbers"] || "[]"
+              );
+              const options = JSON.parse(attribs["data-options"] || "[]");
+              const questionType = attribs["question_type"] || "";
+
+              if (
+                !questionNumbers.length ||
+                !options.length ||
+                questionType !== ReadingQuestionType.LIST_SELECTION
+              ) {
+                console.warn(
+                  "Invalid list-selection-tegs attributes:",
+                  attribs
+                );
+                return (
+                  <span className="text-destructive">
+                    Invalid list selection tags
+                  </span>
+                );
+              }
+
+              // Optionsni tekshirish va to‘g‘ri shaklda uzatish
+              const formattedOptions = options.map(
+                (option: { label: string; value: string }) => ({
+                  value: option.value,
+                  label: option.label || option.value, // Agar label bo‘lmasa, value dan foydalanamiz
+                  id: `sharedAnswers_${questionNumbers.join("_")}_${
+                    option.value
+                  }`,
+                })
+              );
+
+              return (
+                <div
+                  className="my-6"
+                  key={questionNumbers.join("_")}
+                >
+                  <MyQuestionCheckboxGroup
+                    control={form.control}
+                    name={`sharedAnswers_${questionNumbers.join("_")}`}
+                    options={formattedOptions}
+                    maxSelections={questionNumbers.length}
+                    orientation="vertical"
+                    className="w-full"
+                    onValueChange={(values: string[]) => {
+                      questionNumbers.forEach((num: string, index: number) => {
+                        const answerIndex = parseInt(num) - 1;
+                        form.setValue(
+                          `answers.${answerIndex}.answer`,
+                          values[index] || ""
+                        );
+                      });
+                    }}
+                  />
+                </div>
+              );
+            }
+
+            /** --------------------
              * Drag Drop Tags
              -------------------- **/
             if (domNode.name === "drag-drop-tegs") {
               const { attribs } = domNode;
-              const options = JSON.parse(attribs["data-options"] || "[]");
-              const questions = JSON.parse(
-                attribs["data-questions"] || "[]"
+              const repeatAnswer = Boolean(
+                attribs["data-repeat-answer"] || "False"
               );
+              const options = JSON.parse(attribs["data-options"] || "[]");
+              const questions = JSON.parse(attribs["data-questions"] || "[]");
 
               return (
                 <ReadingDragDropTags
                   options={options}
                   questions={questions}
                   form={form}
-                  isReusable={true}
+                  isRepeatAnswer={repeatAnswer}
                 />
               );
             }
