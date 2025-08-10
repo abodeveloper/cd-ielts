@@ -1,7 +1,7 @@
 // hooks/useReading.ts
 import { getReadingOne } from "@/features/exams/api/reading";
 import { useQuery, UseQueryResult } from "@tanstack/react-query";
-import { Reading } from "../types/reading";
+import { Reading } from "../types";
 
 export const useReading = (
   id: string | undefined

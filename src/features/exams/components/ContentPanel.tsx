@@ -6,10 +6,13 @@ import { Reading, TestData } from "../types";
 import ReadingQuestionRenderer from "../pages/readings/components/ReadingQuestionRenderer";
 import ReadingQuestionContent from "../pages/readings/components/ReadingQuestionContent";
 import { ReadingFormValues } from "../schemas/reading-schema";
+import WritingQuestionContent from "../pages/writing/components/WritingQuestionContent";
 
 // Type guard to check if part is Reading
 const isReading = (part: TestData): part is Reading => {
-  return "questions" in part && "answers" in part && Array.isArray(part.answers);
+  return (
+    "questions" in part && "answers" in part && Array.isArray(part.answers)
+  );
 };
 
 interface ContentPanelProps<T extends TestData> {
@@ -25,7 +28,7 @@ const ContentPanel = <T extends TestData>({
   testType,
   form,
 }: ContentPanelProps<T>) => {
-  const renderContent = (part: T) => {
+  const renderContent = (part: T, index: number) => {
     switch (testType) {
       case TestType.READING:
         if (!isReading(part)) {
@@ -38,35 +41,14 @@ const ContentPanel = <T extends TestData>({
           />
         );
       case TestType.LISTENING:
-        return (
-          <div className="h-[calc(100vh-260px)] p-6 text-sm">
-            <audio controls className="mb-4">
-              <source src={part.content} type="audio/mpeg" />
-              Your browser does not support the audio element.
-            </audio>
-            {part.questions ? (
-              <ReadingQuestionRenderer
-                htmlString={part.questions}
-                form={form}
-              />
-            ) : (
-              <div>No questions available</div>
-            )}
-          </div>
-        );
+        return <div className="p-6 text-sm"></div>;
       case TestType.WRITING:
         return (
-          <div className="h-[calc(100vh-260px)] p-6 text-sm">
-            <div
-              className="mb-4"
-              dangerouslySetInnerHTML={{ __html: part.content }}
-            />
-            <textarea
-              className="w-full h-64 p-2 border rounded"
-              placeholder="Write your response here..."
-              {...form.register(`answers.${part.id}.response`)}
-            />
-          </div>
+          <WritingQuestionContent
+            part={part}
+            index={index}
+            form={form as UseFormReturn<ReadingFormValues>}
+          />
         );
       default:
         return <div>Unsupported test type</div>;
@@ -74,14 +56,17 @@ const ContentPanel = <T extends TestData>({
   };
 
   return (
-    <div className="flex-grow">
-      {data.map((part) => (
+    <div>
+      {data.map((part, index) => (
         <TabsContent
           key={part.id}
           value={`tab-${part.id}`}
-          className={cn("h-full", activeTab !== `tab-${part.id}` && "hidden")}
+          className={cn(
+            "h-full bg-muted",
+            activeTab !== `tab-${part.id}` && "hidden"
+          )}
         >
-          {renderContent(part)}
+          {renderContent(part, index)}
         </TabsContent>
       ))}
     </div>

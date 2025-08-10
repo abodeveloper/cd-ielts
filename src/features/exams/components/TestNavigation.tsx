@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { RiArrowLeftSLine, RiArrowRightSLine } from "@remixicon/react";
 import { TestData } from "../types";
 import ConfirmationDialog from "@/shared/components/atoms/confirmation-dialog/ConfirmationDialog";
+import { isEmpty } from "lodash";
 
 interface TestNavigationProps<T extends TestData> {
   data: T[];
@@ -32,36 +33,38 @@ const TestNavigation = <T extends TestData>({
   isTestFinished,
 }: TestNavigationProps<T>) => (
   <Card className="w-full shadow-md p-2 sticky bottom-0 z-50 rounded-none">
-    <CardContent className="p-0 flex items-center justify-between gap-2">
-      <TabsList className="grid grid-cols-3 gap-2 min-h-min">
+    <CardContent className="p-0 flex items-center justify-between gap-2 h-[80px]">
+      <TabsList className="grid grid-cols-2 gap-2 min-h-min">
         {data.map((part) => (
-          <div key={part.id} className="flex gap-1">
+          <div key={part.id} className="flex gap-2">
             <TabsTrigger value={`tab-${part.id}`}>
               Part {part.passage_number}
             </TabsTrigger>
-            <div className="flex flex-wrap gap-2">
-              {part.answers?.map((item) => {
-                const value = form.watch(
-                  `answers.${item.question_number - 1}.answer`
-                );
-                const isAnswered = !!value && value.trim() !== "";
-                return (
-                  <Label
-                    key={item.id}
-                    htmlFor={item.question_number.toString()}
-                    onClick={() => setActiveTab(`tab-${part.id}`)}
-                    className={cn(
-                      "cursor-pointer rounded h-7 w-7 text-sm flex items-center justify-center",
-                      isAnswered
-                        ? "bg-primary text-background hover:bg-primary/90"
-                        : "border border-primary text-primary hover:bg-primary/10"
-                    )}
-                  >
-                    {item.question_number}
-                  </Label>
-                );
-              })}
-            </div>
+            {!isEmpty(part.answers) && (
+              <div className="flex flex-wrap gap-2">
+                {part.answers?.map((item) => {
+                  const value = form.watch(
+                    `answers.${item?.question_number - 1}.answer`
+                  );
+                  const isAnswered = !!value && value.trim() !== "";
+                  return (
+                    <Label
+                      key={item.id}
+                      htmlFor={item?.question_number?.toString()}
+                      onClick={() => setActiveTab(`tab-${part.id}`)}
+                      className={cn(
+                        "cursor-pointer rounded h-7 w-7 text-sm flex items-center justify-center",
+                        isAnswered
+                          ? "bg-primary text-background hover:bg-primary/90"
+                          : "border border-primary text-primary hover:bg-primary/10"
+                      )}
+                    >
+                      {item?.question_number}
+                    </Label>
+                  );
+                })}
+              </div>
+            )}
           </div>
         ))}
       </TabsList>

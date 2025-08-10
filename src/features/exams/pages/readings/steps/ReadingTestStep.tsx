@@ -13,7 +13,7 @@ import { TestType } from "@/shared/enums/test-type.enum";
 import { FormProvider } from "react-hook-form";
 import { useParams } from "react-router-dom";
 
-const TestPage = () => {
+const ReadingTestStep = () => {
   const { id } = useParams();
   const { form, onSubmit, query } = useReadingForm(id);
 
@@ -47,18 +47,14 @@ const TestPage = () => {
     <FormProvider {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="flex flex-col min-h-screen"
+        className="min-h-screen"
       >
         <div className="sticky top-0 z-50 bg-primary-foreground space-y-1">
           <TestHeader timeLeft={timeLeft} formatTime={formatTime} />
           <PartInfo activePart={activePart} testType={TestType.READING} />
         </div>
 
-        <Tabs
-          value={activeTab}
-          onValueChange={setActiveTab}
-          className="flex flex-col flex-grow"
-        >
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
           <ContentPanel
             data={data}
             activeTab={activeTab}
@@ -82,4 +78,4 @@ const TestPage = () => {
   );
 };
 
-export default TestPage;
+export default ReadingTestStep;

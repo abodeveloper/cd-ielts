@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 // Define a type for steps that can accept an onNext prop
 interface StepProps {
@@ -17,6 +17,15 @@ export default function FlowPage({ steps }: FlowPageProps) {
       setStep((prev) => prev + 1);
     }
   };
+
+  useEffect(() => {
+    document.body.style.overflow = "hidden"; // Sahifa ochilganda
+
+    // Sahifa yopilganda eski holatga qaytarish
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, []);
 
   const CurrentStep = steps[step];
 

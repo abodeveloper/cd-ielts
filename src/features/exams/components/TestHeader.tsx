@@ -9,7 +9,7 @@ interface TestHeaderProps {
 
 const TestHeader = ({ timeLeft, formatTime }: TestHeaderProps) => (
   <Card className="w-full shadow-md rounded-none">
-    <CardContent className="p-3 flex justify-between items-center">
+    <CardContent className="p-3 flex justify-between items-center h-[50px]">
       <div className="text-sm flex items-center gap-2">
         <RiShieldUserLine />
         <b>Candidate:</b> Abbos Ibragimov

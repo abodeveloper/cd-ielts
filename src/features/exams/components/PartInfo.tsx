@@ -30,7 +30,7 @@ const PartInfo = <T extends TestData>({
 
   return (
     <Card className="w-full shadow-sm rounded-none">
-      <CardContent className="p-3 text-sm">
+      <CardContent className="p-3 text-sm h-[70px]">
         <div className="font-semibold">Part {activePart.passage_number}</div>
         <div>{renderInstructions()}</div>
       </CardContent>
