@@ -7,7 +7,7 @@ export enum ReadingQuestionType {
   MATCHING_FEATURES = "matching_features",
   MATCHING_SENTENCE_ENDINGS = "matching_sentence_endings",
   SENTENCE_COMPLETION = "sentence_completion",
-  SUMMARY_COMPLETION = "summary_note_table_flow_chart_completion",
+  SUMMARY_COMPLETION = "summary_completion",
   DIAGRAM_LABEL_COMPLETION = "diagram_label_completion",
   SHORT_ANSWER = "short_answer_questions",
   LIST_SELECTION = "list_selection",
