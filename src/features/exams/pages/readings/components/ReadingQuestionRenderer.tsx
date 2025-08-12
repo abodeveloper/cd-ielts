@@ -142,9 +142,7 @@ const ReadingQuestionRenderer: React.FC<QuestionRendererProps> = ({
              -------------------- **/
             if (domNode.name === "drag-drop-tegs") {
               const { attribs } = domNode;
-              const repeatAnswer = Boolean(
-                attribs["data-repeat-answer"] || "False"
-              );
+              const repeatAnswer = Boolean(attribs["repeat_answer"] || false);
               const options = JSON.parse(attribs["data-options"] || "[]");
               const questions = JSON.parse(attribs["data-questions"] || "[]");
 
