@@ -33,7 +33,7 @@ const ReadingQuestionInput: React.FC<Props> = ({
     type === ReadingQuestionType.SENTENCE_COMPLETION ||
     type === ReadingQuestionType.SHORT_ANSWER ||
     type === ReadingQuestionType.SUMMARY_COMPLETION ||
-    type === ReadingQuestionType.DIAGRAM_LABEL_COMPLETION
+    type === ReadingQuestionType.DIAGRAM_LABEL
   ) {
     return (
       <MyQuestionInput<ReadingFormValues>

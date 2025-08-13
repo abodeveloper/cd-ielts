@@ -8,7 +8,7 @@ export enum ReadingQuestionType {
   MATCHING_SENTENCE_ENDINGS = "matching_sentence_endings",
   SENTENCE_COMPLETION = "sentence_completion",
   SUMMARY_COMPLETION = "summary_completion",
-  DIAGRAM_LABEL_COMPLETION = "diagram_label_completion",
-  SHORT_ANSWER = "short_answer_questions",
+  DIAGRAM_LABEL = "diagram_label",
+  SHORT_ANSWER = "short_answer",
   LIST_SELECTION = "list_selection",
 }
