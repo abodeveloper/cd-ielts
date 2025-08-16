@@ -1,10 +1,22 @@
-import { useAuthStore } from "@/store/auth-store"; // zustanddan
-import { Navigate } from "react-router-dom";
+import { JSX, useEffect, useRef } from "react";
+import { Navigate, useLocation } from "react-router-dom";
+import { useAuthStore } from "@/store/auth-store";
 
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const isAuth = useAuthStore((state) => state.isAuthenticated);
+export default function ProtectedRoute({ children }: { children: JSX.Element }) {
+  const { isAuthenticated, fetchMe } = useAuthStore();
+  const location = useLocation();
+  const calledRef = useRef(false);
 
-  return isAuth ? <>{children}</> : <Navigate to="/login" />;
-};
+  useEffect(() => {
+    if (isAuthenticated && !calledRef.current) {
+      calledRef.current = true;
+      fetchMe();
+    }
+  }, [isAuthenticated, fetchMe]);
 
-export default ProtectedRoute;
+  if (!isAuthenticated) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  return children;
+}

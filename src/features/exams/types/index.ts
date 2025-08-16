@@ -19,6 +19,17 @@ export interface Reading extends TestData {
   answers: Answer[];
 }
 
+export interface Listening extends TestData {
+  id: number;
+  test_material: number;
+  test_material_id: number;
+  passage_number: number;
+  created_at: string;
+  content: string;
+  questions: string;
+  answers: Answer[];
+}
+
 export interface Writing extends TestData {
   id: number;
   test_material: number;

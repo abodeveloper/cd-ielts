@@ -1,10 +1,10 @@
-import { UseFormReturn } from "react-hook-form";
-import parse, { Element } from "html-react-parser";
 import { ReadingFormValues } from "@/features/exams/schemas/reading-schema";
-import ReadingQuestionInput from "./ReadingQuestionInput";
-import { ReadingQuestionType } from "@/shared/enums/reading-question-type.enum";
-import ReadingDragDropTags from "./ReadingDragDropTags";
 import MyQuestionCheckboxGroup from "@/shared/components/atoms/question-inputs/MyQuestionCheckboxGroup";
+import { ReadingQuestionType } from "@/shared/enums/reading-question-type.enum";
+import parse, { Element } from "html-react-parser";
+import { UseFormReturn } from "react-hook-form";
+import DragDropTags from "./DragDropTags";
+import ReadingQuestionInput from "./ReadingQuestionInput";
 
 interface QuestionRendererProps {
   htmlString: string;
@@ -112,10 +112,7 @@ const ReadingQuestionRenderer: React.FC<QuestionRendererProps> = ({
               );
 
               return (
-                <div
-                  className="my-6"
-                  key={questionNumbers.join("_")}
-                >
+                <div className="my-6" key={questionNumbers.join("_")}>
                   <MyQuestionCheckboxGroup
                     control={form.control}
                     name={`sharedAnswers_${questionNumbers.join("_")}`}
@@ -147,7 +144,7 @@ const ReadingQuestionRenderer: React.FC<QuestionRendererProps> = ({
               const questions = JSON.parse(attribs["data-questions"] || "[]");
 
               return (
-                <ReadingDragDropTags
+                <DragDropTags
                   options={options}
                   questions={questions}
                   form={form}

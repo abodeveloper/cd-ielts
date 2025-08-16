@@ -17,8 +17,11 @@ const ReadingsPage = lazy(
 const ReadingTestPage = lazy(
   () => import("@/features/exams/pages/readings/ReadingTestPage")
 );
-const ListeningPage = lazy(
-  () => import("@/features/exams/pages/listening/ListeningPage")
+const ListeningsPage = lazy(
+  () => import("@/features/exams/pages/listening/ListeningsPage")
+);
+const ListeningTestPage = lazy(
+  () => import("@/features/exams/pages/listening/ListeningTestPage")
 );
 const WritingsPage = lazy(
   () => import("@/features/exams/pages/writing/WritingsPage")
@@ -72,7 +75,7 @@ export const routes = [
           },
           {
             path: "listenings",
-            element: <ListeningPage />,
+            element: <ListeningsPage />,
           },
           {
             path: "writings",
@@ -99,6 +102,14 @@ export const routes = [
     element: (
       <ProtectedRoute>
         <WritingTestPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/listenings/:id",
+    element: (
+      <ProtectedRoute>
+        <ListeningTestPage />
       </ProtectedRoute>
     ),
   },

@@ -4,11 +4,18 @@ import { TestType } from "@/shared/enums/test-type.enum";
 import { UseFormReturn } from "react-hook-form";
 import ReadingQuestionContent from "../pages/readings/components/ReadingQuestionContent";
 import WritingQuestionContent from "../pages/writing/components/WritingQuestionContent";
+import { ListeningFormValues } from "../schemas/listening-schema";
 import { ReadingFormValues } from "../schemas/reading-schema";
 import { Reading, TestData } from "../types";
+import ListeningQuestionContent from "../pages/listening/components/ListeningQuestionContent";
 
 // Type guard to check if part is Reading
 const isReading = (part: TestData): part is Reading => {
+  return (
+    "questions" in part && "answers" in part && Array.isArray(part.answers)
+  );
+};
+const isListening = (part: TestData): part is Reading => {
   return (
     "questions" in part && "answers" in part && Array.isArray(part.answers)
   );
@@ -40,7 +47,16 @@ const ContentPanel = <T extends TestData>({
           />
         );
       case TestType.LISTENING:
-        return <div className="p-6 text-sm"></div>;
+        if (!isListening(part)) {
+          return <div>Invalid listening data</div>;
+        }
+        return (
+          <ListeningQuestionContent
+            part={part}
+            form={form as UseFormReturn<ListeningFormValues>}
+          />
+        );
+
       case TestType.WRITING:
         return (
           <WritingQuestionContent

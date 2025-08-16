@@ -19,7 +19,7 @@ interface Question {
   answer?: string;
 }
 
-interface ReadingDragDropTagsProps {
+interface Props {
   options: Option[];
   questions: Question[];
   form: UseFormReturn<ReadingFormValues>;
@@ -68,7 +68,7 @@ const Droppable = ({
   );
 };
 
-const ReadingDragDropTags: React.FC<ReadingDragDropTagsProps> = ({
+const ListeningDragDropTags: React.FC<Props> = ({
   options,
   questions: initialQuestions,
   form,
@@ -250,4 +250,4 @@ const ReadingDragDropTags: React.FC<ReadingDragDropTagsProps> = ({
   );
 };
 
-export default ReadingDragDropTags;
+export default ListeningDragDropTags;

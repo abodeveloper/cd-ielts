@@ -7,17 +7,17 @@ import { useFieldArray, useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { postReadingAnswers } from "../api/reading";
 import {
-  AnswerPayload,
-  ReadingFormValues,
-  readingSchema,
-} from "../schemas/reading-schema";
-import { useReading } from "./useReading";
+    AnswerPayload,
+    ListeningFormValues,
+    listeningSchema,
+} from "../schemas/listening-schema";
+import { useListening } from "./useListening";
 
-export const useReadingForm = (id: string | undefined) => {
+export const useListeningForm = (id: string | undefined) => {
   const navigate = useNavigate();
 
-  const form = useForm<ReadingFormValues>({
-    resolver: zodResolver(readingSchema),
+  const form = useForm<ListeningFormValues>({
+    resolver: zodResolver(listeningSchema),
     defaultValues: { answers: [] },
   });
 
@@ -33,7 +33,7 @@ export const useReadingForm = (id: string | undefined) => {
     },
   });
 
-  const query = useReading(id);
+  const query = useListening(id);
 
   const { fields: answersFields, replace } = useFieldArray({
     control: form.control,
@@ -45,9 +45,9 @@ export const useReadingForm = (id: string | undefined) => {
 
     const allQuestions = isArray(item)
       ? item
-          .flatMap((item) => item?.answers)
+          .flatMap((item) => item.answers)
           .map((item) => ({
-            question_number: item?.question_number,
+            question_number: item.question_number,
             answer: "",
           }))
       : [];
@@ -55,7 +55,7 @@ export const useReadingForm = (id: string | undefined) => {
     replace(allQuestions);
   }, [query.data, replace, query.isRefetching]);
 
-  const onSubmit = (data: ReadingFormValues) => {
+  const onSubmit = (data: ListeningFormValues) => {
     const submitData: AnswerPayload = [...get(data, "answers", [])];
     readingMutation.mutate(submitData);
   };
