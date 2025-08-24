@@ -46,7 +46,7 @@ const SpeakingsPage = () => {
                   <TableRow key={speaking.id}>
                     <TableCell className="py-3">{speaking.id}</TableCell>
                     <TableCell className="py-3">
-                      {speaking.title || `Listening ${speaking.id}`}
+                      {speaking.title || `Speaking ${speaking.id}`}
                     </TableCell>
                     <TableCell className="py-3">
                       <Button
