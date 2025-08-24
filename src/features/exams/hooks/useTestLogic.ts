@@ -3,16 +3,18 @@ import { toastService } from "@/lib/toastService";
 import { TestData } from "../types";
 
 const useTestLogic = <T extends TestData>(
-  initialTime: number,
+  initialTime: number | null, // ⬅️ null bo‘lsa vaqt yo‘q degani
   data: T[],
   onSubmit: () => void
 ) => {
-  const [timeLeft, setTimeLeft] = useState(initialTime);
+  const [timeLeft, setTimeLeft] = useState(initialTime ?? 0);
   const [isTestFinished, setIsTestFinished] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("");
 
   // Timer logic
   useEffect(() => {
+    if (!initialTime) return; // ⬅️ agar vaqt yo‘q bo‘lsa timer ishlamasin
+
     if (isTestFinished || timeLeft <= 0) {
       if (timeLeft <= 0 && !isTestFinished) {
         toastService.error("The time limit has expired.");
@@ -21,7 +23,6 @@ const useTestLogic = <T extends TestData>(
           setIsTestFinished(true);
         }, 2000);
       }
-      // Ensure timeLeft doesn't go below 0
       if (timeLeft < 0) {
         setTimeLeft(0);
       }
@@ -31,7 +32,7 @@ const useTestLogic = <T extends TestData>(
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
-          clearInterval(timer); // Stop the timer when reaching 0
+          clearInterval(timer);
           return 0;
         }
         return prev - 1;
@@ -39,7 +40,7 @@ const useTestLogic = <T extends TestData>(
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [timeLeft, isTestFinished, onSubmit]);
+  }, [timeLeft, isTestFinished, onSubmit, initialTime]);
 
   // Tab initialization
   useEffect(() => {
@@ -51,6 +52,7 @@ const useTestLogic = <T extends TestData>(
   const currentTabIndex = data.findIndex(
     (part) => `tab-${part.id}` === activeTab
   );
+
   const formatTime = (seconds: number) =>
     `${Math.floor(seconds / 60)
       .toString()
@@ -62,6 +64,14 @@ const useTestLogic = <T extends TestData>(
     currentTabIndex < data.length - 1 &&
     setActiveTab(`tab-${data[currentTabIndex + 1].id}`);
 
+  // ✅ faqat vaqt bo‘lsa ishlaydi
+  const finishTest = () => {
+    if (initialTime && !isTestFinished) {
+      onSubmit();
+      setIsTestFinished(true);
+    }
+  };
+
   return {
     timeLeft,
     formatTime,
@@ -71,6 +81,7 @@ const useTestLogic = <T extends TestData>(
     handlePrevious,
     handleNext,
     isTestFinished,
+    finishTest, // 🔥 endi faqat vaqt bo‘lsa ishlaydi
   };
 };
 

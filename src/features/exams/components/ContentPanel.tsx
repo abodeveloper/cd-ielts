@@ -6,18 +6,26 @@ import ReadingQuestionContent from "../pages/readings/components/ReadingQuestion
 import WritingQuestionContent from "../pages/writing/components/WritingQuestionContent";
 import { ListeningFormValues } from "../schemas/listening-schema";
 import { ReadingFormValues } from "../schemas/reading-schema";
-import { Reading, TestData } from "../types";
+import { Reading, Speaking, TestData } from "../types";
 import ListeningQuestionContent from "../pages/listening/components/ListeningQuestionContent";
+import SpeakingQuestionContent from "../pages/speaking/components/SpeakingQuestionContent";
+import { SpeakingFormValues } from "../schemas/speaking-schema";
 
 // Type guard to check if part is Reading
 const isReading = (part: TestData): part is Reading => {
   return (
-    "questions" in part && "answers" in part && Array.isArray(part.answers)
+    // "questions" in part && "answers" in part && Array.isArray(part.answers)
+    "questions" in part
   );
 };
 const isListening = (part: TestData): part is Reading => {
   return (
     "questions" in part && "answers" in part && Array.isArray(part.answers)
+  );
+};
+const isSpeaking = (part: TestData): part is Speaking => {
+  return (
+    "questions" in part
   );
 };
 
@@ -34,7 +42,7 @@ const ContentPanel = <T extends TestData>({
   testType,
   form,
 }: ContentPanelProps<T>) => {
-  const renderContent = (part: T, index: number) => {
+  const renderContent = (part: T, index: number, activeTab: number) => {
     switch (testType) {
       case TestType.READING:
         if (!isReading(part)) {
@@ -54,6 +62,17 @@ const ContentPanel = <T extends TestData>({
           <ListeningQuestionContent
             part={part}
             form={form as UseFormReturn<ListeningFormValues>}
+          />
+        );
+      case TestType.SPEAKING:
+        if (!isSpeaking(part)) {
+          return <div>Invalid listening data</div>;
+        }
+        return (
+          <SpeakingQuestionContent
+            part={part}
+            activeTab={activeTab}
+            form={form as UseFormReturn<SpeakingFormValues>}
           />
         );
 
@@ -81,7 +100,7 @@ const ContentPanel = <T extends TestData>({
             activeTab !== `tab-${part.id}` && "hidden"
           )}
         >
-          {renderContent(part, index)}
+          {renderContent(part, index, activeTab)}
         </TabsContent>
       ))}
     </div>

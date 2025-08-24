@@ -49,7 +49,7 @@ const WritingTestStep = () => {
         className="flex flex-col min-h-screen"
       >
         <div className="sticky top-0 z-50 bg-primary-foreground space-y-1">
-          <TestHeader timeLeft={timeLeft} formatTime={formatTime} />
+          <TestHeader timeLeft={timeLeft} formatTime={formatTime} testType={TestType.WRITING}/>
           <PartInfo activePart={activePart} testType={TestType.WRITING} />
         </div>
 

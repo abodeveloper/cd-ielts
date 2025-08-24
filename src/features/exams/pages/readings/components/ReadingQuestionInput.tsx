@@ -1,5 +1,15 @@
 // QuestionInput.tsx
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { RadioGroup } from "@/components/ui/radio-group";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { ReadingFormValues } from "@/features/exams/schemas/reading-schema";
 import MyQuestionInput from "@/shared/components/atoms/question-inputs/MyQuestionInput";
 import MyQuestionRadio from "@/shared/components/atoms/question-inputs/MyQuestionRadio";
@@ -8,6 +18,7 @@ import { ReadingQuestionType } from "@/shared/enums/reading-question-type.enum";
 import { isEmpty } from "lodash";
 import React from "react";
 import { UseFormReturn } from "react-hook-form";
+import { Ta } from "zod/v4/locales";
 
 interface Props {
   number: string;
@@ -19,6 +30,10 @@ interface Props {
       }[]
     | undefined;
   form: UseFormReturn<ReadingFormValues>;
+  questions: {
+    question_text; string;
+    question_number: number;
+  }[]; // Add questions array to props
 }
 
 const ReadingQuestionInput: React.FC<Props> = ({
@@ -26,6 +41,7 @@ const ReadingQuestionInput: React.FC<Props> = ({
   type,
   form,
   options,
+  questions,
 }) => {
   const questionNumber: number = Number(number) - 1;
 
@@ -76,101 +92,141 @@ const ReadingQuestionInput: React.FC<Props> = ({
 
   if (type === ReadingQuestionType.YES_NO_NOT_GIVEN) {
     return (
-      <>
-        <RadioGroup className="gap-4 my-5">
-          <MyQuestionRadio<ReadingFormValues>
-            control={form.control}
-            name={`answers.${questionNumber}.answer`}
-            value="yesy"
-            id={number}
-            label={"YES"}
-          />
-          <MyQuestionRadio<ReadingFormValues>
-            control={form.control}
-            name={`answers.${questionNumber}.answer`}
-            value="no"
-            id={number}
-            label={"NO"}
-          />
-          <MyQuestionRadio<ReadingFormValues>
-            control={form.control}
-            name={`answers.${questionNumber}.answer`}
-            value="not_given"
-            id={number}
-            label={"NOT GIVEN"}
-          />
-        </RadioGroup>
-        {/* <MyQuestionCheckbox<ReadingFormValues>
+      <RadioGroup className="gap-4 my-5">
+        <MyQuestionRadio<ReadingFormValues>
+          control={form.control}
+          name={`answers.${questionNumber}.answer`}
+          value="yes"
+          id={number}
+          label={"YES"}
+        />
+        <MyQuestionRadio<ReadingFormValues>
           control={form.control}
           name={`answers.${questionNumber}.answer`}
           value="no"
           id={number}
           label={"NO"}
         />
-        <MyQuestionCheckboxGroup
+        <MyQuestionRadio<ReadingFormValues>
           control={form.control}
-          name="selectedOptions"
-          label="Tanlovlaringizni belgilang"
-          options={[
-            {
-              value: "option1",
-              label: "Variant 1",
-            },
-            {
-              value: "option2",
-              label: "Variant 2",
-            },
-            { value: "option3", label: "Variant 3" },
-          ]}
-          maxSelections={2}
-          orientation="vertical" // yoki "horizontal"
-          className="w-full"
-        /> */}
-      </>
+          name={`answers.${questionNumber}.answer`}
+          value="not_given"
+          id={number}
+          label={"NOT GIVEN"}
+        />
+      </RadioGroup>
     );
   }
 
   if (type === ReadingQuestionType.MULTIPLE_CHOICE) {
     return (
-      <>
-        <RadioGroup className="gap-4 my-5">
-          {options?.map((option) => {
-            return (
-              <MyQuestionRadio<ReadingFormValues>
-                control={form.control}
-                name={`answers.${questionNumber}.answer`}
-                value={option.value}
-                id={number}
-                label={`${option.value}) ${option.label}`}
-              />
-            );
-          })}
-        </RadioGroup>
-      </>
+      <RadioGroup className="gap-4 my-5">
+        {options?.map((option) => (
+          <MyQuestionRadio<ReadingFormValues>
+            control={form.control}
+            name={`answers.${questionNumber}.answer`}
+            value={option.value}
+            id={number}
+            label={`${option.value}) ${option.label}`}
+          />
+        ))}
+      </RadioGroup>
     );
   }
 
-  if (
-    type === ReadingQuestionType.MATCHING_INFORMATION ||
-    type === ReadingQuestionType.MATCHING_HEADINGS
-  ) {
+  // if (type === ReadingQuestionType.MATCHING_INFORMATION) {
+  //   return (
+  //     <div className="space-y-8">
+  //       <Table>
+  //         <TableHeader>
+  //           <TableRow>
+  //             <TableHead></TableHead>
+  //             {options?.map((option) => (
+  //               <TableHead key={option.value}>{option.value}</TableHead>
+  //             ))}
+  //           </TableRow>
+  //         </TableHeader>
+  //         <TableBody>
+  //           {questions.map((question, index) => (
+  //             <TableRow key={index}>
+  //               <TableCell>{question?.question_number}. {question?.question_text}</TableCell>
+  //               {options?.map((option) => (
+  //                 <TableCell key={option.value}>
+  //                   <FormField
+  //                     control={form.control}
+  //                     name={`answers.${index}.answer`}
+  //                     render={({ field }) => (
+  //                       <FormItem className="flex items-center space-x-2">
+  //                         <FormControl>
+  //                           <input
+  //                             type="radio"
+  //                             // checked={field.value === option.value}
+  //                             onChange={() => field.onChange(option.value)}
+  //                             name={`${question.question_number - 1}`}
+  //                             value={option.value}
+  //                             id={`${question.question_number}`}
+  //                             className="h-4 w-4 rounded-full border border-primary appearance-none 
+  //                               checked:bg-white 
+  //                               relative 
+  //                               checked:after:content-[''] 
+  //                               checked:after:block 
+  //                               checked:after:w-2.5 checked:after:h-2.5 
+  //                               checked:after:rounded-full 
+  //                               checked:after:bg-primary 
+  //                               checked:after:mx-auto checked:after:my-auto 
+  //                               checked:after:absolute checked:after:inset-0
+  //                               disabled:cursor-not-allowed disabled:opacity-50"
+  //                           />
+  //                         </FormControl>
+  //                         <FormLabel
+  //                           htmlFor={`${number}-${index}-${option.value}`}
+  //                         ></FormLabel>
+  //                         <FormMessage />
+  //                       </FormItem>
+  //                     )}
+  //                   />
+  //                 </TableCell>
+  //               ))}
+  //             </TableRow>
+  //           ))}
+  //         </TableBody>
+  //       </Table>
+
+  //       <Table>
+  //         <TableHeader>
+  //           <TableRow>
+  //             <TableHead colSpan={2}>First invented or used by</TableHead>
+  //           </TableRow>
+  //         </TableHeader>
+  //         <TableBody>
+  //           {options?.map((option, index) => (
+  //             <TableRow key={index}>
+  //               <TableCell className="w-[50px]">{option.value}</TableCell>
+  //               <TableCell>{option.label}</TableCell>
+  //             </TableRow>
+  //           ))}
+  //         </TableBody>
+  //       </Table>
+  //     </div>
+  //   );
+  // }
+
+  if (type === ReadingQuestionType.MATCHING_HEADINGS) {
     return (
-      <>
-        <MyQuestionSelect<ReadingFormValues>
-          control={form.control}
-          name={`answers.${questionNumber}.answer`}
-          id={number}
-          className="mx-2 my-2"
-          options={
-            !isEmpty(options)
-              ? options?.map((item) => ({
-                  label: item.value,
-                  value: item.value,
-                }))
-              : []
-          }
-        />
-      </>
+      <MyQuestionSelect<ReadingFormValues>
+        control={form.control}
+        name={`answers.${questionNumber}.answer`}
+        id={number}
+        className="mx-2 my-2"
+        options={
+          !isEmpty(options)
+            ? options?.map((item) => ({
+                label: item.value,
+                value: item.value,
+              }))
+            : []
+        }
+      />
     );
   }
 

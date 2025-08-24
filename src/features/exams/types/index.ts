@@ -41,6 +41,19 @@ export interface Writing extends TestData {
   answers: Answer[];
 }
 
+export interface Speaking {
+  id: number;
+  speaking_part: number;
+  comment: string;
+  speaking_answer: {
+    id: number;
+    question_number: number;
+    question: string;
+  }[];
+  prep_time: number;
+  answer_time: number;
+}
+
 export interface Answer {
   id: number;
   question_number: number;
@@ -50,4 +63,3 @@ export interface Answer {
   user_id?: number;
   user_name: string;
 }
-

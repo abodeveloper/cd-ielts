@@ -33,6 +33,7 @@ const ReadingQuestionContent = ({
             ) : (
               <div>No questions available</div>
             )}
+            {part.questions}
           </div>
         }
       />

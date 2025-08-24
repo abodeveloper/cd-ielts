@@ -5,7 +5,7 @@ export const readingSchema = z.object({
   answers: z
     .array(
       z.object({
-        question_number: z.number(),
+        question_number: z.number() || z.string(),
         answer: z.string(),
       })
     )

@@ -3,7 +3,6 @@ import ContentPanel from "@/features/exams/components/ContentPanel";
 import PartInfo from "@/features/exams/components/PartInfo";
 import TestHeader from "@/features/exams/components/TestHeader";
 import TestNavigation from "@/features/exams/components/TestNavigation";
-import { usePreventPageLeave } from "@/features/exams/hooks/usePreventPageLeave";
 import { useReadingForm } from "@/features/exams/hooks/useReadingForm";
 import useTestLogic from "@/features/exams/hooks/useTestLogic";
 import { Reading } from "@/features/exams/types";
@@ -45,12 +44,13 @@ const ReadingTestStep = () => {
 
   return (
     <FormProvider {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="min-h-screen"
-      >
+      <form onSubmit={form.handleSubmit(onSubmit)} className="min-h-screen">
         <div className="sticky top-0 z-50 bg-primary-foreground space-y-1">
-          <TestHeader timeLeft={timeLeft} formatTime={formatTime} testType={TestType.READING}/>
+          <TestHeader
+            timeLeft={timeLeft}
+            formatTime={formatTime}
+            testType={TestType.READING}
+          />
           <PartInfo activePart={activePart} testType={TestType.READING} />
         </div>
 

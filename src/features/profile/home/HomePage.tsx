@@ -11,7 +11,7 @@ import {
   RiPencilLine,
 } from "@remixicon/react";
 import { useQuery } from "@tanstack/react-query";
-import React from "react";
+import React, { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 type SkillCardProps = {
@@ -76,15 +76,36 @@ const testMaterials = [
   },
 ];
 
+export interface Data {
+  id: number;
+  title: string;
+  test_type: string;
+  test_number: string;
+  date: string;
+  test_materials: TestMaterial[];
+}
+
+export interface TestMaterial {
+  id: number;
+  title: string;
+  materials: Material[];
+}
+
+export interface Material {
+  id: number;
+  type: string;
+  title: string;
+}
+
 export default function Home() {
   const navigate = useNavigate();
 
   const { user } = useAuthStore();
 
-   const { data, isLoading, isError } = useQuery({
-     queryKey: ["materials"],
-     queryFn: getMaterials,
-   });
+  const { data, isLoading, isError } = useQuery<Data[]>({
+    queryKey: ["materials"],
+    queryFn: getMaterials,
+  });
 
   return (
     <div className="space-y-6">
@@ -104,46 +125,69 @@ export default function Home() {
         />
       </Card>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-        {data?.map((material) => (
-          <Card key={material.title} className="p-6 space-y-4">
-            <CardTitle className="text-base font-medium">
-              {material.title}
-            </CardTitle>
-
-            <CardContent className="space-y-2 p-0 pt-2">
-              {material.sections.map((section) => (
-                <div className="flex items-center gap-2" key={section.id}>
-                  <Button
-                    className="pointer-events-none"
-                    variant={"outline"}
-                    size="icon"
-                  >
-                    {section.type === "reading" ? (
-                      <RiBookOpenLine className="h-6 w-6" />
-                    ) : section.type === "listening" ? (
-                      <RiHeadphoneLine className="h-6 w-6" />
-                    ) : section.type === "writing" ? (
-                      <RiPencilLine className="h-6 w-6" />
-                    ) : (
-                      <RiMic2Line className="h-6 w-6" />
-                    )}
-                  </Button>
-                  <Button
-                    key={section.id}
-                    variant="outline"
-                    size="sm"
-                    className="w-full text-left"
-                    onClick={() => navigate(`/profile/exams/${section.type}`)}
-                  >
-                    {section.title}
-                  </Button>
+      {/* <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        {DATA?.map((item, index) => {
+          const test_materials = item.test_materials;
+          if (!test_materials || test_materials.length === 0) {
+            return (
+              <Card key={item.id} className="p-6 space-y-4">
+                <CardTitle className="text-base font-medium">
+                  {item.title}
+                </CardTitle>
+                <div className="text-sm text-muted-foreground">
+                  No test materials available
                 </div>
+              </Card>
+            );
+          }
+          return (
+            <div key={item.id}>
+              <h1>{item.title}</h1>
+
+              {test_materials?.map((test) => (
+                <Card key={test.title} className="p-6 space-y-4">
+                  <CardTitle className="text-base font-medium">
+                    {test.title}
+                  </CardTitle>
+
+                  <CardContent className="space-y-2 p-0 pt-2">
+                    {test.materials.map((section) => (
+                      <div className="flex items-center gap-2" key={section.id}>
+                        <Button
+                          className="pointer-events-none"
+                          variant={"outline"}
+                          size="icon"
+                        >
+                          {section.type === "reading" ? (
+                            <RiBookOpenLine className="h-6 w-6" />
+                          ) : section.type === "listening" ? (
+                            <RiHeadphoneLine className="h-6 w-6" />
+                          ) : section.type === "writing" ? (
+                            <RiPencilLine className="h-6 w-6" />
+                          ) : (
+                            <RiMic2Line className="h-6 w-6" />
+                          )}
+                        </Button>
+                        <Button
+                          key={section.id}
+                          variant="outline"
+                          size="sm"
+                          className="w-full text-left"
+                          onClick={() =>
+                            navigate(`/profile/exams/${section.type}`)
+                          }
+                        >
+                          {section.title}
+                        </Button>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
               ))}
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+            </div>
+          );
+        })}
+      </div> */}
     </div>
   );
 }
