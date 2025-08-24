@@ -5,6 +5,8 @@ import useTestLogic from "@/features/exams/hooks/useTestLogic";
 import { SpeakingFormValues } from "@/features/exams/schemas/speaking-schema";
 import { Speaking } from "@/features/exams/types";
 import { cn } from "@/lib/utils";
+import ErrorMessage from "@/shared/components/atoms/error-message/ErrorMessage";
+import LoadingSpinner from "@/shared/components/atoms/loading-spinner/LoadingSpinner";
 import { useAuthStore } from "@/store/auth-store";
 import { TabsContent } from "@radix-ui/react-tabs";
 import { RiShieldUserLine } from "@remixicon/react";
@@ -99,6 +101,15 @@ const SpeakingTestStep = () => {
     // onSubmit ga FormData yuborish
     onSubmit(formData);
   };
+
+  if (query.isLoading) return <LoadingSpinner message="Loading test data..." />;
+  if (query.isError)
+    return (
+      <ErrorMessage
+        title="Failed to Load Test"
+        message="An error occurred while loading the test. Please try again later."
+      />
+    );
 
   return (
     <FormProvider {...form}>

@@ -245,7 +245,7 @@ const SpeakingQuestionContent = ({
 
           {phase !== "finish" && (
             <div className="text-2xl font-bold text-center">
-              {currentQuestion.id}. {currentQuestion.question}
+              {currentQuestion.question_number}. {currentQuestion.question}
             </div>
           )}
         </div>
