@@ -25,7 +25,9 @@ const isReading = (part: AllTestParts): part is ReadingPart => {
 };
 const isListening = (part: AllTestParts): part is ListeningPart => {
   return (
-    "questions" in part && "answers" in part && Array.isArray(part.answers)
+    "questions" in part &&
+    "question_numbers" in part &&
+    Array.isArray(part.question_numbers)
   );
 };
 const isWriting = (part: AllTestParts): part is WritingPart => {
