@@ -7,7 +7,7 @@ export const getReadingsData = async () => {
 };
 
 export const getReadingOne = async (id: string | number) => {
-  const response = await api.get(`/api/readings/${id}/`);
+  const response = await api.get(`/api/reading/by-material/${id}/`);
   return response.data;
 };
 

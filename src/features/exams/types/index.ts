@@ -1,65 +1,90 @@
-import { ReadingQuestionType } from "@/shared/enums/reading-question-type.enum";
-
 export interface TestData {
-  id: string | number;
-  content: string;
-  questions?: string;
-  passage_number: number;
-  answers?: any[];
+  id: number;
+  title: string;
+  answer_time: number;
 }
 
 export interface Reading extends TestData {
   id: number;
-  test_material: number;
-  test_material_id: number;
+  title: string;
+  answer_time: number;
+  reading_parts: ReadingPart[];
+}
+
+export interface ReadingPart {
+  id: number;
+  title: string;
   passage_number: number;
-  created_at: string;
+  description: string;
   content: string;
   questions: string;
-  answers: Answer[];
+  created_at: string;
+  question_numbers: {
+    id: string;
+    question_number: number;
+  }[];
 }
 
 export interface Listening extends TestData {
   id: number;
-  test_material: number;
-  test_material_id: number;
-  passage_number: number;
-  created_at: string;
-  content: string;
+  title: string;
+  listening_parts: ListeningPart[];
+}
+
+export interface ListeningPart {
+  id: number;
+  title: string;
+  listening_section: number;
   questions: string;
-  answers: Answer[];
+  audio: unknown;
+  audioscript: string;
+  description: string;
+  created_at: string;
+  is_script: boolean;
+  question_numbers: {
+    id: string;
+    question_number: number;
+  }[];
 }
 
 export interface Writing extends TestData {
   id: number;
-  test_material: number;
-  test_material_id: number;
-  passage_number: number;
-  created_at: string;
-  content: string;
-  questions: string;
-  answers: Answer[];
+  title: string;
+  answer_time: number;
+  writing_parts: WritingPart[];
 }
 
-export interface Speaking {
+export interface WritingPart {
   id: number;
-  speaking_part: number;
-  comment: string;
-  speaking_answer: {
+  writing_task: number;
+  description: string;
+  created_at: string;
+  writing_questions: {
     id: number;
     question_number: number;
     question: string;
   }[];
-  prep_time: number;
-  answer_time: number;
 }
 
-export interface Answer {
+export type AllTestParts = ReadingPart | ListeningPart | WritingPart;
+
+export interface Speaking {
   id: number;
-  question_number: number;
-  question_type: ReadingQuestionType;
-  answer?: string;
-  true_answer: unknown;
-  user_id?: number;
-  user_name: string;
+  title: string;
+  test_material: number;
+  speaking_parts: SpeakingPart[];
+}
+
+export interface SpeakingPart {
+  id: number;
+  speaking_part: number;
+  prep_time: number;
+  answer_time: number;
+  comment: string;
+  description: string;
+  question_numbers: {
+    id: number;
+    question_number: number;
+    question: string;
+  }[];
 }

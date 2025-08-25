@@ -3,13 +3,14 @@ import { Tabs } from "@/components/ui/tabs";
 import { useSpeakingForm } from "@/features/exams/hooks/useSpeakingForm";
 import useTestLogic from "@/features/exams/hooks/useTestLogic";
 import { SpeakingFormValues } from "@/features/exams/schemas/speaking-schema";
-import { Speaking } from "@/features/exams/types";
+import { SpeakingPart } from "@/features/exams/types";
 import { cn } from "@/lib/utils";
 import ErrorMessage from "@/shared/components/atoms/error-message/ErrorMessage";
 import LoadingSpinner from "@/shared/components/atoms/loading-spinner/LoadingSpinner";
 import { useAuthStore } from "@/store/auth-store";
 import { TabsContent } from "@radix-ui/react-tabs";
 import { RiShieldUserLine } from "@remixicon/react";
+import { get } from "lodash";
 import { useEffect, useRef, useState } from "react";
 import { FormProvider, UseFormReturn } from "react-hook-form";
 import { useParams } from "react-router-dom";
@@ -23,18 +24,17 @@ const SpeakingTestStep = () => {
   const [isSubmitting, setIsSubmitting] = useState(false); // Submit qilish holati
   const allAudioChunks = useRef<Blob[]>([]); // Barcha partlar uchun umumiy audio Blob lar
 
-  const data: Speaking[] = Array.isArray(query.data) ? query.data : [];
+  // const data: Speaking[] = Array.isArray(query.data) ? query.data : [];
 
-  const { activeTab, setActiveTab, currentTabIndex } = useTestLogic<Speaking>(
-    null,
-    data,
-    form.handleSubmit(onSubmit)
-  );
+  const parts: SpeakingPart[] = get(query, "data.speaking_parts", []);
+
+  const { activeTab, setActiveTab, currentTabIndex } =
+    useTestLogic<SpeakingPart>(null, parts, form.handleSubmit(onSubmit));
 
   // Oxirgi part ekanligini aniqlash
-  const isLastPart = currentTabIndex === data.length - 1;
+  const isLastPart = currentTabIndex === parts.length - 1;
 
-  const activePart = data.find((part) => `tab-${part.id}` === activeTab);
+  const activePart = parts.find((part) => `tab-${part.id}` === activeTab);
 
   // Audio URL ni yangilash
   useEffect(() => {
@@ -61,8 +61,8 @@ const SpeakingTestStep = () => {
   }, [allAudioChunks.current.length]);
 
   const handleNextPart = () => {
-    if (currentTabIndex < data.length - 1) {
-      setActiveTab(`tab-${data[currentTabIndex + 1].id}`);
+    if (currentTabIndex < parts.length - 1) {
+      setActiveTab(`tab-${parts[currentTabIndex + 1].id}`);
     }
   };
 
@@ -136,7 +136,7 @@ const SpeakingTestStep = () => {
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <div>
-            {data.map((part) => (
+            {parts.map((part) => (
               <TabsContent
                 key={part.id}
                 value={`tab-${part.id}`}

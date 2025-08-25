@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Speaking } from "@/features/exams/types";
+import { SpeakingPart } from "@/features/exams/types";
 import LoadingSpinner from "@/shared/components/atoms/loading-spinner/LoadingSpinner";
 import {
   RiArrowRightSLine,
@@ -88,7 +88,7 @@ const WaveForm = ({ analyzerData }) => {
 };
 
 interface SpeakingQuestionContentProps {
-  part: Speaking;
+  part: SpeakingPart;
   activeTab: string;
   isLastPart: boolean;
   onNextPart?: () => void;
@@ -117,7 +117,7 @@ const SpeakingQuestionContent = ({
   const stopPromiseRef = useRef<((value?: unknown) => void) | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
 
-  const questions = part.speaking_answer || [];
+  const questions = part?.question_numbers || [];
   const currentQuestion = questions[currentIndex];
 
   // Format time function

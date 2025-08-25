@@ -1,28 +1,27 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { TestData } from "../../types";
 import { TestType } from "@/shared/enums/test-type.enum";
+import { get } from "lodash";
+import { AllTestParts } from "../types";
 
-interface PartInfoProps<T extends TestData> {
+interface PartInfoProps<T extends AllTestParts> {
   activePart: T | undefined;
   testType: TestType;
 }
 
-const PartInfo = <T extends TestData>({
+const PartInfo = <T extends AllTestParts>({
   activePart,
   testType,
 }: PartInfoProps<T>) => {
   if (!activePart) return null;
 
-  const renderInstructions = () => {
+  const renderNumber = () => {
     switch (testType) {
       case TestType.READING:
-        return "Spend ~20 minutes. Write at least 150 words.";
+        return get(activePart, "passage_number", "");
       case TestType.LISTENING:
-        return "Listen carefully and answer the questions. Spend ~15 minutes.";
+        return get(activePart, "listening_section", "");
       case TestType.WRITING:
-        return "Write a response in at least 250 words. Spend ~40 minutes.";
-      case TestType.SPEAKING:
-        return "Write a response in at least 250 words. Spend ~40 minutes.";
+        return get(activePart, "writing_task", "");
       default:
         return "Follow the instructions for this part.";
     }
@@ -31,8 +30,8 @@ const PartInfo = <T extends TestData>({
   return (
     <Card className="w-full shadow-sm rounded-none">
       <CardContent className="p-3 text-sm h-[70px]">
-        <div className="font-semibold">Part {activePart.passage_number}</div>
-        <div>{renderInstructions()}</div>
+        <div className="font-semibold">Part {renderNumber()}</div>
+        <div>{activePart.description}</div>
       </CardContent>
     </Card>
   );

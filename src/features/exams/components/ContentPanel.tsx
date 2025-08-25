@@ -1,87 +1,84 @@
 import { TabsContent } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
+import ErrorMessage from "@/shared/components/atoms/error-message/ErrorMessage";
 import { TestType } from "@/shared/enums/test-type.enum";
 import { UseFormReturn } from "react-hook-form";
+import ListeningQuestionContent from "../pages/listening/components/ListeningQuestionContent";
 import ReadingQuestionContent from "../pages/readings/components/ReadingQuestionContent";
 import WritingQuestionContent from "../pages/writing/components/WritingQuestionContent";
 import { ListeningFormValues } from "../schemas/listening-schema";
 import { ReadingFormValues } from "../schemas/reading-schema";
-import { Reading, Speaking, TestData } from "../types";
-import ListeningQuestionContent from "../pages/listening/components/ListeningQuestionContent";
-import SpeakingQuestionContent from "../pages/speaking/components/SpeakingQuestionContent";
-import { SpeakingFormValues } from "../schemas/speaking-schema";
+import { WritingFormValues } from "../schemas/writing-schema";
+import {
+  AllTestParts,
+  ListeningPart,
+  ReadingPart,
+  WritingPart
+} from "../types";
 
 // Type guard to check if part is Reading
-const isReading = (part: TestData): part is Reading => {
+const isReading = (part: AllTestParts): part is ReadingPart => {
   return (
     // "questions" in part && "answers" in part && Array.isArray(part.answers)
     "questions" in part
   );
 };
-const isListening = (part: TestData): part is Reading => {
+const isListening = (part: AllTestParts): part is ListeningPart => {
   return (
     "questions" in part && "answers" in part && Array.isArray(part.answers)
   );
 };
-const isSpeaking = (part: TestData): part is Speaking => {
-  return (
-    "questions" in part
-  );
+const isWriting = (part: AllTestParts): part is WritingPart => {
+  return true;
 };
 
-interface ContentPanelProps<T extends TestData> {
+interface ContentPanelProps<T extends AllTestParts> {
   data: T[];
   activeTab: string;
   testType: TestType;
   form: UseFormReturn;
 }
 
-const ContentPanel = <T extends TestData>({
+const ContentPanel = <T extends AllTestParts>({
   data,
   activeTab,
   testType,
   form,
 }: ContentPanelProps<T>) => {
-  const renderContent = (part: T, index: number, activeTab: number) => {
+  const renderContent = (part: T, index: number) => {
     switch (testType) {
       case TestType.READING:
-        if (!isReading(part)) {
-          return <div>Invalid reading data</div>;
-        }
+        if (!isReading(part))
+          return <ErrorMessage title="Error" message="Invalid reading data" />;
         return (
-          <ReadingQuestionContent
-            part={part}
-            form={form as UseFormReturn<ReadingFormValues>}
-          />
+          <>
+            <ReadingQuestionContent
+              part={part}
+              form={form as UseFormReturn<ReadingFormValues>}
+            />
+          </>
         );
       case TestType.LISTENING:
-        if (!isListening(part)) {
-          return <div>Invalid listening data</div>;
-        }
+        if (!isListening(part))
+          return (
+            <ErrorMessage title="Error" message="Invalid listening data" />
+          );
         return (
           <ListeningQuestionContent
             part={part}
             form={form as UseFormReturn<ListeningFormValues>}
           />
         );
-      case TestType.SPEAKING:
-        if (!isSpeaking(part)) {
-          return <div>Invalid listening data</div>;
-        }
-        return (
-          <SpeakingQuestionContent
-            part={part}
-            activeTab={activeTab}
-            form={form as UseFormReturn<SpeakingFormValues>}
-          />
-        );
-
       case TestType.WRITING:
+        if (!isWriting(part))
+          return (
+            <ErrorMessage title="Error" message="Invalid writing data" />
+          );
         return (
           <WritingQuestionContent
             part={part}
             index={index}
-            form={form as UseFormReturn<ReadingFormValues>}
+            form={form as UseFormReturn<WritingFormValues>}
           />
         );
       default:
@@ -100,7 +97,7 @@ const ContentPanel = <T extends TestData>({
             activeTab !== `tab-${part.id}` && "hidden"
           )}
         >
-          {renderContent(part, index, activeTab)}
+          {renderContent(part, index)}
         </TabsContent>
       ))}
     </div>

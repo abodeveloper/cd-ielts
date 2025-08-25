@@ -7,7 +7,7 @@ export const getListeningsData = async () => {
 };
 
 export const getListeningOne = async (id: string | number) => {
-  const response = await api.get(`/api/listenings/${id}/`);
+  const response = await api.get(`/api/listening/by-material/${id}/`);
   return response.data;
 };
 

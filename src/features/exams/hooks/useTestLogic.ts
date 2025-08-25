@@ -1,37 +1,45 @@
-import { useEffect, useState } from "react";
 import { toastService } from "@/lib/toastService";
-import { TestData } from "../types";
+import { useEffect, useState } from "react";
+import { AllTestParts } from "../types";
 
-const useTestLogic = <T extends TestData>(
+const useTestLogic = <T extends AllTestParts>(
   initialTime: number | null, // ⬅️ null bo‘lsa vaqt yo‘q degani
   data: T[],
   onSubmit: () => void
 ) => {
-  const [timeLeft, setTimeLeft] = useState(initialTime ?? 0);
+  const [timeLeft, setTimeLeft] = useState<number | null>(initialTime); // ⬅️ Allow null initially
   const [isTestFinished, setIsTestFinished] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("");
 
+  // Update timeLeft when initialTime changes
+  useEffect(() => {
+    if (initialTime !== null) {
+      setTimeLeft(initialTime); // Set timeLeft only when initialTime is available
+    }
+  }, [initialTime]);
+
   // Timer logic
   useEffect(() => {
-    if (!initialTime) return; // ⬅️ agar vaqt yo‘q bo‘lsa timer ishlamasin
+    // Skip if no initialTime, test is finished, or timeLeft is not set
+    if (initialTime === null || timeLeft === null || isTestFinished) {
+      return;
+    }
 
-    if (isTestFinished || timeLeft <= 0) {
-      if (timeLeft <= 0 && !isTestFinished) {
+    // Handle time expiration
+    if (timeLeft <= 0) {
+      if (!isTestFinished) {
         toastService.error("The time limit has expired.");
         setTimeout(() => {
           onSubmit();
           setIsTestFinished(true);
         }, 2000);
       }
-      if (timeLeft < 0) {
-        setTimeLeft(0);
-      }
       return;
     }
 
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
-        if (prev <= 1) {
+        if (prev === null || prev <= 1) {
           clearInterval(timer);
           return 0;
         }
@@ -40,7 +48,7 @@ const useTestLogic = <T extends TestData>(
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [timeLeft, isTestFinished, onSubmit, initialTime]);
+  }, [initialTime, timeLeft, isTestFinished, onSubmit]);
 
   // Tab initialization
   useEffect(() => {
@@ -64,16 +72,16 @@ const useTestLogic = <T extends TestData>(
     currentTabIndex < data.length - 1 &&
     setActiveTab(`tab-${data[currentTabIndex + 1].id}`);
 
-  // ✅ faqat vaqt bo‘lsa ishlaydi
+  // Finish test only if there's a timer and test isn't finished
   const finishTest = () => {
-    if (initialTime && !isTestFinished) {
+    if (initialTime !== null && !isTestFinished) {
       onSubmit();
       setIsTestFinished(true);
     }
   };
 
   return {
-    timeLeft,
+    timeLeft: timeLeft ?? 0, // Return 0 for display if timeLeft is null
     formatTime,
     activeTab,
     setActiveTab,
@@ -81,7 +89,7 @@ const useTestLogic = <T extends TestData>(
     handlePrevious,
     handleNext,
     isTestFinished,
-    finishTest, // 🔥 endi faqat vaqt bo‘lsa ishlaydi
+    finishTest,
   };
 };
 

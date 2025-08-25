@@ -1,12 +1,12 @@
 import ResizableContent from "@/features/exams/components/ResizibleContent";
 import { ReadingFormValues } from "@/features/exams/schemas/reading-schema";
-import { Reading } from "@/features/exams/types";
+import { ReadingPart } from "@/features/exams/types";
 import HTMLRenderer from "@/shared/components/atoms/html-renderer/HtmlRenderer";
 import { UseFormReturn } from "react-hook-form";
 import ReadingQuestionRenderer from "./ReadingQuestionRenderer";
 
 interface ReadingQuestionContentProps {
-  part: Reading;
+  part: ReadingPart;
   form: UseFormReturn<ReadingFormValues>;
 }
 
@@ -33,7 +33,6 @@ const ReadingQuestionContent = ({
             ) : (
               <div>No questions available</div>
             )}
-            {part.questions}
           </div>
         }
       />

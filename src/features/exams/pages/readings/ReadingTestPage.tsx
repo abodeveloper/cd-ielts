@@ -5,10 +5,10 @@ import ReadyStep from "./steps/ReadyStep";
 
 const ReadingTestPage = () => {
   return (
-    <FlowPage
-      steps={[<ConfirmDetailsStep />, <ReadyStep />, <ReadingTestStep />]}
-    />
-    // <FlowPage steps={[<ReadingTestStep />]} />
+    // <FlowPage
+    //   steps={[<ConfirmDetailsStep />, <ReadyStep />, <ReadingTestStep />]}
+    // />
+    <FlowPage steps={[<ReadingTestStep />]} />
   );
 };
 

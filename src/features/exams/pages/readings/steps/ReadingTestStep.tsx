@@ -5,10 +5,11 @@ import TestHeader from "@/features/exams/components/TestHeader";
 import TestNavigation from "@/features/exams/components/TestNavigation";
 import { useReadingForm } from "@/features/exams/hooks/useReadingForm";
 import useTestLogic from "@/features/exams/hooks/useTestLogic";
-import { Reading } from "@/features/exams/types";
+import { ReadingPart } from "@/features/exams/types";
 import ErrorMessage from "@/shared/components/atoms/error-message/ErrorMessage";
 import LoadingSpinner from "@/shared/components/atoms/loading-spinner/LoadingSpinner";
 import { TestType } from "@/shared/enums/test-type.enum";
+import { get } from "lodash";
 import { FormProvider } from "react-hook-form";
 import { useParams } from "react-router-dom";
 
@@ -16,7 +17,9 @@ const ReadingTestStep = () => {
   const { id } = useParams();
   const { form, onSubmit, query } = useReadingForm(id);
 
-  const data: Reading[] = Array.isArray(query.data) ? query.data : [];
+  const parts: ReadingPart[] = get(query, "data.reading_parts", []);
+  const answer_time = get(query, "data.answer_time", null);
+
   const {
     timeLeft,
     formatTime,
@@ -26,10 +29,16 @@ const ReadingTestStep = () => {
     handlePrevious,
     handleNext,
     isTestFinished,
-  } = useTestLogic<Reading>(3000, data, form.handleSubmit(onSubmit));
+  } = useTestLogic<ReadingPart>(
+    answer_time,
+    parts,
+    form.handleSubmit(onSubmit)
+  );
 
   // Prevent page leave when test is not finished
   // usePreventPageLeave(!isTestFinished);
+
+  const activePart = parts.find((part) => `tab-${part.id}` === activeTab);
 
   if (query.isLoading) return <LoadingSpinner message="Loading test data..." />;
   if (query.isError)
@@ -39,8 +48,6 @@ const ReadingTestStep = () => {
         message="An error occurred while loading the test. Please try again later."
       />
     );
-
-  const activePart = data.find((part) => `tab-${part.id}` === activeTab);
 
   return (
     <FormProvider {...form}>
@@ -56,14 +63,15 @@ const ReadingTestStep = () => {
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <ContentPanel
-            data={data}
+            data={parts}
             activeTab={activeTab}
             testType={TestType.READING}
             form={form}
           />
           <TestNavigation
-            data={data}
+            data={parts}
             form={form}
+            testType={TestType.READING}
             activeTab={activeTab}
             setActiveTab={setActiveTab}
             currentTabIndex={currentTabIndex}

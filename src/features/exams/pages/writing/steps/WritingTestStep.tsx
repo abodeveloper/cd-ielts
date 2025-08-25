@@ -5,10 +5,11 @@ import TestHeader from "@/features/exams/components/TestHeader";
 import TestNavigation from "@/features/exams/components/TestNavigation";
 import useTestLogic from "@/features/exams/hooks/useTestLogic";
 import { useWritingForm } from "@/features/exams/hooks/useWritingForm";
-import { Writing } from "@/features/exams/types";
+import { WritingPart } from "@/features/exams/types";
 import ErrorMessage from "@/shared/components/atoms/error-message/ErrorMessage";
 import LoadingSpinner from "@/shared/components/atoms/loading-spinner/LoadingSpinner";
 import { TestType } from "@/shared/enums/test-type.enum";
+import { get } from "lodash";
 import { FormProvider } from "react-hook-form";
 import { useParams } from "react-router-dom";
 
@@ -16,7 +17,9 @@ const WritingTestStep = () => {
   const { id } = useParams();
   const { form, onSubmit, query } = useWritingForm(id);
 
-  const data: Writing[] = Array.isArray(query.data) ? query.data : [];
+  const parts: WritingPart[] = get(query, "data.writing_parts", []);
+  const answer_time = get(query, "data.answer_time", null);
+
   const {
     timeLeft,
     formatTime,
@@ -26,10 +29,16 @@ const WritingTestStep = () => {
     handlePrevious,
     handleNext,
     isTestFinished,
-  } = useTestLogic<Writing>(3000, data, form.handleSubmit(onSubmit));
+  } = useTestLogic<WritingPart>(
+    answer_time,
+    parts,
+    form.handleSubmit(onSubmit)
+  );
 
   // Prevent page leave when test is not finished
   // usePreventPageLeave(!isTestFinished);
+
+  const activePart = parts.find((part) => `tab-${part.id}` === activeTab);
 
   if (query.isLoading) return <LoadingSpinner message="Loading test data..." />;
   if (query.isError)
@@ -40,8 +49,6 @@ const WritingTestStep = () => {
       />
     );
 
-  const activePart = data.find((part) => `tab-${part.id}` === activeTab);
-
   return (
     <FormProvider {...form}>
       <form
@@ -49,7 +56,11 @@ const WritingTestStep = () => {
         className="flex flex-col min-h-screen"
       >
         <div className="sticky top-0 z-50 bg-primary-foreground space-y-1">
-          <TestHeader timeLeft={timeLeft} formatTime={formatTime} testType={TestType.WRITING}/>
+          <TestHeader
+            timeLeft={timeLeft}
+            formatTime={formatTime}
+            testType={TestType.WRITING}
+          />
           <PartInfo activePart={activePart} testType={TestType.WRITING} />
         </div>
 
@@ -59,13 +70,14 @@ const WritingTestStep = () => {
           className="flex flex-col flex-grow"
         >
           <ContentPanel
-            data={data}
+            data={parts}
             activeTab={activeTab}
             testType={TestType.WRITING}
             form={form}
           />
           <TestNavigation
-            data={data}
+            data={parts}
+            testType={TestType.WRITING}
             form={form}
             activeTab={activeTab}
             setActiveTab={setActiveTab}

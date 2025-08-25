@@ -8,14 +8,14 @@ import {
 } from "@/components/ui/select"; // shadcn select
 import ResizableContent from "@/features/exams/components/ResizibleContent";
 import { WritingFormValues } from "@/features/exams/schemas/writing-schema";
-import { Writing } from "@/features/exams/types";
+import { WritingPart } from "@/features/exams/types";
 import HTMLRenderer from "@/shared/components/atoms/html-renderer/HtmlRenderer";
 import MyQuestionTextArea from "@/shared/components/atoms/question-inputs/MyQuestionTextarea";
 import { useState } from "react";
 import { UseFormReturn } from "react-hook-form";
 
 interface WritingQuestionContentProps {
-  part: Writing;
+  part: WritingPart;
   form: UseFormReturn<WritingFormValues>;
   index: number;
 }
@@ -35,7 +35,7 @@ const WritingQuestionContent = ({
         leftContent={
           <HTMLRenderer
             className="h-full overflow-y-auto p-6 text-sm"
-            htmlString={part.content}
+            htmlString={part.writing_questions[0].question}
           />
         }
         rightContent={

@@ -43,7 +43,6 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ loading: true });
     try {
       const data = await getMe();
-      console.log("Fetched user data:", data);
       set({ user: data, loading: false });
     } catch (error) {
       console.error("Failed to fetch user:", error);
