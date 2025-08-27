@@ -1,7 +1,7 @@
 import { toastService } from "@/lib/toastService";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import { get, isArray } from "lodash";
+import { get } from "lodash";
 import { useEffect } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
@@ -41,21 +41,23 @@ export const useReadingForm = (id: string | undefined) => {
   });
 
   useEffect(() => {
-    const item = query.data;
+    const data = query.data;
 
-    const allQuestions = isArray(item)
-      ? item
-          .flatMap((item) => item?.answers)
-          .map((item) => ({
-            question_number: item?.question_number,
-            answer: "",
+    const allQuestions = Array.isArray(data?.reading_parts)
+      ? data.reading_parts.flatMap((part) =>
+          part?.question_numbers?.map((q) => ({
+            reading_id: part.id, // 🔥 qaysi partdan kelganini bilish uchun
+            question_number: q.question_number,
+            answer: "", // userning javobi
           }))
+        )
       : [];
 
     replace(allQuestions);
   }, [query.data, replace, query.isRefetching]);
 
   const onSubmit = (data: ReadingFormValues) => {
+    console.log(data);
     const submitData: AnswerPayload = [...get(data, "answers", [])];
     readingMutation.mutate(submitData);
   };
