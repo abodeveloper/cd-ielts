@@ -4,7 +4,6 @@ import { useMutation } from "@tanstack/react-query";
 import { get } from "lodash";
 import { useEffect } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
 import { postReadingAnswers } from "../api/reading";
 import {
   AnswerPayload,
@@ -13,9 +12,10 @@ import {
 } from "../schemas/reading-schema";
 import { useReading } from "./useReading";
 
-export const useReadingForm = (id: string | undefined) => {
-  const navigate = useNavigate();
-
+export const useReadingForm = (
+  id: string | undefined,
+  onNext?: (data: any) => void
+) => {
   const form = useForm<ReadingFormValues>({
     resolver: zodResolver(readingSchema),
     defaultValues: { answers: [] },
@@ -23,9 +23,9 @@ export const useReadingForm = (id: string | undefined) => {
 
   const readingMutation = useMutation({
     mutationFn: (data: AnswerPayload) => postReadingAnswers(id, data),
-    onSuccess: () => {
+    onSuccess: (res) => {
       toastService.success("Successfully submitted!");
-      navigate("/profile");
+      onNext?.(res); // To'g'ri ma'lumot uzatish
     },
     onError: (error: Error) => {
       console.error("Error:", error);
@@ -57,7 +57,6 @@ export const useReadingForm = (id: string | undefined) => {
   }, [query.data, replace, query.isRefetching]);
 
   const onSubmit = (data: ReadingFormValues) => {
-    console.log(data);
     const submitData: AnswerPayload = [...get(data, "answers", [])];
     readingMutation.mutate(submitData);
   };

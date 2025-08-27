@@ -5,8 +5,9 @@ export const listeningSchema = z.object({
   answers: z
     .array(
       z.object({
-        question_number: z.number(),
-        answer: z.string(),
+        listening_id: z.number().optional() || z.string().optional(),
+        question_number: z.number().optional() || z.string().optional(),
+        answer: z.string().optional(),
       })
     )
     .optional(),

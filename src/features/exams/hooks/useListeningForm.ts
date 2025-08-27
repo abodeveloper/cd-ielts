@@ -55,6 +55,22 @@ export const useListeningForm = (id: string | undefined) => {
     replace(allQuestions);
   }, [query.data, replace, query.isRefetching]);
 
+  useEffect(() => {
+    const data = query.data;
+
+    const allQuestions = Array.isArray(data?.listening_parts)
+      ? data.listening_parts.flatMap((part) =>
+          part?.question_numbers?.map((q) => ({
+            listening_id: part.id, // 🔥 qaysi partdan kelganini bilish uchun
+            question_number: q.question_number,
+            answer: "", // userning javobi
+          }))
+        )
+      : [];
+
+    replace(allQuestions);
+  }, [query.data, replace, query.isRefetching]);
+
   const onSubmit = (data: ListeningFormValues) => {
     const submitData: AnswerPayload = [...get(data, "answers", [])];
     readingMutation.mutate(submitData);

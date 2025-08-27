@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
 
-// Define a type for steps that can accept an onNext prop
+// Step props uchun interfeys
 interface StepProps {
-  onNext?: () => void;
+  onNext?: (data?: Record<string, any>) => void;
+  formData?: Record<string, any>;
+  disableOverflow?: boolean; // Har bir step uchun ixtiyoriy boolean
 }
 
 interface FlowPageProps {
@@ -11,28 +13,44 @@ interface FlowPageProps {
 
 export default function FlowPage({ steps }: FlowPageProps) {
   const [step, setStep] = useState(0);
+  const [formData, setFormData] = useState<Record<string, any>>({});
 
-  const nextStep = () => {
+  // Keyingi stepga o'tish
+  const nextStep = (newData?: Record<string, any>) => {
     if (step < steps.length - 1) {
+      if (newData) {
+        setFormData((prev) => ({ ...prev, ...newData }));
+      }
       setStep((prev) => prev + 1);
     }
   };
 
   useEffect(() => {
-    document.body.style.overflow = "hidden"; // Sahifa ochilganda
+    // Joriy stepning disableOverflow qiymatini olish
+    const currentStep = steps[step];
+    const disableOverflow = currentStep?.props?.disableOverflow ?? false; // Agar yo'q bo'lsa, false deb hisoblaymiz
+
+    if (!disableOverflow) {
+      document.body.style.overflow = "hidden";
+    }
 
     // Sahifa yopilganda eski holatga qaytarish
     return () => {
-      document.body.style.overflow = "auto";
+      if (!disableOverflow) {
+        document.body.style.overflow = "auto";
+      }
     };
-  }, []);
+  }, [step, steps]);
 
   const CurrentStep = steps[step];
 
   return (
     <div>
       {React.isValidElement(CurrentStep) &&
-        React.cloneElement(CurrentStep, { onNext: nextStep })}
+        React.cloneElement(CurrentStep, {
+          onNext: nextStep,
+          formData,
+        })}
     </div>
   );
 }
