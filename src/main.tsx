@@ -8,17 +8,15 @@ import App from "./App";
 import "./index.css";
 import "./global.css";
 import { ThemeProvider } from "./components/ui/theme-provider";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <ThemeProvider
-      attribute="class"
-      defaultTheme="system"
-      enableSystem
-    >
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <BrowserRouter>
         <QueryClientProvider client={queryClient}>
           <App />
+          <ReactQueryDevtools initialIsOpen={true} />
         </QueryClientProvider>
       </BrowserRouter>
     </ThemeProvider>

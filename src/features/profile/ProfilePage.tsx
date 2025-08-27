@@ -5,7 +5,7 @@ import LoadingSpinner from "@/shared/components/atoms/loading-spinner/LoadingSpi
 import { useAuthStore } from "@/store/auth-store";
 import { RiUserLine } from "@remixicon/react";
 
-const DetailPage = () => {
+const ProfilePage = () => {
   const { user, loading } = useAuthStore();
 
   if (loading) return <LoadingSpinner />;
@@ -25,8 +25,18 @@ const DetailPage = () => {
         </CardHeader>
         <CardContent className="flex flex-col gap-2">
           <div className="flex gap-2">
-            <div className="text-sm text-primary font-extrabold">Email:</div>
-            <div className="text-sm text-muted-foreground">{user?.email}</div>
+            <div className="text-sm text-primary font-extrabold">
+              Full name:
+            </div>
+            <div className="text-sm text-muted-foreground">
+              {user?.full_name}
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <div className="text-sm text-primary font-extrabold">
+              Phone number:
+            </div>
+            <div className="text-sm text-muted-foreground">{user?.phone}</div>
           </div>
           <div className="flex gap-2">
             <div className="text-sm text-primary font-extrabold">Role:</div>
@@ -38,4 +48,4 @@ const DetailPage = () => {
   );
 };
 
-export default DetailPage;
+export default ProfilePage;

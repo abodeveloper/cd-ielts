@@ -1,18 +1,31 @@
 import Image from "@/assets/ielts.webp";
 import Logo from "@/assets/logo.jpg";
+import { Role } from "@/shared/enums/role.enum";
+import { useAuthStore } from "@/store/auth-store";
+import { Navigate, useLocation } from "react-router-dom";
 import { LoginForm } from "../components/LoginForm";
 
 export default function LoginPage() {
+  const { isAuthenticated, user, loading } = useAuthStore();
+  const location = useLocation();
+
+  if (isAuthenticated && !loading) {
+    return (
+      <Navigate
+        to={user?.role === Role.TEACHER ? "/teacher" : "/student"}
+        state={{ from: location }}
+        replace
+      />
+    );
+  }
+
+  // Login sahifasi UI
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
       <div className="flex flex-col gap-4 p-6 md:p-10">
         <div className="flex justify-center gap-2 md:justify-start">
           <a href="#" className="flex items-center gap-2 font-medium">
-            {/* <div className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md">
-              <GalleryVerticalEnd className="size-40" />
-            </div> */}
             <img src={Logo} alt="" className="w-20" />
-            {/* CD IELTS Platform */}
           </a>
         </div>
         <div className="flex flex-1 items-center justify-center">

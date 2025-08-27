@@ -1,4 +1,3 @@
-// useLoginForm.ts
 import { toastService } from "@/lib/toastService";
 import { useAuthStore } from "@/store/auth-store";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -7,11 +6,12 @@ import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { login } from "../api/login";
 import { LoginFormValues, loginSchema } from "../schemas/login-schema";
+import { useEffect } from "react";
+import { Role } from "@/shared/enums/role.enum";
 
 export const useLoginForm = () => {
   const navigate = useNavigate();
-
-  const auth = useAuthStore();
+  const { login: LoginToken, fetchMe, user, loading } = useAuthStore();
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -23,11 +23,11 @@ export const useLoginForm = () => {
 
   const loginMutation = useMutation({
     mutationFn: login,
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       const token = data.token;
       if (token) {
-        auth.login(token); // cookiega saqlanadi va storega
-        navigate("/profile"); // muvaffaqiyatli kirgandan so'ng dashboardga yo'naltirish
+        LoginToken(token); // Tokenni cookie va storega saqlash
+        await fetchMe(); // Foydalanuvchi ma'lumotlarini olish
       }
     },
     onError: (error) => {
@@ -35,6 +35,21 @@ export const useLoginForm = () => {
       toastService.error(error.message);
     },
   });
+
+  // user va loading holatiga qarab yo‘naltirish
+  useEffect(() => {
+    if (loginMutation.isSuccess && !loading && user) {
+      if (user.role === Role.TEACHER) {
+        navigate("/teacher");
+      } else if (user.role === Role.STUDENT) {
+        navigate("/student");
+      } else {
+        navigate("/login");
+        alert(1);
+        toastService.error("Foydalanuvchi roli aniqlanmadi");
+      }
+    }
+  }, [loginMutation.isSuccess, loading, user, navigate]);
 
   const onSubmit = (data: LoginFormValues) => {
     loginMutation.mutate(data);

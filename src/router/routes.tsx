@@ -1,16 +1,18 @@
 import { lazy } from "react";
 import { Navigate } from "react-router-dom";
-import ProtectedRoute from "./ProtectedRoute";
+import AdminProtectedRoute from "./AdminProtectedRoute";
+import StudentProtectedRoute from "./StudentProtectedRoute";
 
+// Foydalanuvchi sahifalari
 const LoginPage = lazy(() => import("@/features/auth/pages/LoginPage"));
 const Layout = lazy(() => import("@/layout/layout"));
-const HomePage = lazy(() => import("@/features/profile/home/HomePage"));
+const HomePage = lazy(() => import("@/features/student/home/HomePage"));
 const ResultsPage = lazy(
-  () => import("@/features/profile/results/ResultsPage")
+  () => import("@/features/student/results/ResultsPage")
 );
-const DetailPage = lazy(() => import("@/features/profile/detail/DetailPage"));
+const ProfilePage = lazy(() => import("@/features/profile/ProfilePage"));
 
-//Exams
+// Imtihon sahifalari
 const ReadingsPage = lazy(
   () => import("@/features/exams/pages/readings/ReadingsPage")
 );
@@ -36,96 +38,105 @@ const SpeakingTestPage = lazy(
   () => import("@/features/exams/pages/speaking/SpeakingTestPage")
 );
 
+//Admin sahifalari
+const GroupsPage = lazy(() => import("@/features/teacher/groups/GroupsPage"));
+const GroupDetailPage = lazy(
+  () => import("@/features/teacher/groups/GroupDetailPage")
+);
+const StudentsPage = lazy(
+  () => import("@/features/teacher/students/StudentsPage")
+);
+
 export const routes = [
   {
     path: "/login",
     element: <LoginPage />,
   },
+  // Student routes
   {
-    path: "/profile",
+    path: "/student",
     element: (
-      <ProtectedRoute>
+      <StudentProtectedRoute>
         <Layout />
-      </ProtectedRoute>
+      </StudentProtectedRoute>
     ),
     children: [
-      {
-        index: true, // bu index yo‘nalish
-        element: <Navigate to="home" />, // `home` ichki route
-      },
-      {
-        path: "home",
-        element: <HomePage />,
-      },
-      {
-        path: "results",
-        element: <ResultsPage />,
-      },
-      {
-        path: "detail",
-        element: <DetailPage />,
-      },
+      { index: true, element: <Navigate to="home" /> },
+      { path: "home", element: <HomePage /> },
+      { path: "results", element: <ResultsPage /> },
+      { path: "profile", element: <ProfilePage /> },
       {
         path: "exams",
         children: [
-          {
-            path: "readings",
-            element: <ReadingsPage />,
-          },
-          {
-            path: "readings/:id",
-            element: <ReadingTestPage />,
-          },
-          {
-            path: "listenings",
-            element: <ListeningsPage />,
-          },
-          {
-            path: "writings",
-            element: <WritingsPage />,
-          },
-          {
-            path: "speakings",
-            element: <SpeakingsPage />,
-          },
+          { path: "readings", element: <ReadingsPage /> },
+          { path: "readings/:id", element: <ReadingTestPage /> },
+          { path: "listenings", element: <ListeningsPage /> },
+          { path: "writings", element: <WritingsPage /> },
+          { path: "speakings", element: <SpeakingsPage /> },
         ],
+      },
+      {
+        path: "*",
+        element: <Navigate to="/student" />,
       },
     ],
   },
   {
     path: "/readings/:id",
     element: (
-      <ProtectedRoute>
+      <StudentProtectedRoute>
         <ReadingTestPage />
-      </ProtectedRoute>
+      </StudentProtectedRoute>
     ),
   },
   {
     path: "/writings/:id",
     element: (
-      <ProtectedRoute>
+      <StudentProtectedRoute>
         <WritingTestPage />
-      </ProtectedRoute>
+      </StudentProtectedRoute>
     ),
   },
   {
     path: "/listenings/:id",
     element: (
-      <ProtectedRoute>
+      <StudentProtectedRoute>
         <ListeningTestPage />
-      </ProtectedRoute>
+      </StudentProtectedRoute>
     ),
   },
   {
     path: "/speakings/:id",
     element: (
-      <ProtectedRoute>
+      <StudentProtectedRoute>
         <SpeakingTestPage />
-      </ProtectedRoute>
+      </StudentProtectedRoute>
     ),
+  },
+  // Admin routes
+  {
+    path: "/teacher",
+    element: (
+      <AdminProtectedRoute>
+        <Layout />
+      </AdminProtectedRoute>
+    ),
+    children: [
+      { index: true, element: <Navigate to="dashboard" /> },
+      { path: "dashboard", element: <div>Dashboard</div> },
+      { path: "groups", element: <GroupsPage /> },
+      { path: "groups/:id", element: <GroupDetailPage /> },
+      { path: "students", element: <StudentsPage /> },
+      { path: "profile", element: <ProfilePage /> },
+      { path: "exams", element: <div>Exams</div> },
+      {
+        path: "*",
+        element: <Navigate to="/teacher" />,
+      },
+    ],
   },
   {
     path: "*",
-    element: <Navigate to="/profile" />,
+    element: <Navigate to="/login" />,
   },
 ];

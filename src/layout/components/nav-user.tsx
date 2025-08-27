@@ -1,7 +1,7 @@
 import {
   IconDotsVertical,
   IconLogout,
-  IconUserCircle
+  IconUserCircle,
 } from "@tabler/icons-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -29,9 +29,7 @@ export function NavUser() {
 
   const { isMobile } = useSidebar();
 
-  const { logout, user, loading } = useAuthStore();
-
-  
+  const { logout, user } = useAuthStore();
 
   return (
     <SidebarMenu>
@@ -55,7 +53,7 @@ export function NavUser() {
                 </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{user?.username}</span>
+                <span className="truncate font-medium">{user?.username} </span>
                 <span className="text-muted-foreground truncate text-xs">
                   {user?.email}
                 </span>

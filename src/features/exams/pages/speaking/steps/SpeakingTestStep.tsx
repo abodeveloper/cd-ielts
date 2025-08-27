@@ -2,7 +2,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs } from "@/components/ui/tabs";
 import { useSpeakingForm } from "@/features/exams/hooks/useSpeakingForm";
 import useTestLogic from "@/features/exams/hooks/useTestLogic";
-import { SpeakingFormValues } from "@/features/exams/schemas/speaking-schema";
 import { SpeakingPart } from "@/features/exams/types";
 import { cn } from "@/lib/utils";
 import ErrorMessage from "@/shared/components/atoms/error-message/ErrorMessage";
@@ -12,7 +11,7 @@ import { TabsContent } from "@radix-ui/react-tabs";
 import { RiShieldUserLine } from "@remixicon/react";
 import { get } from "lodash";
 import { useEffect, useRef, useState } from "react";
-import { FormProvider, UseFormReturn } from "react-hook-form";
+import { FormProvider } from "react-hook-form";
 import { useParams } from "react-router-dom";
 import SpeakingQuestionContent from "../components/SpeakingQuestionContent";
 
@@ -148,7 +147,6 @@ const SpeakingTestStep = () => {
                 <SpeakingQuestionContent
                   part={part}
                   activeTab={activeTab}
-                  form={form as UseFormReturn<SpeakingFormValues>}
                   isLastPart={isLastPart}
                   onNextPart={handleNextPart}
                   onFinish={handleFinish}
