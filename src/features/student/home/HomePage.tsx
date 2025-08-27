@@ -82,7 +82,7 @@ export interface Data {
   test_type: string;
   test_number: string;
   date: string;
-  test_materials: TestMaterial[];
+  materials: TestMaterial[];
 }
 
 export interface TestMaterial {
@@ -125,9 +125,9 @@ export default function Home() {
         />
       </Card>
 
-      {/* <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-        {DATA?.map((item, index) => {
-          const test_materials = item.test_materials;
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        {data?.map((item, index) => {
+          const test_materials = item.materials;
           if (!test_materials || test_materials.length === 0) {
             return (
               <Card key={item.id} className="p-6 space-y-4">
@@ -151,7 +151,7 @@ export default function Home() {
                   </CardTitle>
 
                   <CardContent className="space-y-2 p-0 pt-2">
-                    {test.materials.map((section) => (
+                    {test?.materials?.map((section) => (
                       <div className="flex items-center gap-2" key={section.id}>
                         <Button
                           className="pointer-events-none"
@@ -187,7 +187,7 @@ export default function Home() {
             </div>
           );
         })}
-      </div> */}
+      </div>
     </div>
   );
 }
