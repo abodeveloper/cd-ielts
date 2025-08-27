@@ -46,6 +46,9 @@ const GroupDetailPage = lazy(
 const StudentsPage = lazy(
   () => import("@/features/teacher/students/StudentsPage")
 );
+const StudentDetailPage = lazy(
+  () => import("@/features/teacher/students/StudentDetailPage")
+);
 
 export const routes = [
   {
@@ -127,6 +130,7 @@ export const routes = [
       { path: "groups", element: <GroupsPage /> },
       { path: "groups/:id", element: <GroupDetailPage /> },
       { path: "students", element: <StudentsPage /> },
+      { path: "students/:id", element: <StudentDetailPage /> },
       { path: "profile", element: <ProfilePage /> },
       { path: "exams", element: <div>Exams</div> },
       {

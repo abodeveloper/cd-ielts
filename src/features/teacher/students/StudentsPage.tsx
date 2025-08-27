@@ -128,74 +128,72 @@ export default function StudentsPage() {
         </div>
       </div>
       <div className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          {/* ✅ grid layout */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Controller
+              name="name"
+              control={control}
+              render={({ field }) => (
+                <Input placeholder="Filter by name" {...field} />
+              )}
+            />
 
-      
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        {/* ✅ grid layout */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Controller
-            name="name"
-            control={control}
-            render={({ field }) => (
-              <Input placeholder="Filter by name" {...field} />
-            )}
-          />
+            <Controller
+              name="group_id"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  onValueChange={field.onChange}
+                  value={field.value}
+                  onOpenChange={(open) => {
+                    if (open && !fetchedOnce) {
+                      refetchGroups();
+                      setFetchedOnce(true);
+                    }
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Filter by group" />
+                  </SelectTrigger>
+                  <SelectContent searchable>
+                    <SelectItem value="all">All Groups</SelectItem>
+                    {isGroupsLoading && (
+                      <SelectItem value="loading" disabled>
+                        Loading...
+                      </SelectItem>
+                    )}
+                    {groups?.map((group: Group) => (
+                      <SelectItem key={group.id} value={group.id.toString()}>
+                        {group.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
 
-          <Controller
-            name="group_id"
-            control={control}
-            render={({ field }) => (
-              <Select
-                onValueChange={field.onChange}
-                value={field.value}
-                onOpenChange={(open) => {
-                  if (open && !fetchedOnce) {
-                    refetchGroups();
-                    setFetchedOnce(true);
-                  }
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Filter by group" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Groups</SelectItem>
-                  {isGroupsLoading && (
-                    <SelectItem value="loading" disabled>
-                      Loading...
-                    </SelectItem>
-                  )}
-                  {groups?.map((group: Group) => (
-                    <SelectItem key={group.id} value={group.id.toString()}>
-                      {group.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          />
-
-          <div className="flex gap-2">
-            <Button type="submit">Filter</Button>
-            <Button type="button" variant="outline" onClick={handleReset}>
-              Reset
-            </Button>
+            <div className="flex gap-2">
+              <Button type="submit">Filter</Button>
+              <Button type="button" variant="outline" onClick={handleReset}>
+                Reset
+              </Button>
+            </div>
           </div>
-        </div>
-      </form>
-      <DataTable
-        data={students}
-        columns={columns}
-        pagination={true}
-        totalCount={paginationInfo.totalCount}
-        totalPages={paginationInfo.totalPages}
-        currentPage={paginationInfo.currentPage}
-        onPageChange={setPage}
-        isLoading={isLoading}
-        onRowClick={(row) => {
-          navigate(`${row.id}`);
-        }}
-      />
+        </form>
+        <DataTable
+          data={students}
+          columns={columns}
+          pagination={true}
+          totalCount={paginationInfo.totalCount}
+          totalPages={paginationInfo.totalPages}
+          currentPage={paginationInfo.currentPage}
+          onPageChange={setPage}
+          isLoading={isLoading}
+          // onRowClick={(row) => {
+          //   navigate(`${row.id}`);
+          // }}
+        />
       </div>
     </div>
   );

@@ -1,6 +1,10 @@
-export interface Group {
+import { Group } from "../../groups/types";
+
+export interface Student {
   id: number;
-  name: string;
-  student_count: number;
-  is_active: boolean;
+  username: string;
+  full_name: string;
+  phone: string;
+  role: string;
+  group: Group;
 }

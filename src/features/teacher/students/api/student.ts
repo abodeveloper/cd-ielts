@@ -21,6 +21,6 @@ export const getStudentsData = async (
 };
 
 export const getStudentOne = async (id: string | number| undefined) => {
-  const response = await api.get(`/api/teacher/student/${id}/`);
+  const response = await api.get(`/api/teacher/students/${id}/`);
   return response.data;
 };

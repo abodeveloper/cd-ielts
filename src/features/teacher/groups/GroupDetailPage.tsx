@@ -1,18 +1,18 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useQuery } from "@tanstack/react-query";
-import { useNavigate, useParams } from "react-router-dom";
-import { getGroupOne } from "./api/groups";
-import LoadingSpinner from "@/shared/components/atoms/loading-spinner/LoadingSpinner";
+import { DataTable } from "@/components/ui/data-table";
+import { Input } from "@/components/ui/input";
 import ErrorMessage from "@/shared/components/atoms/error-message/ErrorMessage";
-import { useEffect, useMemo, useState } from "react";
+import LoadingSpinner from "@/shared/components/atoms/loading-spinner/LoadingSpinner";
 import { useDebounce } from "@/shared/hooks/useDebounce";
 import { buildFilterQuery } from "@/shared/utils/helper";
+import { useQuery } from "@tanstack/react-query";
+import { get } from "lodash";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { getStudentsData } from "../students/api/student";
 import { useStudentColumns } from "../students/hooks/useStudentColumns";
-import { get } from "lodash";
-import { Input } from "@/components/ui/input";
-import { DataTable } from "@/components/ui/data-table";
+import { getGroupOne } from "./api/groups";
 
 const GroupDetailPage = () => {
   const { id } = useParams();
@@ -120,9 +120,9 @@ const GroupDetailPage = () => {
             currentPage={paginationInfo.currentPage}
             onPageChange={setPage}
             isLoading={isLoading}
-            onRowClick={(row) => {
-              navigate(`${row.id}`);
-            }}
+            // onRowClick={(row) => {
+            //   navigate(`${row.id}`);
+            // }}
           />
         </div>
       </div>
