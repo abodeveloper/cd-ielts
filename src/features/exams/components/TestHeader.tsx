@@ -45,7 +45,7 @@ const TestHeader = ({
       <CardContent className="p-3 flex justify-between items-center h-[50px]">
         <div className="text-sm flex items-center gap-2">
           <RiShieldUserLine />
-          <b>Candidate:</b> {user?.username || "Guest"}
+          <b>Candidate:</b> {user?.full_name || user?.username}
         </div>
         <div className="flex items-center gap-8">
           {testType === TestType.LISTENING &&

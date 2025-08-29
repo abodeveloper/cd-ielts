@@ -1,3 +1,4 @@
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -15,7 +16,14 @@ import {
 } from "@/components/ui/table";
 import { Role } from "@/shared/enums/role.enum";
 import { useAuthStore } from "@/store/auth-store";
-import { RiBookOpenLine, RiErrorWarningLine } from "@remixicon/react";
+import {
+  RiBookOpenLine,
+  RiCheckboxCircleLine,
+  RiCheckboxFill,
+  RiCloseCircleLine,
+  RiCloseFill,
+  RiErrorWarningLine,
+} from "@remixicon/react";
 import { get } from "lodash";
 import { useNavigate } from "react-router-dom";
 
@@ -53,26 +61,34 @@ export default function ReadingAnswerStep({ formData }: Props) {
         </CardHeader>
         <CardContent className="space-y-8">
           <div className="space-y-3">
-            <p>
-              <strong>Candidate:</strong> {get(user, "full_name")}
-            </p>
-            <p>
-              <strong>Total Questions:</strong> {totalAnswers}
-            </p>
-            <p>
-              <strong>Correct Answers:</strong> {totalCorrectAnswers}
-            </p>
-            <p>
-              <strong>Incorrect Answers:</strong> {totalIncorrectAnswers}
-            </p>
+            <div className="flex items-center gap-2">
+              <strong>Candidate:</strong>
+              <div>{get(user, "full_name")}</div>
+            </div>
+            <div className="flex items-center gap-2">
+              <strong>Total Questions:</strong>
+              <div>{totalCorrectAnswers}</div>
+            </div>
+            <div className="flex items-center gap-2">
+              <strong>Correct answers:</strong>
+              <div className="text-green-500">{totalCorrectAnswers}</div>
+            </div>
+            <div className="flex items-center gap-2">
+              <strong>Incorrect answers:</strong>
+              <div className="text-destructive">{totalIncorrectAnswers}</div>
+            </div>
+            <div className="flex items-center gap-2">
+              <strong>Overal:</strong>
+              <Badge variant={"default"}>7.0</Badge>
+            </div>
           </div>
           <div className="space-y-3">
             <h2 className="text-md font-semibold">Answer Review</h2>
             <div className="overflow-x-auto">
-              <Table>
+              <Table className="h-[400px]">
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Question #</TableHead>
+                    <TableHead>Question</TableHead>
                     <TableHead>Your Answer</TableHead>
                     <TableHead>True Answer</TableHead>
                     <TableHead>Status</TableHead>
@@ -82,16 +98,18 @@ export default function ReadingAnswerStep({ formData }: Props) {
                   {answers.map((answer: any) => (
                     <TableRow key={answer.id}>
                       <TableCell>{answer.question_number}</TableCell>
-                      <TableCell>{answer.answer || "Not answered"}</TableCell>
+                      <TableCell>
+                        {answer.answer || (
+                          <Badge className="bg-orange-500">Not answered</Badge>
+                        )}
+                      </TableCell>
                       <TableCell>{answer.true_answer}</TableCell>
                       <TableCell>
-                        <span
-                          className={
-                            answer.is_true ? "text-green-600" : "text-red-600"
-                          }
-                        >
-                          {answer.is_true ? "Correct" : "Incorrect"}
-                        </span>
+                        {answer.is_true ? (
+                          <RiCheckboxFill className="text-green-500" />
+                        ) : (
+                          <RiCloseFill className="text-destructive" />
+                        )}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -103,7 +121,7 @@ export default function ReadingAnswerStep({ formData }: Props) {
         <CardFooter>
           <div className="flex items-center justify-between w-full">
             <p className="flex gap-2">
-              <RiErrorWarningLine /> Review your results and proceed when ready.
+              <RiErrorWarningLine /> Review and finalize your results.
             </p>
             <Button className="w-64" onClick={() => handleFinish()}>
               Finish

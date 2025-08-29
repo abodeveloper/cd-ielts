@@ -26,7 +26,11 @@ const WritingQuestionContent = ({
   index,
 }: WritingQuestionContentProps) => {
   const answerValue = form.watch(`answers.${index}.answer`) || "";
-  const charCount = answerValue.length;
+  // Calculate word count by splitting on whitespace and filtering out empty strings
+  const wordCount = answerValue
+    .trim()
+    .split(/\s+/)
+    .filter((word) => word.length > 0).length;
   const [fontSize, setFontSize] = useState("16px"); // Mahalliy holat uchun font o'lchami
 
   return (
@@ -50,7 +54,7 @@ const WritingQuestionContent = ({
             />
             <div className="flex items-center justify-between w-full">
               <div className="text-xs text-muted-foreground">
-                Words count: {charCount}
+                Word count: {answerValue.trim() ? wordCount : 0}
               </div>
               <div className="flex items-center gap-2">
                 <Label

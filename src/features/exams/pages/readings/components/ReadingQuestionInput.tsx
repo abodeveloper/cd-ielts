@@ -68,21 +68,21 @@ const ReadingQuestionInput: React.FC<Props> = ({
         <MyQuestionRadio<ReadingFormValues>
           control={form.control}
           name={`answers.${questionNumber}.answer`}
-          value="true"
+          value="TRUE"
           id={number}
           label={"TRUE"}
         />
         <MyQuestionRadio<ReadingFormValues>
           control={form.control}
           name={`answers.${questionNumber}.answer`}
-          value="false"
+          value="FALSE"
           id={number}
           label={"FALSE"}
         />
         <MyQuestionRadio<ReadingFormValues>
           control={form.control}
           name={`answers.${questionNumber}.answer`}
-          value="not_given"
+          value="NOT GIVEN"
           id={number}
           label={"NOT GIVEN"}
         />
@@ -96,21 +96,21 @@ const ReadingQuestionInput: React.FC<Props> = ({
         <MyQuestionRadio<ReadingFormValues>
           control={form.control}
           name={`answers.${questionNumber}.answer`}
-          value="yes"
+          value="YES"
           id={number}
           label={"YES"}
         />
         <MyQuestionRadio<ReadingFormValues>
           control={form.control}
           name={`answers.${questionNumber}.answer`}
-          value="no"
+          value="NO"
           id={number}
           label={"NO"}
         />
         <MyQuestionRadio<ReadingFormValues>
           control={form.control}
           name={`answers.${questionNumber}.answer`}
-          value="not_given"
+          value="NOT GIVEN"
           id={number}
           label={"NOT GIVEN"}
         />
@@ -134,82 +134,82 @@ const ReadingQuestionInput: React.FC<Props> = ({
     );
   }
 
-  // if (type === ReadingQuestionType.MATCHING_INFORMATION) {
-  //   return (
-  //     <div className="space-y-8">
-  //       <Table>
-  //         <TableHeader>
-  //           <TableRow>
-  //             <TableHead></TableHead>
-  //             {options?.map((option) => (
-  //               <TableHead key={option.value}>{option.value}</TableHead>
-  //             ))}
-  //           </TableRow>
-  //         </TableHeader>
-  //         <TableBody>
-  //           {questions.map((question, index) => (
-  //             <TableRow key={index}>
-  //               <TableCell>{question?.question_number}. {question?.question_text}</TableCell>
-  //               {options?.map((option) => (
-  //                 <TableCell key={option.value}>
-  //                   <FormField
-  //                     control={form.control}
-  //                     name={`answers.${index}.answer`}
-  //                     render={({ field }) => (
-  //                       <FormItem className="flex items-center space-x-2">
-  //                         <FormControl>
-  //                           <input
-  //                             type="radio"
-  //                             // checked={field.value === option.value}
-  //                             onChange={() => field.onChange(option.value)}
-  //                             name={`${question.question_number - 1}`}
-  //                             value={option.value}
-  //                             id={`${question.question_number}`}
-  //                             className="h-4 w-4 rounded-full border border-primary appearance-none 
-  //                               checked:bg-white 
-  //                               relative 
-  //                               checked:after:content-[''] 
-  //                               checked:after:block 
-  //                               checked:after:w-2.5 checked:after:h-2.5 
-  //                               checked:after:rounded-full 
-  //                               checked:after:bg-primary 
-  //                               checked:after:mx-auto checked:after:my-auto 
-  //                               checked:after:absolute checked:after:inset-0
-  //                               disabled:cursor-not-allowed disabled:opacity-50"
-  //                           />
-  //                         </FormControl>
-  //                         <FormLabel
-  //                           htmlFor={`${number}-${index}-${option.value}`}
-  //                         ></FormLabel>
-  //                         <FormMessage />
-  //                       </FormItem>
-  //                     )}
-  //                   />
-  //                 </TableCell>
-  //               ))}
-  //             </TableRow>
-  //           ))}
-  //         </TableBody>
-  //       </Table>
+  if (type === ReadingQuestionType.MATCHING_INFORMATION) {
+    return (
+      <div className="space-y-8">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead></TableHead>
+              {options?.map((option) => (
+                <TableHead key={option.value}>{option.value}</TableHead>
+              ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {questions.map((question, index) => (
+              <TableRow key={index}>
+                <TableCell>{question?.question_number}. {question?.question_text}</TableCell>
+                {options?.map((option) => (
+                  <TableCell key={option.value}>
+                    <FormField
+                      control={form.control}
+                      name={`answers.${index}.answer`}
+                      render={({ field }) => (
+                        <FormItem className="flex items-center space-x-2">
+                          <FormControl>
+                            <input
+                              type="radio"
+                              // checked={field.value === option.value}
+                              onChange={() => field.onChange(option.value)}
+                              name={`${question.question_number - 1}`}
+                              value={option.value}
+                              id={`${question.question_number}`}
+                              className="h-4 w-4 rounded-full border border-primary appearance-none 
+                                checked:bg-white 
+                                relative 
+                                checked:after:content-[''] 
+                                checked:after:block 
+                                checked:after:w-2.5 checked:after:h-2.5 
+                                checked:after:rounded-full 
+                                checked:after:bg-primary 
+                                checked:after:mx-auto checked:after:my-auto 
+                                checked:after:absolute checked:after:inset-0
+                                disabled:cursor-not-allowed disabled:opacity-50"
+                            />
+                          </FormControl>
+                          <FormLabel
+                            htmlFor={`${number}-${index}-${option.value}`}
+                          ></FormLabel>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
 
-  //       <Table>
-  //         <TableHeader>
-  //           <TableRow>
-  //             <TableHead colSpan={2}>First invented or used by</TableHead>
-  //           </TableRow>
-  //         </TableHeader>
-  //         <TableBody>
-  //           {options?.map((option, index) => (
-  //             <TableRow key={index}>
-  //               <TableCell className="w-[50px]">{option.value}</TableCell>
-  //               <TableCell>{option.label}</TableCell>
-  //             </TableRow>
-  //           ))}
-  //         </TableBody>
-  //       </Table>
-  //     </div>
-  //   );
-  // }
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead colSpan={2}>First invented or used by</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {options?.map((option, index) => (
+              <TableRow key={index}>
+                <TableCell className="w-[50px]">{option.value}</TableCell>
+                <TableCell>{option.label}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    );
+  }
 
   if (type === ReadingQuestionType.MATCHING_HEADINGS) {
     return (

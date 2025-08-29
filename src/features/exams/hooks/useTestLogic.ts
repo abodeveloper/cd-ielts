@@ -3,29 +3,35 @@ import { useEffect, useState } from "react";
 import { AllTestParts } from "../types";
 
 const useTestLogic = <T extends AllTestParts>(
-  initialTime: number | null, // ⬅️ null bo‘lsa vaqt yo‘q degani
+  initialTime: number | null, // null bo‘lsa vaqt yo‘q degani
   data: T[],
-  onSubmit: () => void
+  onSubmit: () => void,
+  startTimer: boolean = true // Yangi prop: taymerni boshlashni boshqaradi
 ) => {
-  const [timeLeft, setTimeLeft] = useState<number | null>(initialTime); // ⬅️ Allow null initially
+  const [timeLeft, setTimeLeft] = useState<number | null>(initialTime);
   const [isTestFinished, setIsTestFinished] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("");
 
-  // Update timeLeft when initialTime changes
+  // initialTime o‘zgarganda timeLeft ni yangilash
   useEffect(() => {
     if (initialTime !== null) {
-      setTimeLeft(initialTime); // Set timeLeft only when initialTime is available
+      setTimeLeft(initialTime);
     }
   }, [initialTime]);
 
-  // Timer logic
+  // Taymer logikasi
   useEffect(() => {
-    // Skip if no initialTime, test is finished, or timeLeft is not set
-    if (initialTime === null || timeLeft === null || isTestFinished) {
+    // startTimer false bo‘lsa yoki initialTime null bo‘lsa, taymer ishlamaydi
+    if (
+      !startTimer ||
+      initialTime === null ||
+      timeLeft === null ||
+      isTestFinished
+    ) {
       return;
     }
 
-    // Handle time expiration
+    // Vaqt tugaganda
     if (timeLeft <= 0) {
       if (!isTestFinished) {
         toastService.error("The time limit has expired.");
@@ -48,9 +54,9 @@ const useTestLogic = <T extends AllTestParts>(
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [initialTime, timeLeft, isTestFinished, onSubmit]);
+  }, [initialTime, timeLeft, isTestFinished, onSubmit, startTimer]);
 
-  // Tab initialization
+  // Tabni boshlash
   useEffect(() => {
     if (data.length > 0 && !activeTab) {
       setActiveTab(`tab-${data[0].id}`);
@@ -72,7 +78,7 @@ const useTestLogic = <T extends AllTestParts>(
     currentTabIndex < data.length - 1 &&
     setActiveTab(`tab-${data[currentTabIndex + 1].id}`);
 
-  // Finish test only if there's a timer and test isn't finished
+  // Testni yakunlash
   const finishTest = () => {
     if (initialTime !== null && !isTestFinished) {
       onSubmit();
@@ -81,7 +87,7 @@ const useTestLogic = <T extends AllTestParts>(
   };
 
   return {
-    timeLeft: timeLeft ?? 0, // Return 0 for display if timeLeft is null
+    timeLeft: timeLeft ?? 0,
     formatTime,
     activeTab,
     setActiveTab,
