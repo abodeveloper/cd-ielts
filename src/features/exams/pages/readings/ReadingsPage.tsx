@@ -22,8 +22,8 @@ const ReadingsPage = () => {
 
   const navigate = useNavigate();
 
-  if (isLoading) return <LoadingSpinner />
-  if (isError) return <ErrorMessage message="Error"/>;
+  if (isLoading) return <LoadingSpinner />;
+  if (isError) return <ErrorMessage message="Error" />;
 
   return (
     <div className="p-4">
@@ -51,6 +51,7 @@ const ReadingsPage = () => {
                     <TableCell className="py-3">
                       <Button
                         onClick={() => navigate(`/readings/${reading.id}`)}
+                        disabled={!reading.enabled}
                       >
                         Start Test
                       </Button>
