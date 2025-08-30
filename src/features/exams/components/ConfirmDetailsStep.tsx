@@ -5,7 +5,10 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
+import { Role } from "@/shared/enums/role.enum";
+import { useAuthStore } from "@/store/auth-store";
 import { RiErrorWarningLine, RiInfoCardLine } from "@remixicon/react";
+import { get } from "lodash";
 import { NavLink } from "react-router-dom";
 
 interface StepProps {
@@ -13,6 +16,8 @@ interface StepProps {
 }
 
 export default function ConfirmDetailsStep({ onNext }: StepProps) {
+  const { user } = useAuthStore();
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-muted w-full">
       <Card className="w-full max-w-lg shadow-lg">
@@ -25,13 +30,10 @@ export default function ConfirmDetailsStep({ onNext }: StepProps) {
         <CardContent className="space-y-8">
           <div className="space-y-3">
             <p>
-              <strong>Name:</strong> Abbas Ibragimov
+              <strong>Name:</strong> {get(user, "full_name")}
             </p>
             <p>
-              <strong>Date of birth:</strong> 28.11.2000
-            </p>
-            <p>
-              <strong>Candidate number:</strong> 0
+              <strong>Phone number:</strong> {get(user, "phone")}
             </p>
           </div>
 
@@ -39,7 +41,11 @@ export default function ConfirmDetailsStep({ onNext }: StepProps) {
             <RiErrorWarningLine />
             <span>If your details are not correct, please</span>
             <NavLink
-              to="/profil/detail"
+              to={
+                user?.role === Role.TEACHER
+                  ? "/teacher/profile"
+                  : "/student/profile"
+              }
               className="text-blue-600 flex gap-2 items-center"
             >
               update your profile.

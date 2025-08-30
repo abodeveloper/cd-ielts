@@ -5,11 +5,11 @@ import { get, isArray } from "lodash";
 import { useEffect } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import { postReadingAnswers } from "../api/reading";
+import { postListeningAnswers } from "../api/listening";
 import {
-    AnswerPayload,
-    ListeningFormValues,
-    listeningSchema,
+  AnswerPayload,
+  ListeningFormValues,
+  listeningSchema,
 } from "../schemas/listening-schema";
 import { useListening } from "./useListening";
 
@@ -22,7 +22,7 @@ export const useListeningForm = (id: string | undefined) => {
   });
 
   const readingMutation = useMutation({
-    mutationFn: (data: AnswerPayload) => postReadingAnswers(id, data),
+    mutationFn: (data: AnswerPayload) => postListeningAnswers(id, data),
     onSuccess: () => {
       toastService.success("Successfully submitted!");
       navigate("/profile");

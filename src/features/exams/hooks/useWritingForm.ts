@@ -1,7 +1,7 @@
 import { toastService } from "@/lib/toastService";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import { get, isArray } from "lodash";
+import { get } from "lodash";
 import { useEffect } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
@@ -43,14 +43,16 @@ export const useWritingForm = (id: string | undefined) => {
   });
 
   useEffect(() => {
-    const item = query.data;
+    const data = query.data;
 
-    const allQuestions = isArray(item)
-      ? item.map((item) => ({
-          writing_id: item.id,
-          writing_task: item.writing_task,
-          answer: "",
-        }))
+    const allQuestions = Array.isArray(data?.writing_parts)
+      ? data.writing_parts.flatMap((part) =>
+          part?.writing_questions?.map((q) => ({
+            writing: part.id, // 🔥 qaysi partdan kelganini bilish uchun
+            question_number: q.question_number,
+            answer: "", // userning javobi
+          }))
+        )
       : [];
 
     replace(allQuestions);

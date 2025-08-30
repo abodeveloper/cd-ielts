@@ -14,7 +14,7 @@ import { useReading } from "./useReading";
 
 export const useReadingForm = (
   id: string | undefined,
-  onNext?: (data: any) => void
+  onNext?: (data: unknown) => void
 ) => {
   const form = useForm<ReadingFormValues>({
     resolver: zodResolver(readingSchema),

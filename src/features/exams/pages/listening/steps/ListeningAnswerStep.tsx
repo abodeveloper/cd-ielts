@@ -1,26 +1,26 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
+    Card,
+    CardContent,
+    CardFooter,
+    CardHeader,
 } from "@/components/ui/card";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
 } from "@/components/ui/table";
 import { Role } from "@/shared/enums/role.enum";
 import { useAuthStore } from "@/store/auth-store";
 import {
-  RiBookOpenLine,
-  RiCheckboxFill,
-  RiCloseFill,
-  RiErrorWarningLine,
+    RiCheckboxFill,
+    RiCloseFill,
+    RiErrorWarningLine,
+    RiHeadphoneLine
 } from "@remixicon/react";
 import { get } from "lodash";
 import { useNavigate } from "react-router-dom";
@@ -31,7 +31,7 @@ interface Props {
   disableOverflow?: boolean; // Step uchun ixtiyoriy boolean
 }
 
-export default function ReadingAnswerStep({ formData }: Props) {
+export default function ListeningAnswerStep({ formData }: Props) {
   const navigate = useNavigate();
 
   console.log(formData);
@@ -62,9 +62,9 @@ export default function ReadingAnswerStep({ formData }: Props) {
     <div className="p-4 w-full">
       <Card className="w-full shadow-lg">
         <CardHeader className="flex items-center space-x-2">
-          <RiBookOpenLine className="w-12 h-12" />
+          <RiHeadphoneLine className="w-12 h-12" />
           <h1 className="text-center text-lg font-extrabold tracking-tight text-balance">
-            IELTS Academic Reading - Results
+            IELTS Academic Listening - Results
           </h1>
         </CardHeader>
         <CardContent className="space-y-8">
