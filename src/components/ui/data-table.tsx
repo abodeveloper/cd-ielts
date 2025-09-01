@@ -127,7 +127,7 @@ export function DataTable<TData>({
               <TableRow>
                 <TableCell
                   colSpan={columns.length + 1}
-                  className="h-24 text-center"
+                  className="h-[250px] text-center"
                 >
                   No data.
                 </TableCell>

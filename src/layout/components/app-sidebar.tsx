@@ -93,6 +93,16 @@ const teacherData = {
       icon: RiGroupLine,
     },
     {
+      title: "Test materials",
+      url: "#",
+      icon: RiBookLine,
+      isActive: false,
+      items: [
+        { title: "Mock", url: "/teacher/tests/mock" },
+        { title: "Thematic", url: "/teacher/tests/thematic" },
+      ],
+    },
+    {
       title: "Profile",
       url: "/teacher/profile",
       icon: RiProfileLine,

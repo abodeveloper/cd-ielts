@@ -1,7 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { useQuery } from "@tanstack/react-query";
-import { getReadingsData } from "../../api/reading";
-import { useNavigate } from "react-router-dom";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -10,9 +8,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import LoadingSpinner from "@/shared/components/atoms/loading-spinner/LoadingSpinner";
 import ErrorMessage from "@/shared/components/atoms/error-message/ErrorMessage";
+import LoadingSpinner from "@/shared/components/atoms/loading-spinner/LoadingSpinner";
+import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
+import { getReadingsData } from "../../api/reading";
 
 const ReadingsPage = () => {
   const { data, isLoading, isError } = useQuery({
@@ -51,7 +51,6 @@ const ReadingsPage = () => {
                     <TableCell className="py-3">
                       <Button
                         onClick={() => navigate(`/readings/${reading.id}`)}
-                        disabled={!reading.enabled}
                       >
                         Start Test
                       </Button>

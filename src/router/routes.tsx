@@ -1,6 +1,7 @@
 import { lazy } from "react";
 import { Navigate } from "react-router-dom";
 import AdminProtectedRoute from "./AdminProtectedRoute";
+import AuthProtectedRoute from "./AuthProtectedRoute";
 import StudentProtectedRoute from "./StudentProtectedRoute";
 
 // Foydalanuvchi sahifalari
@@ -50,6 +51,16 @@ const StudentDetailPage = lazy(
   () => import("@/features/teacher/students/StudentDetailPage")
 );
 
+const TestMocksPage = lazy(
+  () => import("@/features/test-materials/mock/MocksPage")
+);
+const TestMockDetailPage = lazy(
+  () => import("@/features/test-materials/mock/MockDetailPage")
+);
+const TestThematicsPage = lazy(
+  () => import("@/features/test-materials/thematic/ThematicsPage")
+);
+
 export const routes = [
   {
     path: "/login",
@@ -84,38 +95,6 @@ export const routes = [
       },
     ],
   },
-  {
-    path: "/readings/:id",
-    element: (
-      <StudentProtectedRoute>
-        <ReadingTestPage />
-      </StudentProtectedRoute>
-    ),
-  },
-  {
-    path: "/writings/:id",
-    element: (
-      <StudentProtectedRoute>
-        <WritingTestPage />
-      </StudentProtectedRoute>
-    ),
-  },
-  {
-    path: "/listenings/:id",
-    element: (
-      <StudentProtectedRoute>
-        <ListeningTestPage />
-      </StudentProtectedRoute>
-    ),
-  },
-  {
-    path: "/speakings/:id",
-    element: (
-      <StudentProtectedRoute>
-        <SpeakingTestPage />
-      </StudentProtectedRoute>
-    ),
-  },
   // Admin routes
   {
     path: "/teacher",
@@ -131,6 +110,16 @@ export const routes = [
       { path: "groups/:id", element: <GroupDetailPage /> },
       { path: "students", element: <StudentsPage /> },
       { path: "students/:id", element: <StudentDetailPage /> },
+      {
+        path: "tests",
+        children: [
+          { index: true, element: <Navigate to="mock" /> },
+          { path: "mock", element: <TestMocksPage /> },
+          { path: "mock/:id", element: <TestMockDetailPage /> },
+          { path: "thematic", element: <TestThematicsPage /> },
+        ],
+      },
+
       { path: "profile", element: <ProfilePage /> },
       { path: "exams", element: <div>Exams</div> },
       {
@@ -138,6 +127,38 @@ export const routes = [
         element: <Navigate to="/teacher" />,
       },
     ],
+  },
+  {
+    path: "/readings/:id",
+    element: (
+      <AuthProtectedRoute>
+        <ReadingTestPage />
+      </AuthProtectedRoute>
+    ),
+  },
+  {
+    path: "/writings/:id",
+    element: (
+      <AuthProtectedRoute>
+        <WritingTestPage />
+      </AuthProtectedRoute>
+    ),
+  },
+  {
+    path: "/listenings/:id",
+    element: (
+      <AuthProtectedRoute>
+        <ListeningTestPage />
+      </AuthProtectedRoute>
+    ),
+  },
+  {
+    path: "/speakings/:id",
+    element: (
+      <AuthProtectedRoute>
+        <SpeakingTestPage />
+      </AuthProtectedRoute>
+    ),
   },
   {
     path: "*",
