@@ -37,6 +37,7 @@ api.interceptors.response.use(
 
         // Tokenni tozalash
         localStorage.removeItem("accessToken");
+        localStorage.removeItem("authStore");
         cookieService.removeToken();
 
         // Logoutga redirect qilish mumkin
