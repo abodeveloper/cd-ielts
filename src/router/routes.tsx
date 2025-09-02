@@ -82,14 +82,23 @@ export const routes = [
       { path: "home", element: <HomePage /> },
       { path: "results", element: <ResultsPage /> },
       { path: "profile", element: <ProfilePage /> },
+      // {
+      //   path: "exams",
+      //   children: [
+      //     { path: "readings", element: <ReadingsPage /> },
+      //     { path: "readings/:id", element: <ReadingTestPage /> },
+      //     { path: "listenings", element: <ListeningsPage /> },
+      //     { path: "writings", element: <WritingsPage /> },
+      //     { path: "speakings", element: <SpeakingsPage /> },
+      //   ],
+      // },
       {
-        path: "exams",
+        path: "tests",
         children: [
-          { path: "readings", element: <ReadingsPage /> },
-          { path: "readings/:id", element: <ReadingTestPage /> },
-          { path: "listenings", element: <ListeningsPage /> },
-          { path: "writings", element: <WritingsPage /> },
-          { path: "speakings", element: <SpeakingsPage /> },
+          { index: true, element: <Navigate to="mock" /> },
+          { path: "mock", element: <TestMocksPage /> },
+          { path: "mock/:id", element: <TestMockDetailPage /> },
+          { path: "thematic", element: <TestThematicsPage /> },
         ],
       },
       {
@@ -113,7 +122,10 @@ export const routes = [
       { path: "groups/:id", element: <GroupDetailPage /> },
       { path: "students", element: <StudentsPage /> },
       { path: "students/:id", element: <StudentDetailPage /> },
-      { path: "students/:id/results/reading", element: <StudentReadingResultsPage /> },
+      {
+        path: "students/:id/results/reading",
+        element: <StudentReadingResultsPage />,
+      },
       {
         path: "tests",
         children: [

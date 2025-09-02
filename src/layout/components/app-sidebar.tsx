@@ -37,28 +37,38 @@ const studentData = {
       url: "/student/home",
       icon: RiHome2Line,
     },
-    {
-      title: "My results",
-      url: "/studenr/results",
-      icon: RiAwardLine,
-    },
+    // {
+    //   title: "My results",
+    //   url: "/studenr/results",
+    //   icon: RiAwardLine,
+    // },
     {
       title: "Profile",
       url: "/student/profile",
       icon: RiProfileLine,
     },
     {
-      title: "Exams",
+      title: "Test materials",
       url: "#",
       icon: RiBookLine,
       isActive: false,
       items: [
-        { title: "Speaking", url: "/student/exams/speakings" },
-        { title: "Listening", url: "/student/exams/listenings" },
-        { title: "Reading", url: "/student/exams/readings" },
-        { title: "Writing", url: "/student/exams/writings" },
+        { title: "Mock", url: "/student/tests/mock" },
+        { title: "Thematic", url: "/student/tests/thematic" },
       ],
     },
+    // {
+    //   title: "Exams",
+    //   url: "#",
+    //   icon: RiBookLine,
+    //   isActive: false,
+    //   items: [
+    //     { title: "Speaking", url: "/student/exams/speakings" },
+    //     { title: "Listening", url: "/student/exams/listenings" },
+    //     { title: "Reading", url: "/student/exams/readings" },
+    //     { title: "Writing", url: "/student/exams/writings" },
+    //   ],
+    // },
   ],
   navSecondary: [
     {
