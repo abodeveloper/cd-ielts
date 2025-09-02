@@ -31,7 +31,7 @@ export const useWritingForm = (id: string | undefined) => {
     },
     onError: (error: Error) => {
       console.error("Error:", error);
-      toastService.error(error.message);
+      toastService.error(get(error, "response.data.error", ""));
     },
   });
 

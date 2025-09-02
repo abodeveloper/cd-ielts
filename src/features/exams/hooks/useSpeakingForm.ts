@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { postSpeakingAnswers } from "../api/speaking";
 import { SpeakingFormValues, speakingSchema } from "../schemas/speaking-schema";
 import { useSpeaking } from "./useSpeaking";
+import { get } from "lodash";
 
 export const useSpeakingForm = (id: string | undefined) => {
   const navigate = useNavigate();
@@ -25,7 +26,7 @@ export const useSpeakingForm = (id: string | undefined) => {
     },
     onError: (error: Error) => {
       console.error("Error:", error);
-      toastService.error(error.message);
+      toastService.error(get(error, "response.data.error", ""));
     },
   });
 
