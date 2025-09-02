@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { SpeakingPart } from "@/features/exams/types";
+import HTMLRendererWithHighlight from "@/shared/components/atoms/html-renderer/HtmlRenderer";
 import LoadingSpinner from "@/shared/components/atoms/loading-spinner/LoadingSpinner";
 import {
   RiArrowRightSLine,
@@ -343,7 +344,11 @@ const SpeakingQuestionContent = ({
 
           {phase !== "finish" && (
             <div className="text-2xl font-bold text-center">
-              {currentQuestion.question_number}. {currentQuestion.question}
+              {currentQuestion.question_number}.{" "}
+              <HTMLRendererWithHighlight
+                // className="h-full overflow-y-auto p-6 text-sm"
+                htmlString={currentQuestion.question}
+              />
             </div>
           )}
         </div>

@@ -1,5 +1,19 @@
 // useGroupColumns.ts
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  RiBookOpenLine,
+  RiHeadphoneLine,
+  RiMic2Line,
+  RiPencilLine,
+  RiVerifiedBadgeLine,
+} from "@remixicon/react";
 import { ColumnDef } from "@tanstack/react-table";
 import { get } from "lodash";
 import { NavLink, useNavigate } from "react-router-dom";
@@ -50,6 +64,64 @@ export function useStudentColumns(): ColumnDef<Student>[] {
       accessorKey: "phone",
       header: "Phone number",
       cell: ({ row }) => <div>{row.getValue("phone")}</div>,
+    },
+    {
+      accessorKey: "id",
+      header: "Results",
+      cell: ({ row }) => {
+        const id = row.getValue("id");
+
+        return (
+          <div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full text-left px-3 py-2"
+                >
+                  <RiVerifiedBadgeLine className="h-6 w-6" />
+                  Results
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  onClick={() =>
+                    navigate(`/teacher/students/${id}/results/reading`)
+                  }
+                >
+                  <RiBookOpenLine className="w-5 h-5" />
+                  Reading
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() =>
+                    navigate(`/teacher/students/${id}/results/listening`)
+                  }
+                >
+                  <RiHeadphoneLine className="w-5 h-5" />
+                  Listening
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() =>
+                    navigate(`/teacher/students/${id}/results/writing`)
+                  }
+                >
+                  <RiPencilLine className="w-5 h-5" />
+                  Writing
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() =>
+                    navigate(`/teacher/students/${id}/results/speaking`)
+                  }
+                >
+                  <RiMic2Line className="w-5 h-5" />
+                  Speaking
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        );
+      },
     },
   ];
 }

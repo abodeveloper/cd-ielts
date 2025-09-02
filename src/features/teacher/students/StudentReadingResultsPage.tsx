@@ -1,13 +1,16 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ErrorMessage from "@/shared/components/atoms/error-message/ErrorMessage";
 import LoadingSpinner from "@/shared/components/atoms/loading-spinner/LoadingSpinner";
+import { RiArticleLine, RiBookmark3Line } from "@remixicon/react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import { getStudentOne } from "./api/student";
-import StudentResults from "./components/StudentResults";
+import StudentReadingMockResults from "./components/StudentReadingMockResults";
+import StudentReadingThematicResults from "./components/StudentReadingThematicResults";
 
-const StudentDetailPage = () => {
+const StudentReadingResultsPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -34,7 +37,6 @@ const StudentDetailPage = () => {
 
   return (
     <div className="space-y-8">
-      {/* {JSON.stringify(student)} */}
       <Card className="w-full">
         <CardHeader className="flex flex-row items-center gap-4">
           <CardTitle>{student?.full_name}</CardTitle>
@@ -54,7 +56,7 @@ const StudentDetailPage = () => {
                   navigate(`/teacher/groups/${student?.group?.id}`)
                 }
                 className="cursor-pointer"
-                variant={'default'}
+                variant={"default"}
               >
                 {student?.group?.name}
               </Badge>
@@ -71,36 +73,34 @@ const StudentDetailPage = () => {
         </CardContent>
       </Card>
       <div className="space-y-6">
-        <StudentResults/>
-        {/* <div className="flex items-center justify-between gap-2">
-          <div className="text-xl font-semibold">Group students</div>
-          <div className="flex gap-2">
-            <Input
-              placeholder="Search ..."
-              value={searchInput}
-              onChange={(event) => setSearchInput(event.target.value)}
-              className="max-w-sm w-64"
-            />
-          </div>
-        </div>
-        <div className="space-y-4">
-          <DataTable
-            data={students}
-            columns={columns}
-            pagination={true}
-            totalCount={paginationInfo.totalCount}
-            totalPages={paginationInfo.totalPages}
-            currentPage={paginationInfo.currentPage}
-            onPageChange={setPage}
-            isLoading={isLoading}
-            onRowClick={(row) => {
-              navigate(`${row.id}`);
-            }}
-          />
-        </div> */}
+        <div className="text-xl font-semibold text-center">Reading results</div>
+        <Tabs defaultValue="mock" className="w-full">
+          <TabsList className="w-full grid grid-cols-2">
+            <TabsTrigger
+              value="mock"
+              className="flex items-center justify-center gap-2 text-sm font-medium transition-colors "
+            >
+              <RiArticleLine className="w-5 h-5" />
+              Mock
+            </TabsTrigger>
+            <TabsTrigger
+              value="thematic"
+              className="flex items-center justify-center gap-2 text-sm font-medium transition-colors "
+            >
+              <RiBookmark3Line className="w-5 h-5" />
+              Thematic
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="mock" className="mt-6">
+            <StudentReadingMockResults />
+          </TabsContent>
+          <TabsContent value="thematic" className="mt-6">
+            <StudentReadingThematicResults />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
 };
 
-export default StudentDetailPage;
+export default StudentReadingResultsPage;

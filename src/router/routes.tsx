@@ -50,6 +50,9 @@ const StudentsPage = lazy(
 const StudentDetailPage = lazy(
   () => import("@/features/teacher/students/StudentDetailPage")
 );
+const StudentReadingResultsPage = lazy(
+  () => import("@/features/teacher/students/StudentReadingResultsPage")
+);
 
 const TestMocksPage = lazy(
   () => import("@/features/test-materials/mock/MocksPage")
@@ -110,6 +113,7 @@ export const routes = [
       { path: "groups/:id", element: <GroupDetailPage /> },
       { path: "students", element: <StudentsPage /> },
       { path: "students/:id", element: <StudentDetailPage /> },
+      { path: "students/:id/results/reading", element: <StudentReadingResultsPage /> },
       {
         path: "tests",
         children: [

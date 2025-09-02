@@ -24,3 +24,45 @@ export const getStudentOne = async (id: string | number| undefined) => {
   const response = await api.get(`/api/teacher/students/${id}/`);
   return response.data;
 };
+
+export const getStudentReadingMockResults = async (
+  id: string| undefined,
+  page: number,
+  search: string,
+  filterQuery?: string,
+  extraFilterQuery?: string
+) => {
+  let url = `/api/student/detail/${id}/mock/reading?page=${page}`;
+  if (search) {
+    url += `&search=${search}`;
+  }
+  if (filterQuery) {
+    url += `&${filterQuery}`;
+  }
+  if (extraFilterQuery) {
+    url += `&${extraFilterQuery}`;
+  }
+  const response = await api.get(url);
+  return response.data;
+};
+
+export const getStudentReadingThematicResults = async (
+  id: string | undefined,
+  page: number,
+  search: string,
+  filterQuery?: string,
+  extraFilterQuery?: string
+) => {
+  let url = `/api/student/detail/${id}/thematic/reading?page=${page}`;
+  if (search) {
+    url += `&search=${search}`;
+  }
+  if (filterQuery) {
+    url += `&${filterQuery}`;
+  }
+  if (extraFilterQuery) {
+    url += `&${extraFilterQuery}`;
+  }
+  const response = await api.get(url);
+  return response.data;
+};
