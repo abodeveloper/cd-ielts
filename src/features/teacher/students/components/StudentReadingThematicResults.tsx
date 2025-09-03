@@ -5,35 +5,26 @@ import { useDebounce } from "@/shared/hooks/useDebounce";
 import { useQuery } from "@tanstack/react-query";
 import { get } from "lodash";
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import { useNavigate, useParams } from "react-router-dom";
-import { useGroupColumns } from "../../groups/hooks/useGroupColumns";
-import {
-    getStudentReadingThematicResults
-} from "../api/student";
+import { useParams } from "react-router-dom";
+import { getStudentResults } from "../api/student";
 import { useReadingThematicResultColumns } from "../hooks/useReadingThematicResultColumns";
-
-interface FilterForm {
-  status?: string;
-}
 
 export default function StudentReadingThematicResults() {
   const { id } = useParams();
-  const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [searchInput, setSearchInput] = useState("");
   const debouncedSearch = useDebounce<string>(searchInput);
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["StudentReadingMockResults", page, debouncedSearch],
+    queryKey: ["thematic-reading", page, debouncedSearch],
     queryFn: () =>
-      getStudentReadingThematicResults(id, page, debouncedSearch),
+      getStudentResults(id, "thematic", "reading", page, debouncedSearch),
   });
 
   const columns = useReadingThematicResultColumns();
 
   // Data and pagination info
-  const students = get(data, "results", []);
+  const results = get(data, "results", []);
   const paginationInfo = {
     totalCount: get(data, "count", 0),
     totalPages: get(data, "total_pages", 1),
@@ -68,7 +59,7 @@ export default function StudentReadingThematicResults() {
       </div>
       <div className="space-y-4">
         <DataTable
-          data={students}
+          data={results}
           columns={columns}
           pagination={true}
           totalCount={paginationInfo.totalCount}

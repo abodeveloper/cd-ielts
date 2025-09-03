@@ -1,52 +1,30 @@
-import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import ErrorMessage from "@/shared/components/atoms/error-message/ErrorMessage";
 import { useDebounce } from "@/shared/hooks/useDebounce";
-import { buildFilterQuery } from "@/shared/utils/helper";
 import { useQuery } from "@tanstack/react-query";
 import { get } from "lodash";
 import { useEffect, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-import { useNavigate, useParams } from "react-router-dom";
-import { getStudentReadingMockResults } from "../api/student";
-import { useGroupColumns } from "../../groups/hooks/useGroupColumns";
-
-interface FilterForm {
-  status?: string;
-}
+import { useParams } from "react-router-dom";
+import { getStudentResults } from "../api/student";
+import { useReadingMockResultColumns } from "../hooks/usereadingMockResultColumns";
 
 export default function StudentReadingMockResults() {
   const { id } = useParams();
-  const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [searchInput, setSearchInput] = useState("");
-  const [filterQuery, setFilterQuery] = useState("");
   const debouncedSearch = useDebounce<string>(searchInput);
 
-  const { control, handleSubmit, reset } = useForm<FilterForm>({
-    defaultValues: {
-      status: "active",
-    },
-  });
-
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["StudentReadingMockResults", page, debouncedSearch, filterQuery],
+    queryKey: ["mock-reading", page, debouncedSearch],
     queryFn: () =>
-      getStudentReadingMockResults(id, page, debouncedSearch, filterQuery),
+      getStudentResults(id, "mock", "reading", page, debouncedSearch),
   });
 
-  const columns = useGroupColumns();
+  const columns = useReadingMockResultColumns();
 
   // Data and pagination info
-  const students = get(data, "results", []);
+  const results = get(data, "results", []);
   const paginationInfo = {
     totalCount: get(data, "count", 0),
     totalPages: get(data, "total_pages", 1),
@@ -56,7 +34,7 @@ export default function StudentReadingMockResults() {
   // Reset page to 1 when search term or form filters change
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearch, filterQuery]);
+  }, [debouncedSearch]);
 
   if (isError)
     return (
@@ -65,15 +43,6 @@ export default function StudentReadingMockResults() {
         message="An error occurred while loading the page. Please try again later."
       />
     );
-
-  const onSubmit = (data: FilterForm) => {
-    setFilterQuery(buildFilterQuery(data));
-  };
-
-  const handleReset = () => {
-    reset();
-    setFilterQuery("");
-  };
 
   return (
     <div className="space-y-6">
@@ -90,7 +59,7 @@ export default function StudentReadingMockResults() {
       </div>
       <div className="space-y-4">
         <DataTable
-          data={students}
+          data={results}
           columns={columns}
           pagination={true}
           totalCount={paginationInfo.totalCount}
@@ -98,9 +67,6 @@ export default function StudentReadingMockResults() {
           currentPage={paginationInfo.currentPage}
           onPageChange={setPage}
           isLoading={isLoading}
-          onRowClick={(row) => {
-            navigate(`${row.id}`);
-          }}
         />
       </div>
     </div>

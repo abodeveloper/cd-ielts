@@ -46,14 +46,16 @@ export const getStudentReadingMockResults = async (
   return response.data;
 };
 
-export const getStudentReadingThematicResults = async (
+export const getStudentResults = async (
   id: string | undefined,
+  test_type: string | undefined,
+  skill: string | undefined,
   page: number,
   search: string,
   filterQuery?: string,
   extraFilterQuery?: string
 ) => {
-  let url = `/api/student/detail/${id}/thematic/reading?page=${page}`;
+  let url = `/api/student/detail/${id}/${test_type}/${skill}?page=${page}`;
   if (search) {
     url += `&search=${search}`;
   }
