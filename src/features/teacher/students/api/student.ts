@@ -20,13 +20,13 @@ export const getStudentsData = async (
   return response.data;
 };
 
-export const getStudentOne = async (id: string | number| undefined) => {
+export const getStudentOne = async (id: string | number | undefined) => {
   const response = await api.get(`/api/teacher/students/${id}/`);
   return response.data;
 };
 
 export const getStudentReadingMockResults = async (
-  id: string| undefined,
+  id: string | undefined,
   page: number,
   search: string,
   filterQuery?: string,
@@ -64,5 +64,17 @@ export const getStudentReadingThematicResults = async (
     url += `&${extraFilterQuery}`;
   }
   const response = await api.get(url);
+  return response.data;
+};
+
+export const getStudentResultOne = async (
+  id: string | undefined,
+  test_type: string | undefined,
+  skill: string | undefined,
+  obj_id: string | undefined
+) => {
+  const response = await api.get(
+    `/api/student/info/${id}/${test_type}/${skill}/${obj_id}/`
+  );
   return response.data;
 };

@@ -53,6 +53,9 @@ const StudentDetailPage = lazy(
 const StudentReadingResultsPage = lazy(
   () => import("@/features/teacher/students/StudentReadingResultsPage")
 );
+const StudentResultPage = lazy(
+  () => import("@/features/teacher/students/StudentResultPage")
+);
 
 const TestMocksPage = lazy(
   () => import("@/features/test-materials/mock/MocksPage")
@@ -125,6 +128,10 @@ export const routes = [
       {
         path: "students/:id/results/reading",
         element: <StudentReadingResultsPage />,
+      },
+      {
+        path: "students/:id/:test_type/:skill/:obj_id",
+        element: <StudentResultPage />,
       },
       {
         path: "tests",

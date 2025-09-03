@@ -1,10 +1,11 @@
 // useGroupColumns.ts
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { ColumnDef } from "@tanstack/react-table";
-import { NavLink, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Student } from "../types";
 
-export function useReadingThematicResultColumns(): ColumnDef<Student>[] {
+export function useReadingMockResultColumns(): ColumnDef<Student>[] {
   const navigate = useNavigate();
 
   const { id } = useParams();
@@ -65,25 +66,19 @@ export function useReadingThematicResultColumns(): ColumnDef<Student>[] {
     },
     {
       accessorKey: "reading_material_id",
-      header: "Answer review",
+      header: "View",
       cell: ({ row }) => {
         const test_id = row.getValue("reading_material_id");
 
         return (
           <>
-            {/* <Button
+            <Button
               onClick={() =>
                 navigate(`/teacher/students/${id}/thematic/reading/${test_id}`)
               }
             >
               view
-            </Button> */}
-            <NavLink
-              to={`/teacher/students/${id}/thematic/reading/${test_id}`}
-              className={"text-blue-500"}
-            >
-              View
-            </NavLink>
+            </Button>
           </>
         );
       },
