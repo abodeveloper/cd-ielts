@@ -3,6 +3,7 @@ import ContentPanel from "@/features/exams/components/ContentPanel";
 import PartInfo from "@/features/exams/components/PartInfo";
 import TestHeader from "@/features/exams/components/TestHeader";
 import TestNavigation from "@/features/exams/components/TestNavigation";
+import { usePreventPageLeave } from "@/features/exams/hooks/usePreventPageLeave";
 import { useReadingForm } from "@/features/exams/hooks/useReadingForm";
 import useTestLogic from "@/features/exams/hooks/useTestLogic";
 import { ReadingPart } from "@/features/exams/types";
@@ -40,7 +41,7 @@ const ReadingTestStep = ({ onNext }: StepProps) => {
   );
 
   // Prevent page leave when test is not finished
-  // usePreventPageLeave(!isTestFinished);
+  usePreventPageLeave(!isTestFinished);
 
   const activePart = parts.find((part) => `tab-${part.id}` === activeTab);
 

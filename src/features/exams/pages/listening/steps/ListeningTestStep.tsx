@@ -14,6 +14,7 @@ import { useEffect, useRef, useState } from "react";
 import { FormProvider } from "react-hook-form";
 import { useParams } from "react-router-dom";
 import TestSoundStep from "./TestSoundsStep";
+import { usePreventPageLeave } from "@/features/exams/hooks/usePreventPageLeave";
 
 // Asosiy ListeningTestStep komponenti
 const ListeningTestStep = () => {
@@ -40,6 +41,9 @@ const ListeningTestStep = () => {
     form.handleSubmit(onSubmit),
     startTimer // Yangi prop
   );
+
+  // Prevent page leave when test is not finished
+  usePreventPageLeave(!isTestFinished);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [currentAudioIndex, setCurrentAudioIndex] = useState(0);

@@ -23,8 +23,6 @@ const SpeakingTestStep = () => {
   const [isSubmitting, setIsSubmitting] = useState(false); // Submit qilish holati
   const allAudioChunks = useRef<Blob[]>([]); // Barcha partlar uchun umumiy audio Blob lar
 
-  // const data: Speaking[] = Array.isArray(query.data) ? query.data : [];
-
   const parts: SpeakingPart[] = get(query, "data.speaking_parts", []);
 
   const { activeTab, setActiveTab, currentTabIndex } =

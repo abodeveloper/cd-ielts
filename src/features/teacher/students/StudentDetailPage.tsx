@@ -5,7 +5,6 @@ import LoadingSpinner from "@/shared/components/atoms/loading-spinner/LoadingSpi
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import { getStudentOne } from "./api/student";
-import StudentResults from "./components/StudentResults";
 
 const StudentDetailPage = () => {
   const { id } = useParams();
@@ -71,7 +70,6 @@ const StudentDetailPage = () => {
         </CardContent>
       </Card>
       <div className="space-y-6">
-        <StudentResults/>
         {/* <div className="flex items-center justify-between gap-2">
           <div className="text-xl font-semibold">Group students</div>
           <div className="flex gap-2">

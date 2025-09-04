@@ -1,15 +1,18 @@
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider"; // Shadcn Slider import qilindi
 import { cn } from "@/lib/utils";
+import { TestType } from "@/shared/enums/test-type.enum";
+import { useAuthStore } from "@/store/auth-store";
 import {
+  RiArrowLeftLine,
   RiShieldUserLine,
   RiTimerLine,
-  RiVolumeUpLine,
   RiVolumeMuteLine,
+  RiVolumeUpLine,
 } from "@remixicon/react";
-import { TestType } from "@/shared/enums/test-type.enum";
 import { useState } from "react";
-import { useAuthStore } from "@/store/auth-store";
+import { useNavigate } from "react-router-dom";
 
 interface TestHeaderProps {
   timeLeft: number;
@@ -26,8 +29,24 @@ const TestHeader = ({
   audioRef,
   handleVolumeChange,
 }: TestHeaderProps) => {
+  const navigate = useNavigate();
 
-  const {user} = useAuthStore();
+  const exitFullscreen = () => {
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    } else if ((document as any).webkitExitFullscreen) {
+      (document as any).webkitExitFullscreen(); // Safari
+    } else if ((document as any).msExitFullscreen) {
+      (document as any).msExitFullscreen(); // IE/Edge
+    }
+  };
+
+  const handleBack = () => {
+    navigate(-1); // Oldingi sahifaga qaytadi
+    exitFullscreen();
+  };
+
+  const { user } = useAuthStore();
 
   const [volume, setVolume] = useState(0.5);
 
@@ -40,14 +59,25 @@ const TestHeader = ({
     }
   };
 
+
+
   return (
     <Card className="w-full shadow-md rounded-none">
-      <CardContent className="p-3 flex justify-between items-center h-[50px]">
+      <CardContent className="p-3 grid grid-cols-3 items-center h-[50px]">
         <div className="text-sm flex items-center gap-2">
           <RiShieldUserLine />
           <b>Candidate:</b> {user?.full_name || user?.username}
         </div>
-        <div className="flex items-center gap-8">
+        <div className="text-sm font-semibold font-mono flex items-center gap-2 justify-center">
+          <RiTimerLine className="w-5 h-5" />
+          Time Left:{" "}
+          <span
+            className={cn("text-red-400", timeLeft < 600 && "text-red-700")}
+          >
+            {formatTime(timeLeft)}
+          </span>
+        </div>
+        <div className="flex items-center gap-8 justify-end">
           {testType === TestType.LISTENING &&
             audioRef &&
             handleVolumeChange && (
@@ -68,13 +98,16 @@ const TestHeader = ({
                 />
               </div>
             )}
-          <div className="text-sm font-semibold font-mono flex items-center gap-2 min-w-[100px]">
-            <RiTimerLine className="w-5 h-5" />
-            Time Left:{" "}
-            <span className={cn(timeLeft < 600 && "text-destructive")}>
-              {formatTime(timeLeft)}
-            </span>
-          </div>
+
+          <Button
+            onClick={handleBack}
+            variant="default"
+            type="button"
+            className="flex items-center gap-2 h-7 w-24"
+          >
+            <RiArrowLeftLine className="w-4 h-4" />
+            Back
+          </Button>
         </div>
       </CardContent>
     </Card>
