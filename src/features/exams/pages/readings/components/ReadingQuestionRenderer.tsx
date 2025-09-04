@@ -1,3 +1,17 @@
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+} from "@/components/ui/form";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { ReadingFormValues } from "@/features/exams/schemas/reading-schema";
 import MyQuestionCheckboxGroup from "@/shared/components/atoms/question-inputs/MyQuestionCheckboxGroup";
 import { ReadingQuestionType } from "@/shared/enums/reading-question-type.enum";
@@ -5,8 +19,6 @@ import parse, { Element } from "html-react-parser";
 import { UseFormReturn } from "react-hook-form";
 import DragDropTags from "./DragDropTags";
 import ReadingQuestionInput from "./ReadingQuestionInput";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
 
 interface QuestionRendererProps {
   htmlString: string;
@@ -183,7 +195,7 @@ const ReadingQuestionRenderer: React.FC<QuestionRendererProps> = ({
                 value: string;
                 label: string;
               }[] = JSON.parse(attribs["data-options"] || "[]");
-              const questions : {
+              const questions: {
                 question_number: number;
                 question_text: string;
               }[] = JSON.parse(attribs["data-questions"] || "[]");
@@ -238,9 +250,7 @@ const ReadingQuestionRenderer: React.FC<QuestionRendererProps> = ({
                                 disabled:cursor-not-allowed disabled:opacity-50"
                                       />
                                     </FormControl>
-                                    <FormLabel
-                                      
-                                    ></FormLabel>
+                                    <FormLabel></FormLabel>
                                   </FormItem>
                                 )}
                               />
@@ -266,6 +276,81 @@ const ReadingQuestionRenderer: React.FC<QuestionRendererProps> = ({
                             {option.value}
                           </TableCell>
                           <TableCell>{option.label}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              );
+            }
+
+            if (domNode.name === "table-tegs-input") {
+              const { attribs } = domNode;
+              const options: {
+                value: string;
+                label: string;
+              }[] = JSON.parse(attribs["data-options"] || "[]");
+              const questions: {
+                question_number: number;
+                question_text: string;
+              }[] = JSON.parse(attribs["data-questions"] || "[]");
+
+              return (
+                <div className="space-y-8 my-8">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead></TableHead>
+                        {options?.map((option) => (
+                          <TableHead key={option.value}>
+                            {option.value}
+                          </TableHead>
+                        ))}
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {questions.map((question, index) => (
+                        <TableRow key={index}>
+                          <TableCell>
+                            {question?.question_number}.{" "}
+                            {question?.question_text}
+                          </TableCell>
+                          {options?.map((option) => (
+                            <TableCell key={option.value}>
+                              <FormField
+                                control={form.control}
+                                name={`answers.${index}.answer`}
+                                render={({ field }) => (
+                                  <FormItem className="flex items-center space-x-2">
+                                    <FormControl>
+                                      <input
+                                        type="radio"
+                                        // checked={field.value === option.value}
+                                        onChange={() =>
+                                          field.onChange(option.value)
+                                        }
+                                        name={`${question.question_number - 1}`}
+                                        value={option.value}
+                                        id={`${question.question_number}`}
+                                        className="h-4 w-4 rounded-full border border-primary appearance-none 
+                                checked:bg-white 
+                                relative 
+                                checked:after:content-[''] 
+                                checked:after:block 
+                                checked:after:w-2.5 checked:after:h-2.5 
+                                checked:after:rounded-full 
+                                checked:after:bg-primary 
+                                checked:after:mx-auto checked:after:my-auto 
+                                checked:after:absolute checked:after:inset-0
+                                disabled:cursor-not-allowed disabled:opacity-50"
+                                      />
+                                    </FormControl>
+                                    <FormLabel></FormLabel>
+                                  </FormItem>
+                                )}
+                              />
+                            </TableCell>
+                          ))}
                         </TableRow>
                       ))}
                     </TableBody>
