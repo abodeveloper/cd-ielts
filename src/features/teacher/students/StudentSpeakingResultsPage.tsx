@@ -10,7 +10,7 @@ import { getStudentOne } from "./api/student";
 import StudentSpeakingMockResults from "./components/StudentSpeakingMockResults";
 import StudentSpeakingThematicResults from "./components/StudentSpeakingThematicResults";
 
-const StudentSpeakingResultsPage = () => {
+const StudentSpeakingResultspage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -105,4 +105,4 @@ const StudentSpeakingResultsPage = () => {
   );
 };
 
-export default StudentSpeakingResultsPage;
+export default StudentSpeakingResultspage;
