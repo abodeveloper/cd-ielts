@@ -56,7 +56,7 @@ const ListeningTestStep = () => {
     startTimer
   );
 
-  // usePreventPageLeave(!isTestFinished); // Aktivlashtirilgan
+  usePreventPageLeave(!isTestFinished); // Aktivlashtirilgan
 
   // Audio fayllarni oldindan yuklash
   useEffect(() => {

@@ -1,9 +1,15 @@
+import { Role } from "@/shared/enums/role.enum";
+import { useAuthStore } from "@/store/auth-store";
 import { useEffect, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 export const usePreventPageLeave = (shouldBlock: boolean) => {
+  const { user } = useAuthStore();
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Faqat Student uchun ishlashi kerak
+  const isStudent = user?.role === Role.STUDENT;
 
   // Fullscreen rejimini yoqish
   const enterFullscreen = useCallback(() => {
@@ -26,16 +32,19 @@ export const usePreventPageLeave = (shouldBlock: boolean) => {
 
   // Navigatsiyani boshqarish
   const handleNavigation = useCallback(() => {
-    if (shouldBlock) {
+    if (isStudent && shouldBlock) {
       if (window.confirm("Test hali tugamadi! Chiqishni xohlaysizmi?")) {
         exitFullscreen(); // Tasdiqlansa, fullscreen’dan chiqish
       } else {
         navigate(location.pathname, { replace: true }); // Sahifada qolish
       }
     }
-  }, [shouldBlock, location.pathname, navigate, exitFullscreen]);
+  }, [isStudent, shouldBlock, location.pathname, navigate, exitFullscreen]);
 
   useEffect(() => {
+    // Student emas bo‘lsa, hook ishlamasin
+    if (!isStudent) return;
+
     if (!shouldBlock) {
       exitFullscreen();
       return;
@@ -83,5 +92,11 @@ export const usePreventPageLeave = (shouldBlock: boolean) => {
       window.removeEventListener("popstate", handleNavigation);
       document.removeEventListener("fullscreenchange", handleFullscreenChange);
     };
-  }, [shouldBlock, handleNavigation, enterFullscreen, exitFullscreen]);
+  }, [
+    isStudent,
+    shouldBlock,
+    handleNavigation,
+    enterFullscreen,
+    exitFullscreen,
+  ]);
 };
