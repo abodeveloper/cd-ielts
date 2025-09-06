@@ -56,7 +56,7 @@ export const useWritingForm = (id: string | undefined) => {
       : [];
 
     replace(allQuestions);
-  }, [query.data, replace, query.isRefetching]);
+  }, [query.data, replace]);
 
   const onSubmit = (data: WritingFormValues) => {
     const submitData: AnswerPayload = [...get(data, "answers", [])];
