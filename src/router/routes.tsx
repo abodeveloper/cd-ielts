@@ -60,7 +60,7 @@ const StudentWritingResultsPage = lazy(
   () => import("@/features/teacher/students/StudentWritingResultsPage")
 );
 const StudentSpeakingResultsPage = lazy(
-  () => import("@/features/teacher/students/StudentSpeakingResultspage")
+  () => import("@/features/teacher/students/StudentSpeakingResultPage")
 );
 const StudentResultPage = lazy(
   () => import("@/features/teacher/students/StudentResultPage")
