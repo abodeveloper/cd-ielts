@@ -7,7 +7,7 @@ import { get } from "lodash";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getStudentResults } from "../api/student";
-import { useWritingAndSpeakingMockTestResultColumns } from "../hooks/useWritingandSpeakingMockTestColumns";
+import { useWritingAndSpeakingMockTestResultColumns } from "../hooks/useWritingAndSpeakingMockTestResultColumns";
 
 export default function StudentSpeakingMockResults() {
   const { id } = useParams();
