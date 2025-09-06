@@ -41,21 +41,6 @@ export const useListeningForm = (id: string | undefined) => {
   });
 
   useEffect(() => {
-    const item = query.data;
-
-    const allQuestions = isArray(item)
-      ? item
-          .flatMap((item) => item.answers)
-          .map((item) => ({
-            question_number: item.question_number,
-            answer: "",
-          }))
-      : [];
-
-    replace(allQuestions);
-  }, [query.data, replace, query.isRefetching]);
-
-  useEffect(() => {
     const data = query.data;
 
     const allQuestions = Array.isArray(data?.listening_parts)
@@ -69,7 +54,7 @@ export const useListeningForm = (id: string | undefined) => {
       : [];
 
     replace(allQuestions);
-  }, [query.data, replace, query.isRefetching]);
+  }, [query.data, replace]);
 
   const onSubmit = (data: ListeningFormValues) => {
     const submitData: AnswerPayload = [...get(data, "answers", [])];

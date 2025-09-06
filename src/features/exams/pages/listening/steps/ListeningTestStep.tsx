@@ -24,7 +24,21 @@ const ListeningTestStep = () => {
   const parts: ListeningPart[] = get(query, "data.listening_parts", []);
   const answer_time = get(query, "data.answer_time", null);
 
-  const [startTimer, setStartTimer] = useState(false); // Taymerni boshlash uchun holat
+  const [startTimer, setStartTimer] = useState(false);
+  const [showTestSoundStep, setShowTestSoundStep] = useState(true);
+  const [currentAudioIndex, setCurrentAudioIndex] = useState(0); // Hozir ijro etilayotgan audio indexi
+
+  // Barcha audio fayllar yuklanganini bildirish uchun holat
+  const [audioPreloaded, setAudioPreloaded] = useState(false);
+  // Yuklangan audio elementlarini saqlash uchun ref
+  const audioRefs = useRef<HTMLAudioElement[]>([]);
+  // Hozirgi aktiv audio elementini saqlash uchun ref
+  const activeAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  const [volume, setVolume] = useState(() => {
+    const savedVolume = localStorage.getItem("audioVolume");
+    return savedVolume ? parseFloat(savedVolume) : 1;
+  });
 
   const {
     timeLeft,
@@ -39,94 +53,163 @@ const ListeningTestStep = () => {
     answer_time,
     parts,
     form.handleSubmit(onSubmit),
-    startTimer // Yangi prop
+    startTimer
   );
 
-  // Prevent page leave when test is not finished
-  usePreventPageLeave(!isTestFinished);
+  // usePreventPageLeave(!isTestFinished); // Aktivlashtirilgan
 
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const [currentAudioIndex, setCurrentAudioIndex] = useState(0);
-  const [showTestSoundStep, setShowTestSoundStep] = useState(true);
-  const [volume, setVolume] = useState(() => {
-    const savedVolume = localStorage.getItem("audioVolume");
-    return savedVolume ? parseFloat(savedVolume) : 1;
-  });
+  // Audio fayllarni oldindan yuklash
+  useEffect(() => {
+    if (query.isSuccess && parts.length > 0 && !audioPreloaded) {
+      let loadedCount = 0;
+      const newAudioElements: HTMLAudioElement[] = [];
+
+      parts.forEach((part, index) => {
+        const audio = new Audio();
+        audio.src = part.audio;
+        audio.preload = "auto"; // Faylni avtomatik yuklash
+        audio.volume = volume; // Ovoz balandligini sozlash
+        newAudioElements[index] = audio;
+
+        audio.oncanplaythrough = () => {
+          loadedCount++;
+          if (loadedCount === parts.length) {
+            setAudioPreloaded(true);
+            audioRefs.current = newAudioElements;
+          }
+        };
+
+        audio.onerror = (e) => {
+          console.error(`Audio yuklashda xato (part ${part.id}):`, e);
+          // Xatolik bo'lsa ham yuklangan deb hisoblash kerak bo'lishi mumkin
+          // Yoki yuklash xatosi bilan ishlovchi logikani qo'shish
+          loadedCount++;
+          if (loadedCount === parts.length) {
+            setAudioPreloaded(true);
+            audioRefs.current = newAudioElements;
+          }
+        };
+      });
+    }
+  }, [query.isSuccess, parts, audioPreloaded, volume]);
 
   // TestSoundStep dan o‘tish
   const handleContinue = () => {
     setShowTestSoundStep(false);
+    // Birinchi audioni ijro etishni boshlash
+    if (audioRefs.current.length > 0) {
+      activeAudioRef.current = audioRefs.current[0];
+      activeAudioRef.current.play().catch((error) => {
+        console.error("Birinchi audio ijro etishda xato:", error);
+      });
+    }
   };
 
   // Ovoz balandligini localStorage'da saqlash
   useEffect(() => {
     localStorage.setItem("audioVolume", volume.toString());
-  }, [volume]);
-
-  // Ovoz balandligini yangilash (audio restart qilmasdan)
-  useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.volume = volume;
-    }
+    // Barcha yuklangan audio elementlarining ovoz balandligini yangilash
+    audioRefs.current.forEach((audio) => {
+      audio.volume = volume;
+    });
   }, [volume]);
 
   // Audio fayllarni ketma-ket ijro qilish
   useEffect(() => {
-    if (
-      showTestSoundStep ||
-      !audioRef.current ||
-      !parts.length ||
-      currentAudioIndex >= parts.length
-    ) {
-      if (currentAudioIndex >= parts.length && parts.length > 0) {
-        setStartTimer(true); // Barcha audio fayllar tugagach taymerni boshlash
-      }
+    if (showTestSoundStep || !audioPreloaded || parts.length === 0) {
       return;
     }
 
-    const audio = audioRef.current;
-    audio.src = parts[currentAudioIndex].audio;
-    audio.volume = volume;
-    audio.play().catch((error) => {
-      console.error(
-        `Audio ijro etishda xato (part ${parts[currentAudioIndex].id}):`,
-        error
-      );
-    });
+    const currentAudio = activeAudioRef.current;
 
     const handleAudioEnd = () => {
       if (currentAudioIndex < parts.length - 1) {
+        // Hozirgi audioni to'xtatish va keyingisiga o'tish
+        if (currentAudio) {
+          currentAudio.pause();
+          currentAudio.currentTime = 0; // Keyingi safar boshidan ijro etish uchun
+        }
         setCurrentAudioIndex((prev) => prev + 1);
       } else {
-        setStartTimer(true); // Oxirgi audio tugagach taymerni boshlash
+        // Barcha audio fayllar tugagach taymerni boshlash
+        setStartTimer(true);
+        if (currentAudio) {
+          currentAudio.pause();
+          currentAudio.currentTime = 0;
+        }
       }
     };
 
-    audio.addEventListener("ended", handleAudioEnd);
-
-    // Pauza bo‘lsa, avtomatik play qilish
-    const handlePause = () => {
-      audio.play();
-    };
-    audio.addEventListener("pause", handlePause);
+    if (currentAudioIndex < parts.length) {
+      // Yangi audioni faollashtirish
+      const nextAudio = audioRefs.current[currentAudioIndex];
+      if (nextAudio && nextAudio !== currentAudio) {
+        if (currentAudio) {
+          currentAudio.pause();
+          currentAudio.currentTime = 0;
+          currentAudio.removeEventListener("ended", handleAudioEnd);
+        }
+        activeAudioRef.current = nextAudio;
+        activeAudioRef.current.volume = volume; // Ovoz balandligini sozlash
+        activeAudioRef.current.play().catch((error) => {
+          console.error(
+            `Audio ijro etishda xato (part ${parts[currentAudioIndex].id}):`,
+            error
+          );
+        });
+        activeAudioRef.current.addEventListener("ended", handleAudioEnd);
+      } else if (currentAudio) {
+        // Agar audio o'zgarmagan bo'lsa va ijro etilmayotgan bo'lsa, ijro etish
+        if (currentAudio.paused) {
+          currentAudio.play().catch((error) => {
+            console.error("Audio ijro etishda xato:", error);
+          });
+        }
+        currentAudio.addEventListener("ended", handleAudioEnd);
+      }
+    }
 
     return () => {
-      audio.pause();
-      audio.removeEventListener("ended", handleAudioEnd);
-      audio.removeEventListener("pause", handlePause);
+      if (activeAudioRef.current) {
+        activeAudioRef.current.pause();
+        activeAudioRef.current.removeEventListener("ended", handleAudioEnd);
+      }
     };
-  }, [currentAudioIndex, parts, showTestSoundStep]);
+  }, [currentAudioIndex, parts, showTestSoundStep, audioPreloaded, volume]);
 
-  // MediaSession API orqali media tugmalarini bloklash
+  // MediaSession API orqali media tugmalarini bloklash (faol audio elementga ta'sir qiladi)
   useEffect(() => {
     if ("mediaSession" in navigator) {
-      navigator.mediaSession.setActionHandler("play", () => {});
-      navigator.mediaSession.setActionHandler("pause", () => {});
-      navigator.mediaSession.setActionHandler("stop", () => {});
-      navigator.mediaSession.setActionHandler("nexttrack", () => {});
-      navigator.mediaSession.setActionHandler("previoustrack", () => {});
+      navigator.mediaSession.setActionHandler("play", () => {
+        if (activeAudioRef.current && activeAudioRef.current.paused) {
+          activeAudioRef.current.play();
+        }
+      });
+      navigator.mediaSession.setActionHandler("pause", () => {
+        if (activeAudioRef.current && !activeAudioRef.current.paused) {
+          activeAudioRef.current.pause();
+        }
+      });
+      navigator.mediaSession.setActionHandler("stop", () => {
+        if (activeAudioRef.current) {
+          activeAudioRef.current.pause();
+          activeAudioRef.current.currentTime = 0;
+        }
+      });
+      navigator.mediaSession.setActionHandler("nexttrack", () => {
+        // Keyingi audioni ijro etish logikasini shu yerga qo'shishingiz mumkin
+        if (currentAudioIndex < parts.length - 1) {
+          setCurrentAudioIndex((prev) => prev + 1);
+        }
+      });
+      navigator.mediaSession.setActionHandler("previoustrack", () => {
+        // Oldingi audioni ijro etish logikasini shu yerga qo'shishingiz mumkin
+        if (currentAudioIndex > 0) {
+          setCurrentAudioIndex((prev) => prev - 1);
+        }
+      });
     }
-  }, []);
+  }, [currentAudioIndex, parts.length]);
 
   // Ovoz balandligini boshqarish
   const handleVolumeChange = (value: number) => {
@@ -135,7 +218,8 @@ const ListeningTestStep = () => {
 
   const activePart = parts.find((part) => `tab-${part.id}` === activeTab);
 
-  if (query.isLoading) return <LoadingSpinner message="Loading test data..." />;
+  if (query.isLoading || !audioPreloaded)
+    return <LoadingSpinner message="Loading test data and audio files..." />;
   if (query.isError)
     return (
       <ErrorMessage
@@ -147,7 +231,13 @@ const ListeningTestStep = () => {
   return (
     <>
       {showTestSoundStep ? (
-        <TestSoundStep onNext={handleContinue} />
+        // TestSoundStep komponentiga volume va audioRefs ni uzatish
+        <TestSoundStep
+          onNext={handleContinue}
+          onVolumeChange={handleVolumeChange}
+          initialVolume={volume}
+          audioElements={audioRefs.current} // Ovoz balandligini sinash uchun audio elementlar
+        />
       ) : (
         <FormProvider {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="min-h-screen">
@@ -156,13 +246,15 @@ const ListeningTestStep = () => {
                 timeLeft={timeLeft}
                 formatTime={formatTime}
                 testType={TestType.LISTENING}
-                audioRef={audioRef}
+                // activeAudioRef.current ni yuborish, chunki endi u bitta audio elementini bildiradi
+                audioRef={activeAudioRef}
                 handleVolumeChange={handleVolumeChange}
               />
               <PartInfo activePart={activePart} testType={TestType.LISTENING} />
             </div>
 
-            {parts.length > 0 && <audio ref={audioRef} controls={false} />}
+            {/* Endi bu yerda bitta audio elementi kerak emas, chunki u ref orqali boshqariladi */}
+            {/* <audio ref={activeAudioRef} controls={false} /> */}
 
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <ContentPanel
