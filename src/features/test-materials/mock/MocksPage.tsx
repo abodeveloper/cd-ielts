@@ -1,15 +1,25 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { CardList } from "@/components/ui/card-list";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import ErrorMessage from "@/shared/components/atoms/error-message/ErrorMessage";
+import { Role } from "@/shared/enums/role.enum";
 import { useDebounce } from "@/shared/hooks/useDebounce";
 import { buildFilterQuery } from "@/shared/utils/helper";
+import { useAuthStore } from "@/store/auth-store";
 import {
-    RiBookOpenLine,
-    RiHeadphoneLine,
-    RiMic2Line,
-    RiPencilLine,
+  RiBarChartBoxLine,
+  RiBookOpenLine,
+  RiHeadphoneLine,
+  RiMic2Line,
+  RiPencilLine,
+  RiPresentationLine,
 } from "@remixicon/react";
 import { useQuery } from "@tanstack/react-query";
 import { get } from "lodash";
@@ -19,6 +29,8 @@ import { getTestsData } from "../api/test-material";
 import { Material, Test, TestSection } from "../types";
 
 export default function MocksPage() {
+  const { user } = useAuthStore();
+
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [searchInput, setSearchInput] = useState("");
@@ -82,52 +94,103 @@ export default function MocksPage() {
                   {section.title}
                 </CardTitle>
                 <CardContent className="space-y-2 p-0 pt-2">
-                  {materials?.map((material: Material) => (
-                    <div
-                      className="flex items-center gap-2 w-full"
-                      key={material.id}
-                    >
-                      <Button
-                        className="pointer-events-none shrink-0"
-                        variant="outline"
-                        size="icon"
+                  {materials?.map((material: Material) => {
+                    return (
+                      <div
+                        className="flex items-center gap-2 w-full"
+                        key={material.id}
                       >
-                        {material.type === "reading" ? (
-                          <RiBookOpenLine className="h-6 w-6" />
-                        ) : material.type === "listening" ? (
-                          <RiHeadphoneLine className="h-6 w-6" />
-                        ) : material.type === "writing" ? (
-                          <RiPencilLine className="h-6 w-6" />
+                        <Button
+                          className="pointer-events-none shrink-0"
+                          variant="outline"
+                          size="icon"
+                        >
+                          {material.type === "reading" ? (
+                            <RiBookOpenLine className="h-6 w-6" />
+                          ) : material.type === "listening" ? (
+                            <RiHeadphoneLine className="h-6 w-6" />
+                          ) : material.type === "writing" ? (
+                            <RiPencilLine className="h-6 w-6" />
+                          ) : (
+                            <RiMic2Line className="h-6 w-6" />
+                          )}
+                        </Button>
+
+                        {user?.role === Role.TEACHER ? (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="flex-1 min-w-0 text-left truncate px-3 py-2"
+                              >
+                                {material.title}
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  navigate(
+                                    `/teacher/tests/mock/detail`
+                                  )
+                                }
+                              >
+                                <RiBarChartBoxLine className="w-5 h-5" />
+                                Statistics
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  const type = material.type;
+                                  switch (type) {
+                                    case "listening":
+                                      navigate(`/listenings/${material.id}`);
+                                      break;
+                                    case "reading":
+                                      navigate(`/readings/${material.id}`);
+                                      break;
+                                    case "writing":
+                                      navigate(`/writings/${material.id}`);
+                                      break;
+                                    case "speaking":
+                                      navigate(`/speakings/${material.id}`);
+                                      break;
+                                  }
+                                }}
+                              >
+                                <RiPresentationLine className="w-5 h-5" />
+                                Start the test
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         ) : (
-                          <RiMic2Line className="h-6 w-6" />
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1 min-w-0 text-left truncate px-3 py-2"
+                            onClick={() => {
+                              const type = material.type;
+                              switch (type) {
+                                case "listening":
+                                  navigate(`/listenings/${material.id}`);
+                                  break;
+                                case "reading":
+                                  navigate(`/readings/${material.id}`);
+                                  break;
+                                case "writing":
+                                  navigate(`/writings/${material.id}`);
+                                  break;
+                                case "speaking":
+                                  navigate(`/speakings/${material.id}`);
+                                  break;
+                              }
+                            }}
+                          >
+                            {material.title}
+                          </Button>
                         )}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex-1 min-w-0 text-left truncate px-3 py-2"
-                        onClick={() => {
-                          const type = material.type;
-                          switch (type) {
-                            case "listening":
-                              navigate(`/listenings/${material.id}`);
-                              break;
-                            case "reading":
-                              navigate(`/readings/${material.id}`);
-                              break;
-                            case "writing":
-                              navigate(`/writings/${material.id}`);
-                              break;
-                            case "speaking":
-                              navigate(`/speakings/${material.id}`);
-                              break;
-                          }
-                        }}
-                      >
-                        {material.title}
-                      </Button>
-                    </div>
-                  ))}
+                      </div>
+                    );
+                  })}
                 </CardContent>
               </Card>
             );

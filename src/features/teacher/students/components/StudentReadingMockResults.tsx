@@ -7,7 +7,7 @@ import { get } from "lodash";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getStudentResults } from "../api/student";
-import { useReadingMockResultColumns } from "../hooks/usereadingMockResultColumns";
+import { useMockTestResultColumns } from "../hooks/useReadingAndListeningMockTestResultColums";
 
 export default function StudentReadingMockResults() {
   const { id } = useParams();
@@ -21,7 +21,7 @@ export default function StudentReadingMockResults() {
       getStudentResults(id, "mock", "reading", page, debouncedSearch),
   });
 
-  const columns = useReadingMockResultColumns();
+  const columns = useMockTestResultColumns({ type: "reading" });
 
   // Data and pagination info
   const results = get(data, "results", []);

@@ -7,21 +7,23 @@ import { get } from "lodash";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getStudentResults } from "../api/student";
-import { useThematicTestResultColumns } from "../hooks/useReadingAndListeningThematicTestResultColumns";
+import { useWritingAndSpeakingThematicTestResultColumns } from "../hooks/useWritingAndSpeakingThematicTestColumns";
 
-export default function StudentReadingThematicResults() {
+export default function StudentWritingThematicResults() {
   const { id } = useParams();
   const [page, setPage] = useState(1);
   const [searchInput, setSearchInput] = useState("");
   const debouncedSearch = useDebounce<string>(searchInput);
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["thematic-reading", page, debouncedSearch],
+    queryKey: ["thematic-writing", page, debouncedSearch],
     queryFn: () =>
-      getStudentResults(id, "thematic", "reading", page, debouncedSearch),
+      getStudentResults(id, "thematic", "writing", page, debouncedSearch),
   });
 
-  const columns = useThematicTestResultColumns({ type: "reading" });
+  const columns = useWritingAndSpeakingThematicTestResultColumns({
+    type: "writing",
+  });
 
   // Data and pagination info
   const results = get(data, "results", []);

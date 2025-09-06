@@ -9,19 +9,19 @@ import { useParams } from "react-router-dom";
 import { getStudentResults } from "../api/student";
 import { useThematicTestResultColumns } from "../hooks/useReadingAndListeningThematicTestResultColumns";
 
-export default function StudentReadingThematicResults() {
+export default function StudentListeningThematicResults() {
   const { id } = useParams();
   const [page, setPage] = useState(1);
   const [searchInput, setSearchInput] = useState("");
   const debouncedSearch = useDebounce<string>(searchInput);
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["thematic-reading", page, debouncedSearch],
+    queryKey: ["thematic-listening", page, debouncedSearch],
     queryFn: () =>
-      getStudentResults(id, "thematic", "reading", page, debouncedSearch),
+      getStudentResults(id, "thematic", "listening", page, debouncedSearch),
   });
 
-  const columns = useThematicTestResultColumns({ type: "reading" });
+  const columns = useThematicTestResultColumns({ type: "listening" });
 
   // Data and pagination info
   const results = get(data, "results", []);

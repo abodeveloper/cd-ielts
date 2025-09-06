@@ -4,18 +4,29 @@ import { ColumnDef } from "@tanstack/react-table";
 import { NavLink, useParams } from "react-router-dom";
 import { Student } from "../types";
 
-export function useReadingMockResultColumns(): ColumnDef<Student>[] {
+export function useMockTestResultColumns({
+  type,
+}: {
+  type: "reading" | "listening" | "writing" | "speaking";
+}): ColumnDef<Student>[] {
   const { id } = useParams();
+
+  // type ga qarab title chiqarish
+  const titleMap: Record<typeof type, string> = {
+    reading: "Reading title",
+    listening: "Listening title",
+    writing: "Writing title",
+    speaking: "Speaking title",
+  };
 
   return [
     {
       accessorKey: "test_title",
       header: "Test title",
-      // cell: ({ row }) => <div>{row.getValue("username")}</div>,
     },
     {
-      accessorKey: "reading_title",
-      header: "Reading title",
+      accessorKey: `${type}_title`, // dinamik ustun
+      header: titleMap[type], // dinamik header
     },
     {
       accessorKey: "total_answers_for_material",

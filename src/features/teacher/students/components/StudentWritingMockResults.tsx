@@ -7,21 +7,23 @@ import { get } from "lodash";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getStudentResults } from "../api/student";
-import { useThematicTestResultColumns } from "../hooks/useReadingAndListeningThematicTestResultColumns";
+import { useWritingAndSpeakingMockTestResultColumns } from "../hooks/useWritingandSpeakingMockTestColumns";
 
-export default function StudentReadingThematicResults() {
+export default function StudentWritingMockResults() {
   const { id } = useParams();
   const [page, setPage] = useState(1);
   const [searchInput, setSearchInput] = useState("");
   const debouncedSearch = useDebounce<string>(searchInput);
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["thematic-reading", page, debouncedSearch],
+    queryKey: ["mock-writing", page, debouncedSearch],
     queryFn: () =>
-      getStudentResults(id, "thematic", "reading", page, debouncedSearch),
+      getStudentResults(id, "mock", "writing", page, debouncedSearch),
   });
 
-  const columns = useThematicTestResultColumns({ type: "reading" });
+  const columns = useWritingAndSpeakingMockTestResultColumns({
+    type: "writing",
+  });
 
   // Data and pagination info
   const results = get(data, "results", []);
@@ -47,7 +49,7 @@ export default function StudentReadingThematicResults() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-2">
-        <div className="text-xl font-semibold">Thematic</div>
+        <div className="text-xl font-semibold">Mock</div>
         <div className="flex gap-2">
           <Input
             placeholder="Search ..."

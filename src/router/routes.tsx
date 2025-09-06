@@ -53,6 +53,15 @@ const StudentDetailPage = lazy(
 const StudentReadingResultsPage = lazy(
   () => import("@/features/teacher/students/StudentReadingResultsPage")
 );
+const StudentListeningResultsPage = lazy(
+  () => import("@/features/teacher/students/StudentListeningResultsPage")
+);
+const StudentWritingResultsPage = lazy(
+  () => import("@/features/teacher/students/StudentWritingResultsPage")
+);
+const StudentSpeakingResultsPage = lazy(
+  () => import("@/features/teacher/students/StudentSpeakingResultspage")
+);
 const StudentResultPage = lazy(
   () => import("@/features/teacher/students/StudentResultPage")
 );
@@ -128,6 +137,18 @@ export const routes = [
       {
         path: "students/:id/results/reading",
         element: <StudentReadingResultsPage />,
+      },
+      {
+        path: "students/:id/results/listening",
+        element: <StudentListeningResultsPage />,
+      },
+      {
+        path: "students/:id/results/writing",
+        element: <StudentWritingResultsPage />,
+      },
+      {
+        path: "students/:id/results/speaking",
+        element: <StudentSpeakingResultsPage />,
       },
       {
         path: "students/:id/:test_type/:skill/:obj_id",

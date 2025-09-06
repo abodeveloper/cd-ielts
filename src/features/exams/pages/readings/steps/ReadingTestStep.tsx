@@ -41,7 +41,7 @@ const ReadingTestStep = ({ onNext }: StepProps) => {
   );
 
   // Prevent page leave when test is not finished
-  usePreventPageLeave(!isTestFinished);
+  // usePreventPageLeave(!isTestFinished);
 
   const activePart = parts.find((part) => `tab-${part.id}` === activeTab);
 

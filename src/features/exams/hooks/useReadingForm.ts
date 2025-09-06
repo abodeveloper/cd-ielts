@@ -54,7 +54,7 @@ export const useReadingForm = (
       : [];
 
     replace(allQuestions);
-  }, [query.data, replace, query.isRefetching]);
+  }, [query.data, replace]);
 
   const onSubmit = (data: ReadingFormValues) => {
     const submitData: AnswerPayload = [...get(data, "answers", [])];

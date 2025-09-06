@@ -1,12 +1,16 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ErrorMessage from "@/shared/components/atoms/error-message/ErrorMessage";
 import LoadingSpinner from "@/shared/components/atoms/loading-spinner/LoadingSpinner";
+import { RiArticleLine, RiBookmark3Line } from "@remixicon/react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import { getStudentOne } from "./api/student";
+import StudentListeningMockResults from "./components/StudentListeningMockResults";
+import StudentListeningThematicResults from "./components/StudentListeningThematicResults";
 
-const StudentDetailPage = () => {
+const StudentListeningResultsPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -68,8 +72,37 @@ const StudentDetailPage = () => {
           </div>
         </CardContent>
       </Card>
+      <div className="space-y-6">
+        <div className="text-xl font-semibold text-center">
+          Listening results
+        </div>
+        <Tabs defaultValue="mock" className="w-full">
+          <TabsList className="w-full grid grid-cols-2">
+            <TabsTrigger
+              value="mock"
+              className="flex items-center justify-center gap-2 text-sm font-medium transition-colors "
+            >
+              <RiArticleLine className="w-5 h-5" />
+              Mock
+            </TabsTrigger>
+            <TabsTrigger
+              value="thematic"
+              className="flex items-center justify-center gap-2 text-sm font-medium transition-colors "
+            >
+              <RiBookmark3Line className="w-5 h-5" />
+              Thematic
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="mock" className="mt-6">
+            <StudentListeningMockResults />
+          </TabsContent>
+          <TabsContent value="thematic" className="mt-6">
+            <StudentListeningThematicResults />
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
 };
 
-export default StudentDetailPage;
+export default StudentListeningResultsPage;

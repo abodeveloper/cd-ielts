@@ -1,9 +1,10 @@
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-} from "@/components/ui/form";
+import { ReadingFormValues } from "@/features/exams/schemas/reading-schema";
+import MyQuestionCheckboxGroup from "@/shared/components/atoms/question-inputs/MyQuestionCheckboxGroup";
+import { ReadingQuestionType } from "@/shared/enums/reading-question-type.enum";
+import parse, { Element } from "html-react-parser";
+import { UseFormReturn } from "react-hook-form";
+import DragDropTags from "./DragDropTags";
+import ReadingQuestionInput from "./ReadingQuestionInput";
 import {
   Table,
   TableBody,
@@ -12,13 +13,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ReadingFormValues } from "@/features/exams/schemas/reading-schema";
-import MyQuestionCheckboxGroup from "@/shared/components/atoms/question-inputs/MyQuestionCheckboxGroup";
-import { ReadingQuestionType } from "@/shared/enums/reading-question-type.enum";
-import parse, { Element } from "html-react-parser";
-import { UseFormReturn } from "react-hook-form";
-import DragDropTags from "./DragDropTags";
-import ReadingQuestionInput from "./ReadingQuestionInput";
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+} from "@/components/ui/form";
 
 interface QuestionRendererProps {
   htmlString: string;
@@ -200,6 +200,8 @@ const ReadingQuestionRenderer: React.FC<QuestionRendererProps> = ({
                 question_text: string;
               }[] = JSON.parse(attribs["data-questions"] || "[]");
 
+              const table_name = attribs["table_name"];
+
               return (
                 <div className="space-y-8 my-8">
                   <Table>
@@ -224,7 +226,9 @@ const ReadingQuestionRenderer: React.FC<QuestionRendererProps> = ({
                             <TableCell key={option.value}>
                               <FormField
                                 control={form.control}
-                                name={`answers.${index}.answer`}
+                                name={`answers.${
+                                  question.question_number - 1
+                                }.answer`}
                                 render={({ field }) => (
                                   <FormItem className="flex items-center space-x-2">
                                     <FormControl>
@@ -234,7 +238,6 @@ const ReadingQuestionRenderer: React.FC<QuestionRendererProps> = ({
                                         onChange={() =>
                                           field.onChange(option.value)
                                         }
-                                        name={`${question.question_number - 1}`}
                                         value={option.value}
                                         id={`${question.question_number}`}
                                         className="h-4 w-4 rounded-full border border-primary appearance-none 
@@ -250,7 +253,6 @@ const ReadingQuestionRenderer: React.FC<QuestionRendererProps> = ({
                                 disabled:cursor-not-allowed disabled:opacity-50"
                                       />
                                     </FormControl>
-                                    <FormLabel></FormLabel>
                                   </FormItem>
                                 )}
                               />
@@ -264,9 +266,7 @@ const ReadingQuestionRenderer: React.FC<QuestionRendererProps> = ({
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead colSpan={2}>
-                          First invented or used by
-                        </TableHead>
+                        <TableHead colSpan={2}>{table_name}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -319,7 +319,9 @@ const ReadingQuestionRenderer: React.FC<QuestionRendererProps> = ({
                             <TableCell key={option.value}>
                               <FormField
                                 control={form.control}
-                                name={`answers.${index}.answer`}
+                                name={`answers.${
+                                  question.question_number - 1
+                                }.answer`}
                                 render={({ field }) => (
                                   <FormItem className="flex items-center space-x-2">
                                     <FormControl>
