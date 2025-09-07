@@ -65,10 +65,22 @@ export function useThematicTestResultColumns({
       ),
     },
     {
-      accessorKey: `${type}_material_id`,
+      accessorKey: "material_last_activity",
+      header: "Test performed",
+      cell: ({ row }) => {
+        const created_at = String(row.getValue("material_last_activity"));
+        return (
+          <>
+            {created_at.slice(0, 10)} {created_at.slice(11, 19)}
+          </>
+        );
+      },
+    },
+    {
+      accessorKey: `material_id`,
       header: "Answer review",
       cell: ({ row }) => {
-        const test_id = row.getValue(`${type}_material_id`);
+        const test_id = row.getValue(`material_id`);
 
         return (
           <NavLink

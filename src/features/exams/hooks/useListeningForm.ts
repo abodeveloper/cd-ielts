@@ -13,8 +13,10 @@ import {
 } from "../schemas/listening-schema";
 import { useListening } from "./useListening";
 
-export const useListeningForm = (id: string | undefined) => {
-  const navigate = useNavigate();
+export const useListeningForm = (
+  id: string | undefined,
+  onNext?: (data: unknown) => void
+) => {
 
   const form = useForm<ListeningFormValues>({
     resolver: zodResolver(listeningSchema),
@@ -23,9 +25,9 @@ export const useListeningForm = (id: string | undefined) => {
 
   const readingMutation = useMutation({
     mutationFn: (data: AnswerPayload) => postListeningAnswers(id, data),
-    onSuccess: () => {
+    onSuccess: (res) => {
       toastService.success("Successfully submitted!");
-      navigate("/profile");
+      onNext?.(res);
     },
     onError: (error: Error) => {
       console.error("Error:", error);

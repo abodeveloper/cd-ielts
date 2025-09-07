@@ -4,6 +4,7 @@ import PartInfo from "@/features/exams/components/PartInfo";
 import TestHeader from "@/features/exams/components/TestHeader";
 import TestNavigation from "@/features/exams/components/TestNavigation";
 import { useListeningForm } from "@/features/exams/hooks/useListeningForm";
+import { usePreventPageLeave } from "@/features/exams/hooks/usePreventPageLeave";
 import useTestLogic from "@/features/exams/hooks/useTestLogic";
 import { ListeningPart } from "@/features/exams/types";
 import ErrorMessage from "@/shared/components/atoms/error-message/ErrorMessage";
@@ -14,12 +15,15 @@ import { useEffect, useRef, useState } from "react";
 import { FormProvider } from "react-hook-form";
 import { useParams } from "react-router-dom";
 import TestSoundStep from "./TestSoundsStep";
-import { usePreventPageLeave } from "@/features/exams/hooks/usePreventPageLeave";
+
+interface StepProps {
+  onNext?: (data: any) => void;
+}
 
 // Asosiy ListeningTestStep komponenti
-const ListeningTestStep = () => {
+const ListeningTestStep = ({ onNext }: StepProps) => {
   const { id } = useParams();
-  const { form, onSubmit, query } = useListeningForm(id);
+  const { form, onSubmit, query } = useListeningForm(id, onNext);
 
   const parts: ListeningPart[] = get(query, "data.listening_parts", []);
   const answer_time = get(query, "data.answer_time", null);

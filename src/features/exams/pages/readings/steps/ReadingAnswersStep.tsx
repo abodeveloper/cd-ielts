@@ -89,7 +89,7 @@ export default function ReadingAnswerStep({ formData }: Props) {
               <strong>Percentage correct for material:</strong>
               <div>{percentage_correct_for_material}%</div>
             </div>
-            {test_type === "Mock" && (
+            {test_type === "mock" && (
               <div className="flex items-center gap-2 mt-4">
                 <strong>Overal:</strong>
                 <Badge variant={"default"}>{overall_score}</Badge>

@@ -163,7 +163,6 @@ export const routes = [
           { path: "thematic", element: <TestThematicsPage /> },
         ],
       },
-
       { path: "profile", element: <ProfilePage /> },
       { path: "exams", element: <div>Exams</div> },
       {

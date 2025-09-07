@@ -3,11 +3,12 @@ import { Badge } from "@/components/ui/badge";
 import { ColumnDef } from "@tanstack/react-table";
 import { NavLink, useParams } from "react-router-dom";
 import { Student } from "../types";
+import { get } from "lodash";
 
 export function useMockTestResultColumns({
   type,
 }: {
-  type: "reading" | "listening" | "writing" | "speaking";
+  type: "reading" | "listening";
 }): ColumnDef<Student>[] {
   const { id } = useParams();
 
@@ -15,8 +16,6 @@ export function useMockTestResultColumns({
   const titleMap: Record<typeof type, string> = {
     reading: "Reading title",
     listening: "Listening title",
-    writing: "Writing title",
-    speaking: "Speaking title",
   };
 
   return [
@@ -82,15 +81,28 @@ export function useMockTestResultColumns({
       ),
     },
     {
-      accessorKey: "reading_material_id",
+      accessorKey: "material_last_activity",
+      header: "Test performed",
+      cell: ({ row }) => {
+        const created_at = String(row.getValue("material_last_activity"));
+        return (
+          <>
+            {created_at.slice(0, 10)} {created_at.slice(11, 19)}
+          </>
+        );
+      },
+    },
+    {
+      accessorKey: "material_id",
       header: "Answer review",
       cell: ({ row }) => {
-        const test_id = row.getValue("reading_material_id");
+        const test_id = row.getValue("material_id");
+        const test_type = get(row.original, 'test_type');
 
         return (
           <>
             <NavLink
-              to={`/teacher/students/${id}/thematic/reading/${test_id}`}
+              to={`/teacher/students/${id}/${test_type}/${type}/${test_id}`}
               className={"text-blue-500"}
             >
               View

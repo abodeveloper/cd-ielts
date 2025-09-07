@@ -34,8 +34,6 @@ interface Props {
 export default function ListeningAnswerStep({ formData }: Props) {
   const navigate = useNavigate();
 
-  console.log(formData);
-
   const { user } = useAuthStore();
 
   const test_type = get(formData, "test_type");

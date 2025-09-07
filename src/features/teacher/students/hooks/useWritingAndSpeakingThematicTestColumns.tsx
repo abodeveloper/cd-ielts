@@ -27,26 +27,26 @@ export function useWritingAndSpeakingThematicTestResultColumns({
       header: titleMap[type], // dinamik header
     },
     {
-      accessorKey: "score",
-      header: "Score",
+      accessorKey: "total_questions",
+      header: "Total questions",
       cell: ({ row }) => (
         <>
-          <Badge variant={"default"}>{row.getValue("score")}</Badge>
+          <Badge variant={"default"}>{row.getValue("total_questions")}</Badge>
         </>
       ),
     },
     {
-      accessorKey: "overall",
-      header: "Overal",
+      accessorKey: "overall_score",
+      header: "Overall",
       cell: ({ row }) => (
         <>
-          <Badge variant={"secondary"}>{row.getValue("overall")}</Badge>
+          <Badge variant={"secondary"}>{row.getValue("overall_score")}</Badge>
         </>
       ),
     },
     {
       accessorKey: "created_at",
-      header: "Created at",
+      header: "Test performed",
       cell: ({ row }) => {
         const created_at = String(row.getValue("created_at"));
         return (

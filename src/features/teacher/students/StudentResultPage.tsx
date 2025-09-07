@@ -1,22 +1,29 @@
 import { Badge } from "@/components/ui/badge";
 import {
-    Card,
-    CardContent,
-    CardFooter,
-    CardHeader,
-    CardTitle,
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
 import ErrorMessage from "@/shared/components/atoms/error-message/ErrorMessage";
 import LoadingSpinner from "@/shared/components/atoms/loading-spinner/LoadingSpinner";
-import { RiBookOpenLine, RiCheckboxFill, RiCloseFill } from "@remixicon/react";
+import {
+  RiBookOpenLine,
+  RiCheckboxFill,
+  RiCloseFill,
+  RiHeadphoneLine,
+  RiMic2Line,
+  RiPencilLine,
+} from "@remixicon/react";
 import { useQuery } from "@tanstack/react-query";
 import { get } from "lodash";
 import { useNavigate, useParams } from "react-router-dom";
@@ -27,7 +34,7 @@ const StudentResultPage = () => {
   const navigate = useNavigate();
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["student-result", id],
+    queryKey: ["student-result", id, skill, test_type, obj_id],
     queryFn: () => getStudentResultOne(id, test_type, skill, obj_id),
   });
 
@@ -78,96 +85,328 @@ const StudentResultPage = () => {
           </div>
         </CardContent>
       </Card>
-      <Card className="w-full shadow-lg">
-        <CardHeader className="flex items-center space-x-2">
-          <RiBookOpenLine className="w-12 h-12" />
-          <h1 className="text-center text-lg font-extrabold tracking-tight text-balance">
-            IELTS Academic Reading - Results
-          </h1>
-        </CardHeader>
-        <CardContent className="space-y-8">
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <strong>Test title:</strong>
-              <div>{get(data, "test_title")}</div>
+      {skill == "reading" && (
+        <Card className="w-full shadow-lg">
+          <CardHeader className="flex items-center space-x-2">
+            <RiBookOpenLine className="w-12 h-12" />
+            <h1 className="text-center text-lg font-extrabold tracking-tight text-balance">
+              IELTS Academic Reading - Results
+            </h1>
+          </CardHeader>
+          <CardContent className="space-y-8">
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <strong>Test title:</strong>
+                <div>{get(data, "test_title")}</div>
+              </div>
+              <div className="flex items-center gap-2">
+                <strong>Material title:</strong>
+                <div>{get(data, "material_title")}</div>
+              </div>
+              <div className="flex items-center gap-2">
+                <strong>Test type:</strong>
+                <div>{get(data, "test_type")}</div>
+              </div>
+              <div className="flex items-center gap-2">
+                <strong>Total Questions:</strong>
+                <div>{get(data, "statistics.total_questions")}</div>
+              </div>
+              <div className="flex items-center gap-2">
+                <strong>Correct answers:</strong>
+                <div className="text-green-500">
+                  {get(data, "statistics.correct_answers")}
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <strong>Incorrect answers:</strong>
+                <div className="text-destructive">
+                  {get(data, "statistics.incorrect_answers")}
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <strong>Percentage correct:</strong>
+                <div>{get(data, "statistics.score_percentage")} %</div>
+              </div>
+              {test_type === "mock" && (
+                <div className="flex items-center gap-2">
+                  <strong>Overal:</strong>
+                  <Badge variant={"default"}>
+                    {get(data, "statistics.overall")}
+                  </Badge>
+                </div>
+              )}
             </div>
-            <div className="flex items-center gap-2">
-              <strong>Material title:</strong>
-              <div>{get(data, "material_title")}</div>
-            </div>
-            <div className="flex items-center gap-2">
-              <strong>Test type:</strong>
-              <div>{get(data, "test_type")}</div>
-            </div>
-            <div className="flex items-center gap-2">
-              <strong>Total Questions:</strong>
-              <div>{get(data, "statistics.total_questions")}</div>
-            </div>
-            <div className="flex items-center gap-2">
-              <strong>Correct answers:</strong>
-              <div className="text-green-500">
-                {get(data, "statistics.correct_answers")}
+            <div className="space-y-3">
+              <h2 className="text-md font-semibold">Answer Review</h2>
+              <div className="">
+                <Table className="w-full">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Question</TableHead>
+                      <TableHead>Your Answer</TableHead>
+                      <TableHead>True Answer</TableHead>
+                      <TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {get(data, "answers", []).map((answer: any) => (
+                      <TableRow key={answer.id}>
+                        <TableCell>{answer.question_number}</TableCell>
+                        <TableCell>
+                          {answer.answer || (
+                            <Badge className="bg-orange-500">
+                              Not answered
+                            </Badge>
+                          )}
+                        </TableCell>
+                        <TableCell>{answer.correct_answer}</TableCell>
+                        <TableCell>
+                          {answer.is_true ? (
+                            <RiCheckboxFill className="text-green-500" />
+                          ) : (
+                            <RiCloseFill className="text-destructive" />
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <strong>Incorrect answers:</strong>
-              <div className="text-destructive">
-                {get(data, "statistics.incorrect_answers")}
+          </CardContent>
+          <CardFooter>
+            <div className="flex items-center justify-between w-full"></div>
+          </CardFooter>
+        </Card>
+      )}
+      {skill == "listening" && (
+        <Card className="w-full shadow-lg">
+          <CardHeader className="flex items-center space-x-2">
+            <RiHeadphoneLine className="w-12 h-12" />
+            <h1 className="text-center text-lg font-extrabold tracking-tight text-balance">
+              IELTS Academic Listening - Results
+            </h1>
+          </CardHeader>
+          <CardContent className="space-y-8">
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <strong>Test title:</strong>
+                <div>{get(data, "test_title")}</div>
+              </div>
+              <div className="flex items-center gap-2">
+                <strong>Material title:</strong>
+                <div>{get(data, "material_title")}</div>
+              </div>
+              <div className="flex items-center gap-2">
+                <strong>Test type:</strong>
+                <div>{get(data, "test_type")}</div>
+              </div>
+              <div className="flex items-center gap-2">
+                <strong>Total Questions:</strong>
+                <div>{get(data, "statistics.total_questions")}</div>
+              </div>
+              <div className="flex items-center gap-2">
+                <strong>Correct answers:</strong>
+                <div className="text-green-500">
+                  {get(data, "statistics.correct_answers")}
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <strong>Incorrect answers:</strong>
+                <div className="text-destructive">
+                  {get(data, "statistics.incorrect_answers")}
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <strong>Percentage correct:</strong>
+                <div>{get(data, "statistics.score_percentage")} %</div>
+              </div>
+              {test_type === "mock" && (
+                <div className="flex items-center gap-2">
+                  <strong>Overal:</strong>
+                  <Badge variant={"default"}>
+                    {get(data, "statistics.overall")}
+                  </Badge>
+                </div>
+              )}
+            </div>
+            <div className="space-y-3">
+              <h2 className="text-md font-semibold">Answer Review</h2>
+              <div className="">
+                <Table className="w-full">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Question</TableHead>
+                      <TableHead>Your Answer</TableHead>
+                      <TableHead>True Answer</TableHead>
+                      <TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {get(data, "answers", []).map((answer: any) => (
+                      <TableRow key={answer.id}>
+                        <TableCell>{answer.question_number}</TableCell>
+                        <TableCell>
+                          {answer.answer || (
+                            <Badge className="bg-orange-500">
+                              Not answered
+                            </Badge>
+                          )}
+                        </TableCell>
+                        <TableCell>{answer.correct_answer}</TableCell>
+                        <TableCell>
+                          {answer.is_true ? (
+                            <RiCheckboxFill className="text-green-500" />
+                          ) : (
+                            <RiCloseFill className="text-destructive" />
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <strong>Percentage correct:</strong>
-              <div>{get(data, "statistics.score_percentage")} %</div>
-            </div>
-            {test_type === "mock" && (
+          </CardContent>
+          <CardFooter>
+            <div className="flex items-center justify-between w-full"></div>
+          </CardFooter>
+        </Card>
+      )}
+      {skill == "writing" && (
+        <Card className="w-full shadow-lg">
+          <CardHeader className="flex items-center space-x-2">
+            <RiPencilLine className="w-12 h-12" />
+            <h1 className="text-center text-lg font-extrabold tracking-tight text-balance">
+              IELTS Academic Writing - Results
+            </h1>
+          </CardHeader>
+          <CardContent className="space-y-8">
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <strong>Test title:</strong>
+                <div>{get(data, "test_title")}</div>
+              </div>
+              <div className="flex items-center gap-2">
+                <strong>Material title:</strong>
+                <div>{get(data, "material_title")}</div>
+              </div>
+              <div className="flex items-center gap-2">
+                <strong>Test type:</strong>
+                <div>{get(data, "test_type")}</div>
+              </div>
               <div className="flex items-center gap-2">
                 <strong>Overal:</strong>
                 <Badge variant={"default"}>
-                  {get(data, "statistics.overall")}
+                  {get(data, "statistics.average_score")}
                 </Badge>
               </div>
-            )}
-          </div>
-          <div className="space-y-3">
-            <h2 className="text-md font-semibold">Answer Review</h2>
-            <div className="">
-              <Table className="w-full">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Question</TableHead>
-                    <TableHead>Your Answer</TableHead>
-                    <TableHead>True Answer</TableHead>
-                    <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {get(data, "answers", []).map((answer: any) => (
-                    <TableRow key={answer.id}>
-                      <TableCell>{answer.question_number}</TableCell>
-                      <TableCell>
-                        {answer.answer || (
-                          <Badge className="bg-orange-500">Not answered</Badge>
-                        )}
-                      </TableCell>
-                      <TableCell>{answer.correct_answer}</TableCell>
-                      <TableCell>
-                        {answer.is_true ? (
-                          <RiCheckboxFill className="text-green-500" />
-                        ) : (
-                          <RiCloseFill className="text-destructive" />
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
             </div>
-          </div>
-        </CardContent>
-        <CardFooter>
-          <div className="flex items-center justify-between w-full"></div>
-        </CardFooter>
-      </Card>
+            <div className="space-y-3">
+              <h2 className="text-md font-semibold">Answer Review</h2>
+              <div className="">
+                <Table className="w-full">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Task</TableHead>
+                      <TableHead>Your Answer</TableHead>
+                      <TableHead>Word count</TableHead>
+                      <TableHead>Score</TableHead>
+                      <TableHead>Feedback</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {get(data, "answers", []).map((answer: any) => (
+                      <TableRow key={answer.id}>
+                        <TableCell>{answer.task_number}</TableCell>
+                        <TableCell>
+                          {answer.answer || (
+                            <Badge className="bg-orange-500">
+                              Not answered
+                            </Badge>
+                          )}
+                        </TableCell>
+                        <TableCell>{answer.word_count}</TableCell>
+                        <TableCell>
+                          <Badge variant={"default"}>{answer.score}</Badge>
+                        </TableCell>
+
+                        <TableCell>{answer.feedback}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      {skill == "speaking" && (
+        <Card className="w-full shadow-lg">
+          <CardHeader className="flex items-center space-x-2">
+            <RiMic2Line className="w-12 h-12" />
+            <h1 className="text-center text-lg font-extrabold tracking-tight text-balance">
+              IELTS Academic Speaking - Results
+            </h1>
+          </CardHeader>
+          <CardContent className="space-y-8">
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <strong>Test title:</strong>
+                <div>{get(data, "test_title")}</div>
+              </div>
+              <div className="flex items-center gap-2">
+                <strong>Material title:</strong>
+                <div>{get(data, "material_title")}</div>
+              </div>
+              <div className="flex items-center gap-2">
+                <strong>Test type:</strong>
+                <div>{get(data, "test_type")}</div>
+              </div>
+              <div className="flex items-center gap-2">
+                <strong>Score:</strong>
+                <Badge variant={"default"}>{get(data, "score")}</Badge>
+              </div>
+            </div>
+            <div className="space-y-3">
+              <h2 className="text-md font-semibold">Answer Review</h2>
+              <div className="">
+                <Table className="w-full">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>#</TableHead>
+                      <TableHead>Question</TableHead>
+                      <TableHead>Your Answer</TableHead>
+                      <TableHead>Feedback</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {get(data, "answers", []).map((answer: any) => (
+                      <TableRow key={answer.id}>
+                        <TableCell>{answer.question_number}</TableCell>
+                        <TableCell>{answer.question}</TableCell>
+                        <TableCell>
+                          {answer.record ? (
+                            <audio controls className="w-full">
+                              <source src={answer.record} type="audio/mpeg" />
+                              Your browser does not support the audio element.
+                            </audio>
+                          ) : (
+                            <Badge className="bg-orange-500">
+                              Not answered
+                            </Badge>
+                          )}
+                        </TableCell>
+                        <TableCell>{answer.feedback}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
