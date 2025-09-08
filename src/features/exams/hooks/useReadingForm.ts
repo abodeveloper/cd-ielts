@@ -57,6 +57,7 @@ export const useReadingForm = (
   }, [query.data, replace]);
 
   const onSubmit = (data: ReadingFormValues) => {
+    console.log('answer data', data)
     const submitData: AnswerPayload = [...get(data, "answers", [])];
     readingMutation.mutate(submitData);
   };
