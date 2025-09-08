@@ -20,7 +20,7 @@ interface StepProps {
 
 const ReadingTestStep = ({ onNext }: StepProps) => {
   const { id } = useParams();
-  const { form, onSubmit, query } = useReadingForm(id, onNext);
+  const { form, onSubmit, query, readingMutation } = useReadingForm(id, onNext);
 
   const parts: ReadingPart[] = get(query, "data.reading_parts", []);
   const answer_time = get(query, "data.answer_time", null);
@@ -84,6 +84,7 @@ const ReadingTestStep = ({ onNext }: StepProps) => {
             handleNext={handleNext}
             onSubmit={form.handleSubmit(onSubmit)}
             isTestFinished={isTestFinished}
+            isLoading={readingMutation.isPending}
           />
         </Tabs>
       </form>

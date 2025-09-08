@@ -21,6 +21,7 @@ interface TestNavigationProps<T extends AllTestParts> {
   handleNext: () => void;
   onSubmit: () => void;
   isTestFinished: boolean;
+  isLoading: boolean;
 }
 
 const TestNavigation = <T extends AllTestParts>({
@@ -34,6 +35,7 @@ const TestNavigation = <T extends AllTestParts>({
   handleNext,
   onSubmit,
   isTestFinished,
+  isLoading,
 }: TestNavigationProps<T>) => {
   const renderNumber = (part: AllTestParts) => {
     switch (testType) {
@@ -114,7 +116,7 @@ const TestNavigation = <T extends AllTestParts>({
           <ConfirmationDialog
             trigger={
               <Button
-                // type="submit"
+                type="button"
                 disabled={isTestFinished}
                 className="w-full md:w-auto"
               >
@@ -126,6 +128,7 @@ const TestNavigation = <T extends AllTestParts>({
             onConfirm={onSubmit}
             confirmText="Yes, Submit"
             cancelText="No, Cancel"
+            isLoading={isLoading}
           />
         </div>
       </CardContent>

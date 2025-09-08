@@ -9,14 +9,16 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button"; // shadcn/ui Button komponenti
 
 interface ConfirmationDialogProps {
   trigger: React.ReactNode;
   title: string;
   description: string;
-  onConfirm: () => void;
+  onConfirm: () => Promise<void> | void; // onConfirm async bo‘lishi mumkin
   confirmText?: string;
   cancelText?: string;
+  isLoading: boolean; // Yangi prop: isLoading
 }
 
 const ConfirmationDialog = ({
@@ -26,6 +28,7 @@ const ConfirmationDialog = ({
   onConfirm,
   confirmText = "Confirm",
   cancelText = "Cancel",
+  isLoading, // Tashqaridan keladigan isLoading
 }: ConfirmationDialogProps) => {
   return (
     <AlertDialog>
@@ -36,9 +39,13 @@ const ConfirmationDialog = ({
           <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>{cancelText}</AlertDialogCancel>
-          <AlertDialogAction onClick={onConfirm}>
-            {confirmText}
+          <AlertDialogCancel disabled={isLoading}>
+            {cancelText}
+          </AlertDialogCancel>
+          <AlertDialogAction asChild>
+            <Button onClick={onConfirm} disabled={isLoading} loading={isLoading}>
+              {confirmText}
+            </Button>
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
