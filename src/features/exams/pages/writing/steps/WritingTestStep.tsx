@@ -16,7 +16,7 @@ import { useParams } from "react-router-dom";
 
 const WritingTestStep = () => {
   const { id } = useParams();
-  const { form, onSubmit, query } = useWritingForm(id);
+  const { form, onSubmit, query, writingMutation } = useWritingForm(id);
 
   const parts: WritingPart[] = get(query, "data.writing_parts", []);
   const answer_time = get(query, "data.answer_time", null);
@@ -87,6 +87,7 @@ const WritingTestStep = () => {
             handleNext={handleNext}
             onSubmit={form.handleSubmit(onSubmit)}
             isTestFinished={isTestFinished}
+            isLoading={writingMutation.isPending}
           />
         </Tabs>
       </form>

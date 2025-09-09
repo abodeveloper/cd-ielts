@@ -1,10 +1,9 @@
 import { toastService } from "@/lib/toastService";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import { get, isArray } from "lodash";
+import { get } from "lodash";
 import { useEffect } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
 import { postListeningAnswers } from "../api/listening";
 import {
   AnswerPayload,
@@ -17,13 +16,12 @@ export const useListeningForm = (
   id: string | undefined,
   onNext?: (data: unknown) => void
 ) => {
-
   const form = useForm<ListeningFormValues>({
     resolver: zodResolver(listeningSchema),
     defaultValues: { answers: [] },
   });
 
-  const readingMutation = useMutation({
+  const listeningMutation = useMutation({
     mutationFn: (data: AnswerPayload) => postListeningAnswers(id, data),
     onSuccess: (res) => {
       toastService.success("Successfully submitted!");
@@ -60,12 +58,12 @@ export const useListeningForm = (
 
   const onSubmit = (data: ListeningFormValues) => {
     const submitData: AnswerPayload = [...get(data, "answers", [])];
-    readingMutation.mutate(submitData);
+    listeningMutation.mutate(submitData);
   };
 
   return {
     form,
-    readingMutation,
+    listeningMutation,
     onSubmit,
     answersFields,
     query,

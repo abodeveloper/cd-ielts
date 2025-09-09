@@ -23,7 +23,10 @@ interface StepProps {
 // Asosiy ListeningTestStep komponenti
 const ListeningTestStep = ({ onNext }: StepProps) => {
   const { id } = useParams();
-  const { form, onSubmit, query } = useListeningForm(id, onNext);
+  const { form, onSubmit, query, listeningMutation } = useListeningForm(
+    id,
+    onNext
+  );
 
   const parts: ListeningPart[] = get(query, "data.listening_parts", []);
   const answer_time = get(query, "data.answer_time", null);
@@ -278,6 +281,7 @@ const ListeningTestStep = ({ onNext }: StepProps) => {
                 handleNext={handleNext}
                 onSubmit={form.handleSubmit(onSubmit)}
                 isTestFinished={isTestFinished}
+                isLoading={listeningMutation.isPending}
               />
             </Tabs>
           </form>
