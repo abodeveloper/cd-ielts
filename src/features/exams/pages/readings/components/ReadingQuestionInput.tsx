@@ -53,7 +53,7 @@ const ReadingQuestionInput: React.FC<Props> = ({
   ) {
     return (
       <MyQuestionInput<ReadingFormValues>
-        floatingError
+        // floatingError
         id={number}
         control={form.control}
         name={`answers.${questionNumber}.answer`}
