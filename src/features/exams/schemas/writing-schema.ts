@@ -4,11 +4,13 @@ import { z } from "zod";
 export const writingSchema = z.object({
   answers: z
     .array(
-      z.object({
-        writing: z.number().optional(),
-        question_number: z.number().optional(),
-        answer: z.string().optional(),
-      })
+      z
+        .object({
+          writing: z.number().optional(),
+          question_number: z.number().optional(),
+          answer: z.string().nullable().optional(),
+        })
+        .nullable()
     )
     .optional(),
 });

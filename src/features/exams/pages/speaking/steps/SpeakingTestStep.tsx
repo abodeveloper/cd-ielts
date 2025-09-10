@@ -108,6 +108,14 @@ const SpeakingTestStep = () => {
       />
     );
 
+  if (query.data?.speaking_parts.length === 0)
+    return (
+      <ErrorMessage
+        title="Failed to load test"
+        message="An error occurred while loading the test questions. Please try again later."
+      />
+    );
+
   return (
     <FormProvider {...form}>
       <form className="min-h-screen">

@@ -4,6 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { get } from "lodash";
 import { useEffect } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
 import { postReadingAnswers } from "../api/reading";
 import {
   AnswerPayload,
@@ -16,6 +17,12 @@ export const useReadingForm = (
   id: string | undefined,
   onNext?: (data: unknown) => void
 ) => {
+  const navigate = useNavigate();
+  const query = useReading(id);
+
+  const is_view = get(query.data, "is_view");
+  const material = get(query.data, "material");
+
   const form = useForm<ReadingFormValues>({
     resolver: zodResolver(readingSchema),
     defaultValues: { answers: [] },
@@ -25,15 +32,21 @@ export const useReadingForm = (
     mutationFn: (data: AnswerPayload) => postReadingAnswers(id, data),
     onSuccess: (res) => {
       toastService.success("Successfully submitted!");
-      onNext?.(res); // To'g'ri ma'lumot uzatish
+      if (is_view === true) {
+        onNext?.({ ...res, material }); // To'g'ri ma'lumot uzatish
+      } else {
+        if (get(material, "test_type") === "Mock") {
+          navigate(`/writings/${get(material, "writing_id")}`);
+        } else {
+          navigate("/");
+        }
+      }
     },
     onError: (error: Error) => {
       console.error("Error:", error);
       toastService.error(get(error, "response.data.error", ""));
     },
   });
-
-  const query = useReading(id);
 
   const { fields: answersFields, replace } = useFieldArray({
     control: form.control,
@@ -59,7 +72,12 @@ export const useReadingForm = (
   useEffect(() => {
     const data = query.data;
 
-    if (!Array.isArray(data?.reading_parts)) return;
+    if (
+      !Array.isArray(data?.reading_parts) ||
+      data.reading_parts.length === 0
+    ) {
+      return;
+    }
 
     // avval maksimal question_number topamiz
     const maxQuestionNumber = Math.max(

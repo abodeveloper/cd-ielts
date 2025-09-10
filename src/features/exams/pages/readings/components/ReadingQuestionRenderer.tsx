@@ -47,22 +47,7 @@ const ReadingQuestionRenderer: React.FC<QuestionRendererProps> = ({
               const questions = JSON.parse(
                 attribs["data-question"] ||
                   `[
-                    {
-                      "question_number": 1,
-                      "question_text": "No questions provided"
-                    },
-                    {
-                      "question_number": 2,
-                      "question_text": "some question"
-                    },
-                    {
-                      "question_number": 3,
-                      "question_text": "No questions provided"
-                    },
-                    {
-                      "question_number": 4,
-                      "question_text": "some question"
-                    }
+                    
                   ]`
               );
 

@@ -19,12 +19,104 @@ const HTMLRendererWithHighlight = ({
   const [dropdownPos, setDropdownPos] = useState<{
     x: number;
     y: number;
-    width: number; // Dropdownni markazlashtirish uchun
+    width: number;
   } | null>(null);
   const [selectedHighlightElement, setSelectedHighlightElement] =
-    useState<HTMLElement | null>(null); // Highlight elementini saqlash uchun
+    useState<HTMLElement | null>(null);
 
-  // Matn tanlaganda ishlaydi (mouseup hodisasi)
+  const generateHighlightId = () =>
+    Date.now().toString() + Math.random().toString(36).slice(2);
+
+  const getAllBlocksInRange = (range: Range): HTMLElement[] => {
+    if (!contentRef.current) return [];
+
+    const blocks: HTMLElement[] = [];
+    const treeWalker = document.createTreeWalker(
+      contentRef.current,
+      NodeFilter.SHOW_ELEMENT,
+      {
+        acceptNode(node) {
+          if (!(node instanceof HTMLElement)) return NodeFilter.FILTER_REJECT;
+          const style = window.getComputedStyle(node);
+          if (
+            style.display === "block" ||
+            style.display === "list-item" ||
+            style.display === "table" ||
+            ["P", "DIV", "LI"].includes(node.tagName)
+          ) {
+            if (range.intersectsNode(node)) {
+              return NodeFilter.FILTER_ACCEPT;
+            }
+          }
+          return NodeFilter.FILTER_SKIP;
+        },
+      },
+      false
+    );
+
+    let currentNode = treeWalker.nextNode();
+    while (currentNode) {
+      blocks.push(currentNode as HTMLElement);
+      currentNode = treeWalker.nextNode();
+    }
+    return blocks;
+  };
+
+  const applyHighlightToRange = (range: Range, highlightId: string) => {
+    const fragment = range.extractContents();
+    const span = document.createElement("span");
+    span.className = "highlight";
+    span.dataset.highlightId = highlightId;
+    span.appendChild(fragment);
+    range.insertNode(span);
+  };
+
+  const handleHighlightClick = () => {
+    if (!enabledHighlight || !selectedRange) return;
+
+    const range = selectedRange.cloneRange();
+    const highlightId = generateHighlightId();
+
+    const blocks = getAllBlocksInRange(range);
+    if (blocks.length === 0) {
+      applyHighlightToRange(range, highlightId);
+    } else {
+      blocks.forEach((block) => {
+        const blockRange = document.createRange();
+
+        let startContainer = range.startContainer;
+        let startOffset = range.startOffset;
+        let endContainer = range.endContainer;
+        let endOffset = range.endOffset;
+
+        if (!block.contains(startContainer)) {
+          startContainer = block;
+          startOffset = 0;
+        }
+
+        if (!block.contains(endContainer)) {
+          endContainer = block;
+          endOffset = block.childNodes.length;
+        }
+
+        try {
+          blockRange.setStart(startContainer, startOffset);
+          blockRange.setEnd(endContainer, endOffset);
+
+          if (!blockRange.collapsed) {
+            applyHighlightToRange(blockRange, highlightId);
+          }
+        } catch {
+          // Ignore range errors
+        }
+      });
+    }
+
+    setSelectedRange(null);
+    setDropdownPos(null);
+    setSelectedHighlightElement(null);
+  };
+
   const handleSelection = useCallback(() => {
     if (!enabledHighlight) return;
 
@@ -33,12 +125,11 @@ const HTMLRendererWithHighlight = ({
       selection &&
       selection.rangeCount > 0 &&
       selection.toString().length > 0 &&
-      contentRef.current?.contains(selection.anchorNode!) // Tanlov bizning kontent ichida bo'lishi shart
+      contentRef.current?.contains(selection.anchorNode!)
     ) {
       const range = selection.getRangeAt(0);
       const rect = range.getBoundingClientRect();
 
-      // Agar tanlov highlight elementi ichida bo'lsa, uni selectedHighlightElement qilib o'rnatamiz
       let commonAncestor = range.commonAncestorContainer as HTMLElement;
       if (commonAncestor.nodeType === Node.TEXT_NODE) {
         commonAncestor = commonAncestor.parentNode as HTMLElement;
@@ -50,19 +141,18 @@ const HTMLRendererWithHighlight = ({
         commonAncestor.classList.contains("highlight")
       ) {
         setSelectedHighlightElement(commonAncestor);
-        setSelectedRange(null); // Highlight tanlangan bo'lsa range ni tozalaymiz
+        setSelectedRange(null);
       } else {
         setSelectedHighlightElement(null);
-        setSelectedRange(range); // Yangi tanlovni o'rnatamiz
+        setSelectedRange(range);
       }
 
       setDropdownPos({
-        x: rect.left + window.scrollX + rect.width / 2, // Markazga joylashtirish
+        x: rect.left + window.scrollX + rect.width / 2,
         y: rect.top + window.scrollY - 40,
-        width: 0, // Bu holatda kerak emas, lekin struktura uchun qoldiramiz
+        width: 0,
       });
     } else {
-      // Tanlov yo'q bo'lsa, barcha holatlarni tozalaymiz
       setSelectedRange(null);
       setSelectedHighlightElement(null);
       setDropdownPos(null);
@@ -72,80 +162,128 @@ const HTMLRendererWithHighlight = ({
   useEffect(() => {
     if (!enabledHighlight) return;
     document.addEventListener("mouseup", handleSelection);
+
+    const handleBodyClick = (e: MouseEvent) => {
+      if (!contentRef.current?.contains(e.target as Node)) {
+        setSelectedHighlightElement(null);
+        setDropdownPos(null);
+      }
+    };
+    document.body.addEventListener("click", handleBodyClick);
+
     return () => {
       document.removeEventListener("mouseup", handleSelection);
+      document.body.removeEventListener("click", handleBodyClick);
     };
   }, [handleSelection, enabledHighlight]);
 
-  // Highlight qo‘shish
-  const handleHighlightClick = () => {
-    if (!enabledHighlight || !selectedRange) return;
-
-    // selectedRange.extractContents() to'g'ridan-to'g'ri ishlash o'rniga,
-    // matn tugunlarini topib, ularni spanlar bilan almashtiramiz.
-    // Bu DOM strukturasini buzmasdan, highlightni to'g'ri joylashtiradi.
-
-    // Oldingi highlightni tozalab olamiz, agar tanlov uning ustida bo'lsa
-    if (selectedHighlightElement) {
-      handleClearClick(); // Avvalgi highlightni o'chiramiz
-    }
-
-    const fragment = selectedRange.extractContents(); // Tanlangan kontentni ajratib olamiz
-    const span = document.createElement("span");
-    span.className = "highlight bg-yellow-300";
-    span.dataset.highlightId = Date.now().toString(); // Unikal ID
-    span.appendChild(fragment); // Ajratilgan kontentni span ichiga joylashtiramiz
-
-    selectedRange.insertNode(span); // Span ni asl joyiga kiritamiz
-
-    // Holatlarni tozalaymiz
+  const handleHighlightElementClick = (e: React.MouseEvent<HTMLElement>) => {
+    e.stopPropagation();
+    const target = e.currentTarget;
+    setSelectedHighlightElement(target);
     setSelectedRange(null);
-    setSelectedHighlightElement(span); // Yangi highlight qilingan elementni belgilaymiz
-    setDropdownPos(null);
+
+    const rect = target.getBoundingClientRect();
+    setDropdownPos({
+      x: rect.left + window.scrollX + rect.width / 2,
+      y: rect.top + window.scrollY - 40,
+      width: 0,
+    });
   };
 
-  // Faqat tanlangan joydagi highlightni olib tashlash
   const handleClearClick = () => {
     if (!enabledHighlight) return;
 
-    let targetElement: HTMLElement | null = null;
-
     if (selectedHighlightElement) {
-      targetElement = selectedHighlightElement;
-    } else if (selectedRange) {
-      // Agar tanlov highlight ichida bo'lsa, o'sha highlightni topishga harakat qilamiz
-      let commonAncestor = selectedRange.commonAncestorContainer as HTMLElement;
-      if (commonAncestor.nodeType === Node.TEXT_NODE) {
-        commonAncestor = commonAncestor.parentNode as HTMLElement;
-      }
-      if (
-        commonAncestor &&
-        commonAncestor.classList &&
-        commonAncestor.classList.contains("highlight")
-      ) {
-        targetElement = commonAncestor;
-      }
-    }
-
-    if (targetElement) {
+      // Agar bitta highlight tanlangan bo‘lsa, uni o‘chirish
+      const targetElement = selectedHighlightElement;
       const parent = targetElement.parentNode;
       if (parent) {
-        // Highlight ichidagi kontentni qaytarib joylashtiramiz
         while (targetElement.firstChild) {
           parent.insertBefore(targetElement.firstChild, targetElement);
         }
-        parent.removeChild(targetElement); // Highlight spanini olib tashlaymiz
+        parent.removeChild(targetElement);
       }
+    } else if (selectedRange && !selectedHighlightElement) {
+      // Tanlovdagi barcha highlightlarni olib tashlash
+      const range = selectedRange.cloneRange();
+      if (!contentRef.current) return;
+
+      const highlightsToRemove: HTMLElement[] = [];
+      const treeWalker = document.createTreeWalker(
+        contentRef.current,
+        NodeFilter.SHOW_ELEMENT,
+        {
+          acceptNode(node) {
+            if (
+              node instanceof HTMLElement &&
+              node.classList.contains("highlight") &&
+              range.intersectsNode(node)
+            ) {
+              return NodeFilter.FILTER_ACCEPT;
+            }
+            return NodeFilter.FILTER_SKIP;
+          },
+        },
+        false
+      );
+
+      let currentNode = treeWalker.nextNode();
+      while (currentNode) {
+        highlightsToRemove.push(currentNode as HTMLElement);
+        currentNode = treeWalker.nextNode();
+      }
+
+      highlightsToRemove.forEach((el) => {
+        const parent = el.parentNode;
+        if (parent) {
+          while (el.firstChild) {
+            parent.insertBefore(el.firstChild, el);
+          }
+          parent.removeChild(el);
+        }
+      });
     }
 
-    // Holatlarni tozalaymiz
-    setSelectedRange(null);
     setSelectedHighlightElement(null);
+    setSelectedRange(null);
     setDropdownPos(null);
   };
 
+  const parsedHtml = parse(htmlString, {
+    replace: (domNode) => {
+      if (
+        domNode.type === "tag" &&
+        domNode.name === "span" &&
+        domNode.attribs &&
+        domNode.attribs.class &&
+        domNode.attribs.class.includes("highlight")
+      ) {
+        return (
+          <span
+            {...domNode.attribs}
+            onClick={handleHighlightElementClick}
+            style={{ cursor: "pointer" }}
+            key={domNode.attribs["data-highlight-id"] || undefined}
+          >
+            {domNode.children &&
+              domNode.children.map((child: any, idx: number) => parse(child))}
+          </span>
+        );
+      }
+      return undefined;
+    },
+  });
+
   return (
     <>
+      <style>{`
+        .highlight {
+          background-color: #fde68a;
+          font-weight: 800;
+        }
+      `}</style>
+
       <div
         ref={contentRef}
         className={`w-full text-sm text-[--foreground] ${className}
@@ -156,44 +294,28 @@ const HTMLRendererWithHighlight = ({
           [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:mb-2 [&_h3]:text-[--foreground]
           [&_strong]:font-bold [&_em]:italic select-text`}
         style={{ userSelect: "text" }}
-        onClick={(e) => {
-          if (!enabledHighlight) return;
-          const target = e.target as HTMLElement;
-          // Agar highlight elementiga bosilsa, uni tanlangan highlight deb belgilaymiz
-          if (target.classList.contains("highlight")) {
-            setSelectedHighlightElement(target);
-            setSelectedRange(null); // Highlight tanlangan bo'lsa, range ni tozalaymiz
-            const rect = target.getBoundingClientRect();
-            setDropdownPos({
-              x: rect.left + window.scrollX + rect.width / 2, // Markazga joylashtirish
-              y: rect.top + window.scrollY - 40,
-              width: 0,
-            });
-          } else if (!dropdownPos) {
-            // Agar dropdown allaqachon ko'rinmayotgan bo'lsa
-            setSelectedHighlightElement(null);
-            setSelectedRange(null);
-            setDropdownPos(null);
-          }
-        }}
       >
-        {parse(htmlString)}
+        {parsedHtml}
       </div>
 
       {enabledHighlight &&
         dropdownPos &&
         (selectedRange || selectedHighlightElement) && (
           <div
-            className="absolute z-50 flex gap-2 rounded-lg border bg-muted p-2 shadow-lg -translate-x-1/2" // -translate-x-1/2 qo'shamiz
+            className="absolute z-50 flex gap-2 rounded-lg border bg-muted p-2 shadow-lg -translate-x-1/2"
             style={{ left: dropdownPos.x, top: dropdownPos.y }}
           >
-            {!selectedHighlightElement && ( // Agar highlight elementi tanlanmagan bo'lsa, "Highlight" tugmasini ko'rsatamiz
+            {!selectedHighlightElement && (
               <Button size="sm" onClick={handleHighlightClick}>
                 <RiMarkPenLine className="mr-1 h-4 w-4" /> Highlight
               </Button>
             )}
-
-            <Button size="sm" variant="destructive" onClick={handleClearClick}>
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={handleClearClick}
+              disabled={!selectedHighlightElement && !selectedRange}
+            >
               <RiEraserLine className="mr-1 h-4 w-4" /> Clear
             </Button>
           </div>

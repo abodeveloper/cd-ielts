@@ -50,6 +50,14 @@ const WritingTestStep = () => {
       />
     );
 
+  if (query.data?.writing_parts.length === 0)
+    return (
+      <ErrorMessage
+        title="Failed to load test"
+        message="An error occurred while loading the test questions. Please try again later."
+      />
+    );
+
   return (
     <FormProvider {...form}>
       <form
@@ -61,6 +69,7 @@ const WritingTestStep = () => {
             timeLeft={timeLeft}
             formatTime={formatTime}
             testType={TestType.WRITING}
+            type={get(query, "data.material.test_type", "Mock")}
           />
           <PartInfo activePart={activePart} testType={TestType.WRITING} />
         </div>

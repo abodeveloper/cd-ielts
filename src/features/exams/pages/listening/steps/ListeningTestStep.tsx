@@ -235,6 +235,14 @@ const ListeningTestStep = ({ onNext }: StepProps) => {
       />
     );
 
+  if (query.data?.listening_parts.length === 0)
+    return (
+      <ErrorMessage
+        title="Failed to load test"
+        message="An error occurred while loading the test questions. Please try again later."
+      />
+    );
+
   return (
     <>
       {showTestSoundStep ? (
@@ -253,6 +261,7 @@ const ListeningTestStep = ({ onNext }: StepProps) => {
                 timeLeft={timeLeft}
                 formatTime={formatTime}
                 testType={TestType.LISTENING}
+                type={get(query, "data.material.test_type", "Mock")}
                 // activeAudioRef.current ni yuborish, chunki endi u bitta audio elementini bildiradi
                 audioRef={activeAudioRef}
                 handleVolumeChange={handleVolumeChange}

@@ -1,14 +1,19 @@
 // QuestionInput.tsx
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { RadioGroup } from "@/components/ui/radio-group";
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
+  TableRow
 } from "@/components/ui/table";
 import { ReadingFormValues } from "@/features/exams/schemas/reading-schema";
 import MyQuestionInput from "@/shared/components/atoms/question-inputs/MyQuestionInput";
@@ -18,7 +23,6 @@ import { ReadingQuestionType } from "@/shared/enums/reading-question-type.enum";
 import { isEmpty } from "lodash";
 import React from "react";
 import { UseFormReturn } from "react-hook-form";
-import { Ta } from "zod/v4/locales";
 
 interface Props {
   number: string;
@@ -31,7 +35,8 @@ interface Props {
     | undefined;
   form: UseFormReturn<ReadingFormValues>;
   questions: {
-    question_text; string;
+    question_text;
+    string;
     question_number: number;
   }[]; // Add questions array to props
 }
@@ -149,7 +154,9 @@ const ReadingQuestionInput: React.FC<Props> = ({
           <TableBody>
             {questions.map((question, index) => (
               <TableRow key={index}>
-                <TableCell>{question?.question_number}. {question?.question_text}</TableCell>
+                <TableCell>
+                  {question?.question_number}. {question?.question_text}
+                </TableCell>
                 {options?.map((option) => (
                   <TableCell key={option.value}>
                     <FormField

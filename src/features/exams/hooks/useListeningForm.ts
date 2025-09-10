@@ -40,24 +40,67 @@ export const useListeningForm = (
     name: "answers",
   });
 
+  // useEffect(() => {
+  //   const data = query.data;
+
+  //   const allQuestions = Array.isArray(data?.listening_parts)
+  //     ? data.listening_parts.flatMap((part) =>
+  //         part?.question_numbers?.map((q) => ({
+  //           listening_id: part.id, // 🔥 qaysi partdan kelganini bilish uchun
+  //           question_number: q.question_number,
+  //           answer: "", // userning javobi
+  //         }))
+  //       )
+  //     : [];
+
+  //   replace(allQuestions);
+  // }, [query.data, replace]);
+
   useEffect(() => {
     const data = query.data;
 
-    const allQuestions = Array.isArray(data?.listening_parts)
-      ? data.listening_parts.flatMap((part) =>
-          part?.question_numbers?.map((q) => ({
-            listening_id: part.id, // 🔥 qaysi partdan kelganini bilish uchun
-            question_number: q.question_number,
-            answer: "", // userning javobi
-          }))
-        )
-      : [];
+    if (
+      !Array.isArray(data?.listening_parts) ||
+      data.listening_parts.length === 0
+    ) {
+      return;
+    }
+
+    // avval maksimal question_number topamiz
+    const maxQuestionNumber = Math.max(
+      ...data.listening_parts.flatMap((part) =>
+        part?.question_numbers?.map((q) => q.question_number)
+      )
+    );
+
+    // bo‘sh massiv tayyorlab olamiz
+    const allQuestions: {
+      reading_id: number;
+      question_number: number;
+      answer: string;
+    }[] = Array(maxQuestionNumber).fill(null);
+
+    // endi har bir question_number ni o‘z joyiga qo‘yamiz
+    data.listening_parts.forEach((part) => {
+      part?.question_numbers?.forEach((q) => {
+        const index = q.question_number - 1; // 1-based bo‘lsa
+        allQuestions[index] = {
+          reading_id: part.id,
+          question_number: q.question_number,
+          answer: "",
+        };
+      });
+    });
 
     replace(allQuestions);
   }, [query.data, replace]);
 
   const onSubmit = (data: ListeningFormValues) => {
-    const submitData: AnswerPayload = [...get(data, "answers", [])];
+    // null yoki undefined elementlarni olib tashlaymiz
+    const submitData: AnswerPayload = (data.answers ?? []).filter(
+      (a): a is NonNullable<typeof a> => a !== null && a !== undefined
+    );
+
     listeningMutation.mutate(submitData);
   };
 

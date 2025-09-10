@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider"; // Shadcn Slider import qilindi
 import { cn } from "@/lib/utils";
+import { Role } from "@/shared/enums/role.enum";
 import { TestType } from "@/shared/enums/test-type.enum";
 import { useAuthStore } from "@/store/auth-store";
 import {
@@ -18,6 +19,7 @@ interface TestHeaderProps {
   timeLeft: number;
   formatTime: (seconds: number) => string;
   testType: TestType;
+  type: "Mock" | "Thematic";
   audioRef?: React.RefObject<HTMLAudioElement | null>;
   handleVolumeChange?: (value: number) => void; // handleVolumeChange yangilandi
 }
@@ -28,6 +30,7 @@ const TestHeader = ({
   testType = TestType.READING,
   audioRef,
   handleVolumeChange,
+  type,
 }: TestHeaderProps) => {
   const navigate = useNavigate();
 
@@ -42,7 +45,19 @@ const TestHeader = ({
   };
 
   const handleBack = () => {
-    navigate(-1); // Oldingi sahifaga qaytadi
+    if (user?.role === Role.TEACHER) {
+      if (type === "Thematic") {
+        navigate("/teacher/tests/thematic");
+      } else {
+        navigate("/teacher/tests/mock");
+      }
+    } else {
+      if (type === "Thematic") {
+        navigate("/student/tests/thematic");
+      } else {
+        navigate("/student/tests/mock");
+      }
+    }
     exitFullscreen();
   };
 
@@ -58,8 +73,6 @@ const TestHeader = ({
       handleVolumeChange(newVolume);
     }
   };
-
-
 
   return (
     <Card className="w-full shadow-md rounded-none">

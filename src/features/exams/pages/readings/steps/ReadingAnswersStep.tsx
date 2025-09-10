@@ -38,6 +38,7 @@ export default function ReadingAnswerStep({ formData }: Props) {
 
   const { user } = useAuthStore();
 
+  const material = get(formData, "material");
   const test_type = get(formData, "test_type");
   const overall_score = get(formData, "overall_score");
   const percentage_correct_for_material = get(
@@ -51,10 +52,16 @@ export default function ReadingAnswerStep({ formData }: Props) {
   const totalIncorrectAnswers = get(formData, "total_incorrect_answers", 0);
 
   const handleFinish = () => {
-    if (user?.role === Role.TEACHER) {
-      navigate("/teacher");
+    // if (user?.role === Role.TEACHER) {
+    //   navigate("/teacher");
+    // } else {
+    //   navigate("/student");
+    // }
+
+    if (get(material, "test_type") === "Mock") {
+      navigate(`/writings/${get(material, "writing_id")}`);
     } else {
-      navigate("/student");
+      navigate("/");
     }
   };
 

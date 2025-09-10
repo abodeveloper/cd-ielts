@@ -54,6 +54,14 @@ const ReadingTestStep = ({ onNext }: StepProps) => {
       />
     );
 
+  if (query.data?.reading_parts.length === 0)
+    return (
+      <ErrorMessage
+        title="Failed to load test"
+        message="An error occurred while loading the test questions. Please try again later."
+      />
+    );
+
   return (
     <FormProvider {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="min-h-screen">
@@ -62,6 +70,7 @@ const ReadingTestStep = ({ onNext }: StepProps) => {
             timeLeft={timeLeft}
             formatTime={formatTime}
             testType={TestType.READING}
+            type={get(query, "data.material.test_type", "Mock")}
           />
           <PartInfo activePart={activePart} testType={TestType.READING} />
         </div>

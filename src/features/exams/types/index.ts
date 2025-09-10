@@ -8,6 +8,12 @@ export interface Reading extends TestData {
   id: number;
   title: string;
   answer_time: number;
+  is_view: boolean;
+  material: {
+    id: number;
+    title: string;
+    listening_id: string;
+  };
   reading_parts: ReadingPart[];
 }
 
