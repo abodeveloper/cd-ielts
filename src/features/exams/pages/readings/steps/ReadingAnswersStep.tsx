@@ -14,7 +14,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Role } from "@/shared/enums/role.enum";
 import { useAuthStore } from "@/store/auth-store";
 import {
   RiBookOpenLine,
@@ -23,7 +22,6 @@ import {
   RiErrorWarningLine,
 } from "@remixicon/react";
 import { get } from "lodash";
-import { useNavigate } from "react-router-dom";
 
 interface Props {
   onNext?: (data?: Record<string, any>) => void;
@@ -32,13 +30,9 @@ interface Props {
 }
 
 export default function ReadingAnswerStep({ formData }: Props) {
-  const navigate = useNavigate();
-
-  console.log(formData);
-
   const { user } = useAuthStore();
 
-  const material = get(formData, "material");
+  const finish = get(formData, "finish");
   const test_type = get(formData, "test_type");
   const overall_score = get(formData, "overall_score");
   const percentage_correct_for_material = get(
@@ -52,17 +46,7 @@ export default function ReadingAnswerStep({ formData }: Props) {
   const totalIncorrectAnswers = get(formData, "total_incorrect_answers", 0);
 
   const handleFinish = () => {
-    // if (user?.role === Role.TEACHER) {
-    //   navigate("/teacher");
-    // } else {
-    //   navigate("/student");
-    // }
-
-    if (get(material, "test_type") === "Mock") {
-      navigate(`/writings/${get(material, "writing_id")}`);
-    } else {
-      navigate("/");
-    }
+    finish();
   };
 
   return (

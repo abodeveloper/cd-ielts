@@ -16,8 +16,8 @@ import { useQuery } from "@tanstack/react-query";
 import { get } from "lodash";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getTestsData } from "../api/test-material";
-import { Material, Test, TestSection } from "../types";
+import { getTestsData } from "./api/test-material";
+import { Test, TestSection } from "./types";
 
 export default function ThematicsPage() {
   const navigate = useNavigate();

@@ -1,4 +1,6 @@
 import { toastService } from "@/lib/toastService";
+import { Role } from "@/shared/enums/role.enum";
+import { useAuthStore } from "@/store/auth-store";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { get } from "lodash";
@@ -17,30 +19,53 @@ export const useReadingForm = (
   id: string | undefined,
   onNext?: (data: unknown) => void
 ) => {
+  const { user } = useAuthStore();
   const navigate = useNavigate();
   const query = useReading(id);
 
   const is_view = get(query.data, "is_view");
   const material = get(query.data, "material");
 
-  const form = useForm<ReadingFormValues>({
-    resolver: zodResolver(readingSchema),
-    defaultValues: { answers: [] },
-  });
+  const finish = () => {
+    if (user?.role === Role.TEACHER) {
+      navigate("/");
+    } else {
+      if (String(get(material, "test_type"))?.toLowerCase() == "mock") {
+        const next_test = get(material, "next_test");
+        const next_test_id = get(material, "next_test_id");
+
+        if (next_test === "listening" && next_test_id) {
+          navigate(`/listenings/${next_test_id}`);
+        } else if (next_test === "speaking" && next_test_id) {
+          navigate(`/speakings/${next_test_id}`);
+        } else if (next_test === "writing" && next_test_id) {
+          navigate(`/writings/${next_test_id}`);
+        } else {
+          navigate("/");
+        }
+      } else {
+        navigate("/");
+      }
+    }
+  };
+
+  const handleNextStep = (res: object) => {
+    if (user?.role === Role.TEACHER) {
+      onNext?.({ ...res, material, finish });
+    } else {
+      if (is_view === true) {
+        onNext?.({ ...res, material }); // To'g'ri ma'lumot uzatish
+      } else {
+        finish();
+      }
+    }
+  };
 
   const readingMutation = useMutation({
     mutationFn: (data: AnswerPayload) => postReadingAnswers(id, data),
     onSuccess: (res) => {
       toastService.success("Successfully submitted!");
-      if (is_view === true) {
-        onNext?.({ ...res, material }); // To'g'ri ma'lumot uzatish
-      } else {
-        if (get(material, "test_type") === "Mock") {
-          navigate(`/writings/${get(material, "writing_id")}`);
-        } else {
-          navigate("/");
-        }
-      }
+      handleNextStep(res);
     },
     onError: (error: Error) => {
       console.error("Error:", error);
@@ -48,26 +73,15 @@ export const useReadingForm = (
     },
   });
 
+  const form = useForm<ReadingFormValues>({
+    resolver: zodResolver(readingSchema),
+    defaultValues: { answers: [] },
+  });
+
   const { fields: answersFields, replace } = useFieldArray({
     control: form.control,
     name: "answers",
   });
-
-  // useEffect(() => {
-  //   const data = query.data;
-
-  //   const allQuestions = Array.isArray(data?.reading_parts)
-  //     ? data.reading_parts.flatMap((part) =>
-  //         part?.question_numbers?.map((q) => ({
-  //           reading_id: part.id, // 🔥 qaysi partdan kelganini bilish uchun
-  //           question_number: q.question_number,
-  //           answer: "", // userning javobi
-  //         }))
-  //       )
-  //     : [];
-
-  //   replace(allQuestions);
-  // }, [query.data, replace]);
 
   useEffect(() => {
     const data = query.data;

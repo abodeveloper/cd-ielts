@@ -66,14 +66,15 @@ const StudentResultPage = lazy(
   () => import("@/features/teacher/students/StudentResultPage")
 );
 
-const TestMocksPage = lazy(
-  () => import("@/features/test-materials/mock/MocksPage")
-);
+const TestMocksPage = lazy(() => import("@/features/test-materials/MocksPage"));
 const TestMockDetailPage = lazy(
   () => import("@/features/test-materials/mock/MockDetailPage")
 );
 const TestThematicsPage = lazy(
-  () => import("@/features/test-materials/thematic/ThematicsPage")
+  () => import("@/features/test-materials/ThematicsPage")
+);
+const ReadingMaterialStatisticsPage = lazy(
+  () => import("@/features/test-materials/ReadingMaterialStatisticPage")
 );
 
 export const routes = [
@@ -110,6 +111,7 @@ export const routes = [
           { index: true, element: <Navigate to="mock" /> },
           { path: "mock", element: <TestMocksPage /> },
           { path: "mock/:id", element: <TestMockDetailPage /> },
+
           { path: "thematic", element: <TestThematicsPage /> },
         ],
       },
@@ -153,12 +155,24 @@ export const routes = [
       {
         path: "students/:id/:test_type/:skill/:obj_id",
         element: <StudentResultPage />,
+        test_type: "Mock",
+        is_view_answer: false,
+        enabled: true,
+        material: {
+          next_test: 'listening',
+          next_test_id: 2,
+          test_type: "Mock",
+        },
       },
       {
         path: "tests",
         children: [
           { index: true, element: <Navigate to="mock" /> },
           { path: "mock", element: <TestMocksPage /> },
+          {
+            path: "mock/reading/:id",
+            element: <ReadingMaterialStatisticsPage />,
+          },
           { path: "mock/:id", element: <TestMockDetailPage /> },
           { path: "thematic", element: <TestThematicsPage /> },
         ],

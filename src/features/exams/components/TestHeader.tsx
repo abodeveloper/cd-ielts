@@ -112,15 +112,18 @@ const TestHeader = ({
               </div>
             )}
 
-          <Button
-            onClick={handleBack}
-            variant="default"
-            type="button"
-            className="flex items-center gap-2 h-7 w-24"
-          >
-            <RiArrowLeftLine className="w-4 h-4" />
-            Back
-          </Button>
+          {(user?.role === Role.TEACHER ||
+            (user?.role === Role.STUDENT && type === "Thematic")) && (
+            <Button
+              onClick={handleBack}
+              variant="default"
+              type="button"
+              className="flex items-center gap-2 h-7 w-24"
+            >
+              <RiArrowLeftLine className="w-4 h-4" />
+              Back
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>

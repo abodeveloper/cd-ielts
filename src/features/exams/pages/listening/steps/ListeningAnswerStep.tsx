@@ -1,29 +1,27 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-    Card,
-    CardContent,
-    CardFooter,
-    CardHeader,
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
 } from "@/components/ui/card";
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
-import { Role } from "@/shared/enums/role.enum";
 import { useAuthStore } from "@/store/auth-store";
 import {
-    RiCheckboxFill,
-    RiCloseFill,
-    RiErrorWarningLine,
-    RiHeadphoneLine
+  RiCheckboxFill,
+  RiCloseFill,
+  RiErrorWarningLine,
+  RiHeadphoneLine,
 } from "@remixicon/react";
 import { get } from "lodash";
-import { useNavigate } from "react-router-dom";
 
 interface Props {
   onNext?: (data?: Record<string, any>) => void;
@@ -32,10 +30,9 @@ interface Props {
 }
 
 export default function ListeningAnswerStep({ formData }: Props) {
-  const navigate = useNavigate();
-
   const { user } = useAuthStore();
 
+  const finish = get(formData, "finish");
   const test_type = get(formData, "test_type");
   const overall_score = get(formData, "overall_score");
   const percentage_correct_for_material = get(
@@ -49,11 +46,7 @@ export default function ListeningAnswerStep({ formData }: Props) {
   const totalIncorrectAnswers = get(formData, "total_incorrect_answers", 0);
 
   const handleFinish = () => {
-    if (user?.role === Role.TEACHER) {
-      navigate("/teacher");
-    } else {
-      navigate("/student");
-    }
+    finish();
   };
 
   return (
