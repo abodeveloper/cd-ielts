@@ -1,23 +1,19 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { CardList } from "@/components/ui/card-list";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import ErrorMessage from "@/shared/components/atoms/error-message/ErrorMessage";
 import { useDebounce } from "@/shared/hooks/useDebounce";
 import { buildFilterQuery } from "@/shared/utils/helper";
-import { RiStarLine } from "@remixicon/react";
+import {
+  RiStarLine
+} from "@remixicon/react";
 import { useQuery } from "@tanstack/react-query";
 import { get } from "lodash";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getTestsData } from "./api/test-material";
-import { Test, TestSection } from "./types";
+import { Material, Test, TestSection } from "./types";
 
 export default function ThematicsPage() {
   const navigate = useNavigate();
@@ -73,7 +69,7 @@ export default function ThematicsPage() {
     return (
       <div className="space-y-6" key={index}>
         <div className="text-xl text-center font-semibold">{item.title}</div>
-        <div className="grid grid-cols-4 gap-6">
+        <div className="grid grid-cols-3 gap-6">
           {sections.map((section: TestSection, index) => {
             const materials = get(section, "materials", []);
 
@@ -83,7 +79,71 @@ export default function ThematicsPage() {
                   {section.title}
                 </CardTitle>
                 <CardContent className="space-y-2 p-0 pt-2">
-                  <DropdownMenu>
+                  <div className="flex items-center gap-2 w-full">
+                    <Button
+                      className="pointer-events-none shrink-0"
+                      variant="outline"
+                      size="icon"
+                    >
+                      <RiStarLine className="h-6 w-6" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="pointer-events-none flex-1 min-w-0 text-left truncate px-3 py-2"
+                    >
+                      Test materials
+                    </Button>
+                  </div>
+                  {materials?.map((material: Material, index: number) => (
+                    <div
+                      className="flex items-center gap-2 w-full"
+                      key={material.id}
+                    >
+                      <Button
+                        className="pointer-events-none shrink-0"
+                        variant="outline"
+                        size="icon"
+                      >
+                        {/* {material.type === "reading" ? (
+                          <RiBookOpenLine className="h-6 w-6" />
+                        ) : material.type === "listening" ? (
+                          <RiHeadphoneLine className="h-6 w-6" />
+                        ) : material.type === "writing" ? (
+                          <RiPencilLine className="h-6 w-6" />
+                        ) : (
+                          <RiMic2Line className="h-6 w-6" />
+                        )} */}
+                        {index + 1}
+                      </Button>
+
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 min-w-0 text-left truncate px-3 py-2"
+                        onClick={() => {
+                          const type = material.type;
+                          switch (type) {
+                            case "listening":
+                              navigate(`/listenings/${material.id}`);
+                              break;
+                            case "reading":
+                              navigate(`/readings/${material.id}`);
+                              break;
+                            case "writing":
+                              navigate(`/writings/${material.id}`);
+                              break;
+                            case "speaking":
+                              navigate(`/speakings/${material.id}`);
+                              break;
+                          }
+                        }}
+                      >
+                        {material.title}
+                      </Button>
+                    </div>
+                  ))}
+                  {/* <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <div className="flex items-center gap-2 w-full">
                         <Button
@@ -127,7 +187,7 @@ export default function ThematicsPage() {
                         </DropdownMenuItem>
                       ))}
                     </DropdownMenuContent>
-                  </DropdownMenu>
+                  </DropdownMenu> */}
                 </CardContent>
               </Card>
             );

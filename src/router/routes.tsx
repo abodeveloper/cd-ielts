@@ -67,6 +67,12 @@ const StudentResultPage = lazy(
 );
 
 const TestMocksPage = lazy(() => import("@/features/test-materials/MocksPage"));
+const TestMocksStatisticsPage = lazy(
+  () => import("@/features/test-materials/MocksStatisticsPage")
+);
+const TestMockStatisticsByGroupPage = lazy(
+  () => import("@/features/test-materials/MockStatisticsByGroupPage")
+);
 const TestMockDetailPage = lazy(
   () => import("@/features/test-materials/mock/MockDetailPage")
 );
@@ -159,7 +165,7 @@ export const routes = [
         is_view_answer: false,
         enabled: true,
         material: {
-          next_test: 'listening',
+          next_test: "listening",
           next_test_id: 2,
           test_type: "Mock",
         },
@@ -169,6 +175,14 @@ export const routes = [
         children: [
           { index: true, element: <Navigate to="mock" /> },
           { path: "mock", element: <TestMocksPage /> },
+          {
+            path: "mock/statistics/:material_id",
+            element: <TestMocksStatisticsPage />,
+          },
+          {
+            path: "mock/statistics/:material_id/groups/:group_id",
+            element: <TestMockStatisticsByGroupPage />,
+          },
           {
             path: "mock/reading/:id",
             element: <ReadingMaterialStatisticsPage />,

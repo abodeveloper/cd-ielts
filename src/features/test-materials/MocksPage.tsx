@@ -155,7 +155,9 @@ export default function MocksPage() {
                       size="sm"
                       className="w-full mt-8"
                       onClick={() => {
-                        alert("Go to statistics page");
+                        navigate(
+                          `/teacher/tests/mock/statistics/${section.id}`
+                        );
                       }}
                     >
                       <RiBarChartBoxLine className="w-5 h-5" />

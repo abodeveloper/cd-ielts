@@ -2,29 +2,35 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
+import BackButton from "@/shared/components/atoms/back-button/BackButton";
 import ErrorMessage from "@/shared/components/atoms/error-message/ErrorMessage";
 import LoadingSpinner from "@/shared/components/atoms/loading-spinner/LoadingSpinner";
 import { useDebounce } from "@/shared/hooks/useDebounce";
 import { buildFilterQuery } from "@/shared/utils/helper";
+import {
+  RiBookOpenLine,
+  RiHeadphoneLine,
+  RiMic2Line,
+  RiPencilLine,
+} from "@remixicon/react";
 import { useQuery } from "@tanstack/react-query";
 import { get } from "lodash";
 import { useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
-import { getStudentsData } from "../students/api/student";
-import { useStudentColumns } from "../students/hooks/useStudentColumns";
-import { getGroupOne } from "./api/groups";
-import BackButton from "@/shared/components/atoms/back-button/BackButton";
+import { useNavigate, useParams } from "react-router-dom";
+import { getMockMaterialGroups, getOneMockMaterial } from "./api/test-material";
+import { useMockStatisticGroupColumns } from "./hooks/useMockStatisticGroupColumsn";
 
-const GroupDetailPage = () => {
-  const { id } = useParams();
+const MocksStatisticsPage = () => {
+  const { material_id } = useParams();
+  const navigate = useNavigate();
 
   const {
-    data: group,
-    isLoading: groupIsLoading,
-    isError: groupIsError,
+    data: material,
+    isLoading: materialIsLoading,
+    isError: materialIsError,
   } = useQuery({
-    queryKey: ["groups", id],
-    queryFn: () => getGroupOne(id),
+    queryKey: ["test-material-mock", material_id],
+    queryFn: () => getOneMockMaterial(material_id),
   });
 
   const [page, setPage] = useState(1);
@@ -33,23 +39,29 @@ const GroupDetailPage = () => {
 
   const extraFilters = useMemo(
     () => ({
-      group_id: id, // Hardcoded; replace with dynamic value if needed
+      material_id: material_id, // Hardcoded; replace with dynamic value if needed
     }),
-    [id] // Empty deps since these are static; add dependencies if dynamic
+    [material_id] // Empty deps since these are static; add dependencies if dynamic
   );
 
   // Set extra filter query synchronously
   const extraFilterQuery = buildFilterQuery(extraFilters);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["students", page, debouncedSearch, extraFilterQuery],
-    queryFn: () => getStudentsData(page, debouncedSearch, "", extraFilterQuery),
+    queryKey: [
+      "mock-statistic-groups",
+      page,
+      debouncedSearch,
+      extraFilterQuery,
+    ],
+    queryFn: () =>
+      getMockMaterialGroups(page, debouncedSearch, "", extraFilterQuery),
   });
 
-  const columns = useStudentColumns();
+  const columns = useMockStatisticGroupColumns();
 
   // Data and pagination info
-  const students = get(data, "results", []);
+  const groups = get(data, "results", []);
   const paginationInfo = {
     totalCount: get(data, "count", 0),
     totalPages: get(data, "total_pages", 1),
@@ -61,11 +73,11 @@ const GroupDetailPage = () => {
     setPage(1);
   }, [debouncedSearch]);
 
-  if (groupIsLoading) {
+  if (materialIsLoading) {
     return <LoadingSpinner />;
   }
 
-  if (groupIsError)
+  if (materialIsError)
     return (
       <ErrorMessage
         title="Failed to Load page"
@@ -76,37 +88,57 @@ const GroupDetailPage = () => {
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between gap-2">
-        <div className="text-xl font-semibold">{get(group, "name")}</div>
+        <div className="text-xl font-semibold">{get(material, "title")}</div>
         <div className="flex gap-2">
-          <BackButton to={"/teacher/groups"} label="Back to groups" />
+          <BackButton to={"/teacher/tests/mock"} label="Back to mocks" />
         </div>
       </div>
       <Card className="w-full">
         <CardHeader className="flex flex-row items-center gap-4">
-          <CardTitle>{group?.name}</CardTitle>
+          <CardTitle>{get(material, "test_info.test_title")}</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-2">
           <div className="flex gap-2">
             <div className="text-sm text-primary font-extrabold">
-              Number of students
+              Material title:
             </div>
             <div className="text-sm text-muted-foreground">
-              {group?.students_count}
+              {get(material, "title")}
             </div>
           </div>
           <div className="flex gap-2">
-            <div className="text-sm text-primary font-extrabold">Status:</div>
-            {group?.is_active === true ? (
-              <Badge variant="success">Active</Badge>
-            ) : (
-              <Badge variant="destructive">Inactive</Badge>
-            )}
+            <div className="text-sm text-primary font-extrabold">
+              Test type:
+            </div>
+            <div className="text-sm text-muted-foreground">
+              <Badge variant={"default"}>
+                {get(material, "test_type", "N/A")}
+              </Badge>
+            </div>
+          </div>
+          <div className="space-y-2 mt-4">
+            {get(material, "materials", [])?.map((section: any) => (
+              <div key={section.id} className="mb-2">
+                <Badge variant={"outline"} className="inline-flex gap-2 p-1">
+                  {section.type === "reading" ? (
+                    <RiBookOpenLine className="h-6 w-6" />
+                  ) : section.type === "listening" ? (
+                    <RiHeadphoneLine className="h-6 w-6" />
+                  ) : section.type === "writing" ? (
+                    <RiPencilLine className="h-6 w-6" />
+                  ) : (
+                    <RiMic2Line className="h-6 w-6" />
+                  )}
+                  {get(section, "title", "N/A")}
+                </Badge>
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>
       <div className="space-y-6">
         <div className="flex items-center justify-between gap-2">
-          <div className="text-xl font-semibold">Group students</div>
+          <div className="text-xl font-semibold">Mock Groups</div>
           <div className="flex gap-2">
             <Input
               placeholder="Search ..."
@@ -118,7 +150,7 @@ const GroupDetailPage = () => {
         </div>
         <div className="space-y-4">
           <DataTable
-            data={students}
+            data={groups}
             columns={columns}
             pagination={true}
             totalCount={paginationInfo.totalCount}
@@ -136,4 +168,4 @@ const GroupDetailPage = () => {
   );
 };
 
-export default GroupDetailPage;
+export default MocksStatisticsPage;
