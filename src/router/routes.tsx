@@ -161,14 +161,6 @@ export const routes = [
       {
         path: "students/:id/:test_type/:skill/:obj_id",
         element: <StudentResultPage />,
-        test_type: "Mock",
-        is_view_answer: false,
-        enabled: true,
-        material: {
-          next_test: "listening",
-          next_test_id: 2,
-          test_type: "Mock",
-        },
       },
       {
         path: "tests",

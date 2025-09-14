@@ -16,9 +16,11 @@ import { get } from "lodash";
 import { useParams } from "react-router-dom";
 import { getGroupOne } from "../teacher/groups/api/groups";
 import { getOneMockMaterial } from "./api/test-material";
+import MockFullResultsByGroup from "./components/MockFullResultsByGroup";
 import MockListeningResultsByGroup from "./components/MockListeningResultsByGroup";
 import MockReadingResultsByGroup from "./components/MockReadingResultsByGroup";
 import MockWritingResultsByGroup from "./components/MockWritingResultsByGroup";
+import MockSpeakingResultsByGroup from "./components/MockSpeakingResultsByGroup";
 
 const MockStatisticsByGroupPage = () => {
   const { group_id, material_id } = useParams();
@@ -180,10 +182,10 @@ const MockStatisticsByGroupPage = () => {
           <MockWritingResultsByGroup />
         </TabsContent>
         <TabsContent value="speaking" className="mt-6">
-          Speaking
+          <MockSpeakingResultsByGroup />
         </TabsContent>
         <TabsContent value="full" className="mt-6">
-          Full Test
+          <MockFullResultsByGroup />
         </TabsContent>
       </Tabs>
     </div>

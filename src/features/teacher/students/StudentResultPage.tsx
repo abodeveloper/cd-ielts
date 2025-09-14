@@ -50,6 +50,35 @@ const StudentResultPage = () => {
       />
     );
 
+  const questions = [
+    {
+      speaking_part: 1,
+      question: [
+        {
+          question_number: 1,
+          question: "<p>egergerg</p>",
+        },
+        {
+          question_number: 2,
+          question: "<p>egergerg</p>",
+        },
+      ],
+    },
+    {
+      speaking_part: 2,
+      question: [
+        {
+          question_number: 1,
+          question: "<p>egergerg</p>",
+        },
+        {
+          question_number: 2,
+          question: "<p>egergerg</p>",
+        },
+      ],
+    },
+  ];
+
   return (
     <div className="space-y-8">
       <Card className="w-full">
@@ -365,26 +394,54 @@ const StudentResultPage = () => {
               </div>
               <div className="flex items-center gap-2">
                 <strong>Score:</strong>
-                <Badge variant={"default"}>{get(data, "score")}</Badge>
+                <Badge variant={"default"}>
+                  {get(data, "statistics.average_score")}
+                </Badge>
               </div>
             </div>
             <div className="space-y-3">
               <h2 className="text-md font-semibold">Answer Review</h2>
-              <div className="">
+              <div>
                 <Table className="w-full">
                   <TableHeader>
                     <TableRow>
-                      <TableHead>#</TableHead>
-                      <TableHead>Question</TableHead>
+                      <TableHead>Questions</TableHead>
                       <TableHead>Your Answer</TableHead>
                       <TableHead>Feedback</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {get(data, "answers", []).map((answer: any) => (
+                    {get(data, "answers", [])?.map((answer: any) => (
                       <TableRow key={answer.id}>
-                        <TableCell>{answer.question_number}</TableCell>
-                        <TableCell>{answer.question}</TableCell>
+                        <TableCell>
+                          <div className="space-y-4">
+                            {answer?.questions?.map(
+                              (part: any, index: number) => (
+                                <div className="space-y-2" key={index}>
+                                  <div className="font-bold">
+                                    Part {part?.speaking_part}
+                                  </div>
+                                  <div className="flex gap-2">
+                                    {part?.question?.map(
+                                      (item: any, index: number) => (
+                                        <div className="flex gap-2" key={index}>
+                                          <div className="font-semibold">
+                                            {item?.question_number}.
+                                          </div>
+                                          <div
+                                            dangerouslySetInnerHTML={{
+                                              __html: item?.question,
+                                            }}
+                                          />
+                                        </div>
+                                      )
+                                    )}
+                                  </div>
+                                </div>
+                              )
+                            )}
+                          </div>
+                        </TableCell>
                         <TableCell>
                           {answer.record ? (
                             <audio controls className="w-full">

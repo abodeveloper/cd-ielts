@@ -11,7 +11,7 @@ interface Result {
   created_at: string;
 }
 
-export function useMockReadingResultsColumns(): ColumnDef<Result>[] {
+export function useMockSpeakingResultsColumns(): ColumnDef<Result>[] {
   return [
     {
       accessorKey: "full_name",
@@ -31,55 +31,12 @@ export function useMockReadingResultsColumns(): ColumnDef<Result>[] {
       },
     },
     {
-      accessorKey: "total_questions",
-      header: "Total questions",
+      accessorKey: "feedback",
+      header: "Feedback",
       cell: ({ row }) => {
         const material_info = row.original.material_info;
 
-        return (
-          <Badge variant={"outline"}>
-            {get(material_info, "total_questions")}
-          </Badge>
-        );
-      },
-    },
-    {
-      accessorKey: "incorrect_answers",
-      header: "Incorrect answers",
-      cell: ({ row }) => {
-        const material_info = row.original.material_info;
-
-        return (
-          <Badge variant={"destructive"}>
-            {get(material_info, "incorrect_answers")}
-          </Badge>
-        );
-      },
-    },
-    {
-      accessorKey: "correct_answers",
-      header: "Correct answers",
-      cell: ({ row }) => {
-        const material_info = row.original.material_info;
-
-        return (
-          <Badge variant={"success"}>
-            {get(material_info, "correct_answers")}
-          </Badge>
-        );
-      },
-    },
-    {
-      accessorKey: "score_percentage",
-      header: "Score percentage (%)",
-      cell: ({ row }) => {
-        const material_info = row.original.material_info;
-
-        return (
-          <Badge variant={"secondary"}>
-            {get(material_info, "score_percentage")}
-          </Badge>
-        );
+        return <>{get(material_info, "feedback")}</>;
       },
     },
     {
@@ -88,7 +45,7 @@ export function useMockReadingResultsColumns(): ColumnDef<Result>[] {
       cell: ({ row }) => {
         const material_info = row.original.material_info;
 
-        return <Badge variant={"default"}>{get(material_info, "score")}</Badge>;
+        return <Badge variant={'default'}>{get(material_info, "score")}</Badge>;
       },
     },
     {
@@ -114,7 +71,7 @@ export function useMockReadingResultsColumns(): ColumnDef<Result>[] {
         return (
           <>
             <NavLink
-              to={`/teacher/students/${student_id}/mock/reading/${id}`}
+              to={`/teacher/students/${student_id}/mock/writing/${id}`}
               className={"text-blue-500"}
             >
               View
