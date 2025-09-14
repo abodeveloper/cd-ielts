@@ -615,7 +615,6 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
       <style>{`
         .highlight {
           background-color: #fde68a;
-          font-weight: 800;
         }
       `}</style>
 
