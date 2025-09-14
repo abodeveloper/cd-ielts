@@ -23,6 +23,8 @@ const HTMLRendererWithHighlight = ({
   } | null>(null);
   const [selectedHighlightElement, setSelectedHighlightElement] =
     useState<HTMLElement | null>(null);
+  const lastMouseUpTimeRef = useRef<number>(0);
+  const selectionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const generateHighlightId = () =>
     Date.now().toString() + Math.random().toString(36).slice(2);
@@ -117,51 +119,81 @@ const HTMLRendererWithHighlight = ({
     setSelectedHighlightElement(null);
   };
 
-  const handleSelection = useCallback(() => {
+  const processSelection = useCallback(() => {
     if (!enabledHighlight) return;
 
-    const selection = window.getSelection();
-    if (
-      selection &&
-      selection.rangeCount > 0 &&
-      selection.toString().length > 0 &&
-      contentRef.current?.contains(selection.anchorNode!)
-    ) {
-      const range = selection.getRangeAt(0);
-      const rect = range.getBoundingClientRect();
-
-      let commonAncestor = range.commonAncestorContainer as HTMLElement;
-      if (commonAncestor.nodeType === Node.TEXT_NODE) {
-        commonAncestor = commonAncestor.parentNode as HTMLElement;
-      }
-
-      if (
-        commonAncestor &&
-        commonAncestor.classList &&
-        commonAncestor.classList.contains("highlight")
-      ) {
-        setSelectedHighlightElement(commonAncestor);
-        setSelectedRange(null);
-      } else {
-        setSelectedHighlightElement(null);
-        setSelectedRange(range);
-      }
-
-      setDropdownPos({
-        x: rect.left + window.scrollX + rect.width / 2,
-        y: rect.top + window.scrollY - 40,
-        width: 0,
-      });
-    } else {
-      setSelectedRange(null);
-      setSelectedHighlightElement(null);
-      setDropdownPos(null);
+    // Clear any existing timeout
+    if (selectionTimeoutRef.current) {
+      clearTimeout(selectionTimeoutRef.current);
     }
+
+    // Use a short timeout to ensure selection is captured
+    selectionTimeoutRef.current = setTimeout(() => {
+      const selection = window.getSelection();
+      if (
+        selection &&
+        selection.rangeCount > 0 &&
+        contentRef.current?.contains(selection.anchorNode!)
+      ) {
+        const range = selection.getRangeAt(0);
+        const selectedText = selection.toString().trim();
+        // Check for non-collapsed range and non-empty selection
+        if (!range.collapsed && selectedText.length > 0) {
+          const rect = range.getBoundingClientRect();
+
+          let commonAncestor = range.commonAncestorContainer as HTMLElement;
+          if (commonAncestor.nodeType === Node.TEXT_NODE) {
+            commonAncestor = commonAncestor.parentNode as HTMLElement;
+          }
+
+          if (
+            commonAncestor &&
+            commonAncestor.classList &&
+            commonAncestor.classList.contains("highlight")
+          ) {
+            setSelectedHighlightElement(commonAncestor);
+            setSelectedRange(null);
+          } else {
+            setSelectedHighlightElement(null);
+            setSelectedRange(range);
+          }
+
+          setDropdownPos({
+            x: rect.left + window.scrollX + rect.width / 2,
+            y: rect.bottom + window.scrollY + 10,
+            width: 0,
+          });
+        } else {
+          setSelectedRange(null);
+          setSelectedHighlightElement(null);
+          setDropdownPos(null);
+        }
+      } else {
+        setSelectedRange(null);
+        setSelectedHighlightElement(null);
+        setDropdownPos(null);
+      }
+    }, 150); // Slightly longer delay to capture double-click/triple-click selections
   }, [enabledHighlight]);
+
+  const handleMouseUp = useCallback(() => {
+    const currentTime = Date.now();
+    // Debounce: ignore if less than 300ms since last mouseup
+    if (currentTime - lastMouseUpTimeRef.current < 300) {
+      return;
+    }
+    lastMouseUpTimeRef.current = currentTime;
+    processSelection();
+  }, [processSelection]);
+
+  const handleDoubleClick = useCallback(() => {
+    processSelection();
+  }, [processSelection]);
 
   useEffect(() => {
     if (!enabledHighlight) return;
-    document.addEventListener("mouseup", handleSelection);
+    document.addEventListener("mouseup", handleMouseUp);
+    document.addEventListener("dblclick", handleDoubleClick);
 
     const handleBodyClick = (e: MouseEvent) => {
       if (!contentRef.current?.contains(e.target as Node)) {
@@ -172,10 +204,14 @@ const HTMLRendererWithHighlight = ({
     document.body.addEventListener("click", handleBodyClick);
 
     return () => {
-      document.removeEventListener("mouseup", handleSelection);
+      document.removeEventListener("mouseup", handleMouseUp);
+      document.removeEventListener("dblclick", handleDoubleClick);
       document.body.removeEventListener("click", handleBodyClick);
+      if (selectionTimeoutRef.current) {
+        clearTimeout(selectionTimeoutRef.current);
+      }
     };
-  }, [handleSelection, enabledHighlight]);
+  }, [handleMouseUp, handleDoubleClick, enabledHighlight]);
 
   const handleHighlightElementClick = (e: React.MouseEvent<HTMLElement>) => {
     e.stopPropagation();
@@ -186,7 +222,7 @@ const HTMLRendererWithHighlight = ({
     const rect = target.getBoundingClientRect();
     setDropdownPos({
       x: rect.left + window.scrollX + rect.width / 2,
-      y: rect.top + window.scrollY - 40,
+      y: rect.bottom + window.scrollY + 10,
       width: 0,
     });
   };
@@ -195,7 +231,6 @@ const HTMLRendererWithHighlight = ({
     if (!enabledHighlight) return;
 
     if (selectedHighlightElement) {
-      // Agar bitta highlight tanlangan bo‘lsa, uni o‘chirish
       const targetElement = selectedHighlightElement;
       const parent = targetElement.parentNode;
       if (parent) {
@@ -205,7 +240,6 @@ const HTMLRendererWithHighlight = ({
         parent.removeChild(targetElement);
       }
     } else if (selectedRange && !selectedHighlightElement) {
-      // Tanlovdagi barcha highlightlarni olib tashlash
       const range = selectedRange.cloneRange();
       if (!contentRef.current) return;
 
@@ -245,8 +279,8 @@ const HTMLRendererWithHighlight = ({
       });
     }
 
-    setSelectedHighlightElement(null);
     setSelectedRange(null);
+    setSelectedHighlightElement(null);
     setDropdownPos(null);
   };
 
