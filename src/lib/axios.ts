@@ -1,5 +1,6 @@
 import { cookieService } from "@/lib/cookieService";
 import axios from "axios";
+import { useAuthStore } from "@/store/auth-store";
 
 // Axios instance
 const api = axios.create({
@@ -10,7 +11,7 @@ const api = axios.create({
   },
 });
 
-// Request interceptor: token qo‘shish (cookie yoki localStorage dan)
+// Request interceptor: token qo‘shish
 api.interceptors.request.use(
   (config) => {
     const token =
@@ -35,13 +36,16 @@ api.interceptors.response.use(
       if (status === 401) {
         console.warn("Unauthorized. Logging out...");
 
-        // Tokenni tozalash
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("authStore");
-        cookieService.removeToken();
+        // Tokenni tozalash va auth holatini yangilash
+        useAuthStore.getState().logout();
 
-        // Logoutga redirect qilish mumkin
-        window.location.href = "/login";
+        // Login sahifasiga yo‘naltirish (faqat agar login sahifasida bo‘lmasa)
+        if (window.location.pathname !== "/login") {
+          window.location.href = "/login";
+        }
+
+        // Siklni oldini olish uchun bo‘sh promise qaytarish
+        return new Promise(() => {});
       }
 
       if (status === 403) {

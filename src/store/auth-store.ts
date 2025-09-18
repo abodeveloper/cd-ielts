@@ -27,22 +27,28 @@ interface AuthState {
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
-      isAuthenticated: false,
-      accessToken: cookieService.getToken() || null,
+      isAuthenticated:
+        !!cookieService.getToken() || !!localStorage.getItem("accessToken"),
+      accessToken:
+        cookieService.getToken() || localStorage.getItem("accessToken") || null,
       user: null,
       loading: false,
 
       login: (token, userData) => {
         cookieService.setToken(token); // Tokenni cookie ga saqlash
+        localStorage.setItem("accessToken", token); // Tokenni localStorage ga ham saqlash
         set({
           isAuthenticated: true,
           accessToken: token,
           user: userData || null,
+          loading: false,
         });
       },
 
       logout: () => {
         cookieService.removeToken(); // Cookie dan tokenni o‘chirish
+        localStorage.removeItem("accessToken"); // localStorage dan tokenni o‘chirish
+        localStorage.removeItem("auth-storage"); // Persist storage ni tozalash
         set({
           isAuthenticated: false,
           accessToken: null,
@@ -55,10 +61,17 @@ export const useAuthStore = create<AuthState>()(
         set({ loading: true });
         try {
           const data = await getMe();
-          set({ user: data, loading: false });
-        } catch (error) {
+          set({ user: data, isAuthenticated: true, loading: false });
+        } catch (error: any) {
           console.error("Failed to fetch user:", error);
-          set({ loading: false }); // Xato bo‘lsa, faqat loading o‘chiriladi
+          if (error.response?.status === 401) {
+            // 401 xatosi bo‘lsa, logout qilish
+            get().logout();
+            if (window.location.pathname !== "/login") {
+              window.location.href = "/login"; // Login sahifasiga yo‘naltirish
+            }
+          }
+          set({ loading: false });
           toastService.error("Foydalanuvchi ma'lumotlarini olishda xato");
         }
       },
@@ -67,10 +80,9 @@ export const useAuthStore = create<AuthState>()(
       name: "auth-storage", // localStorage da saqlanadigan kalit nomi
       storage: createJSONStorage(() => localStorage), // localStorage ni ishlatish
       partialize: (state) => ({
-        // Faqat isAuthenticated, user va loading ni saqlash
+        // Faqat isAuthenticated va user ni saqlash
         isAuthenticated: state.isAuthenticated,
         user: state.user,
-        loading: state.loading,
       }),
     }
   )
