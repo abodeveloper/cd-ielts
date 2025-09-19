@@ -25,6 +25,7 @@ export const useReadingForm = (
 
   const is_view = get(query.data, "is_view");
   const material = get(query.data, "material");
+  const test_type = get(query.data, "test_type");
 
   const finish = () => {
     if (user?.role === Role.TEACHER) {
@@ -50,13 +51,17 @@ export const useReadingForm = (
   };
 
   const handleNextStep = (res: object) => {
-    if (user?.role === Role.TEACHER) {
+    if (test_type === "Thematic") {
       onNext?.({ ...res, material, finish });
     } else {
-      if (is_view === true) {
-        onNext?.({ ...res, material }); // To'g'ri ma'lumot uzatish
+      if (user?.role === Role.TEACHER) {
+        onNext?.({ ...res, material, finish });
       } else {
-        finish();
+        if (is_view === true) {
+          onNext?.({ ...res, material }); // To'g'ri ma'lumot uzatish
+        } else {
+          finish();
+        }
       }
     }
   };

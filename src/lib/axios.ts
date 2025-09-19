@@ -1,6 +1,6 @@
 import { cookieService } from "@/lib/cookieService";
-import axios from "axios";
 import { useAuthStore } from "@/store/auth-store";
+import axios from "axios";
 
 // Axios instance
 const api = axios.create({
@@ -44,8 +44,7 @@ api.interceptors.response.use(
           window.location.href = "/login";
         }
 
-        // Siklni oldini olish uchun bo‘sh promise qaytarish
-        return new Promise(() => {});
+        return Promise.reject(error);
       }
 
       if (status === 403) {
