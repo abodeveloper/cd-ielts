@@ -79,6 +79,9 @@ const TestMockDetailPage = lazy(
 const TestThematicsPage = lazy(
   () => import("@/features/test-materials/ThematicsPage")
 );
+const TestThematicsStatisticsPage = lazy(
+  () => import("@/features/test-materials/ThematicsStatisticsPage")
+);
 const ReadingMaterialStatisticsPage = lazy(
   () => import("@/features/test-materials/ReadingMaterialStatisticPage")
 );
@@ -181,6 +184,10 @@ export const routes = [
           },
           { path: "mock/:id", element: <TestMockDetailPage /> },
           { path: "thematic", element: <TestThematicsPage /> },
+          {
+            path: "thematic/statistics/:material_id",
+            element: <TestThematicsStatisticsPage />,
+          },
         ],
       },
       { path: "profile", element: <ProfilePage /> },

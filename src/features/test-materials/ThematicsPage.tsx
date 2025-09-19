@@ -2,12 +2,17 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { CardList } from "@/components/ui/card-list";
 import { Input } from "@/components/ui/input";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import ErrorMessage from "@/shared/components/atoms/error-message/ErrorMessage";
+import { Role } from "@/shared/enums/role.enum";
 import { useDebounce } from "@/shared/hooks/useDebounce";
 import { buildFilterQuery } from "@/shared/utils/helper";
-import {
-  RiStarLine
-} from "@remixicon/react";
+import { useAuthStore } from "@/store/auth-store";
+import { RiBarChartBoxLine, RiStarLine } from "@remixicon/react";
 import { useQuery } from "@tanstack/react-query";
 import { get } from "lodash";
 import { useEffect, useMemo, useState } from "react";
@@ -16,6 +21,8 @@ import { getTestsData } from "./api/test-material";
 import { Material, Test, TestSection } from "./types";
 
 export default function ThematicsPage() {
+  const { user } = useAuthStore();
+
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [searchInput, setSearchInput] = useState("");
@@ -95,6 +102,11 @@ export default function ThematicsPage() {
                       Test materials
                     </Button>
                   </div>
+                  {materials.length === 0 && (
+                    <div className="text-sm text-muted-foreground">
+                      No materials available.
+                    </div>
+                  )}
                   {materials?.map((material: Material, index: number) => (
                     <div
                       className="flex items-center gap-2 w-full"
@@ -105,15 +117,6 @@ export default function ThematicsPage() {
                         variant="outline"
                         size="icon"
                       >
-                        {/* {material.type === "reading" ? (
-                          <RiBookOpenLine className="h-6 w-6" />
-                        ) : material.type === "listening" ? (
-                          <RiHeadphoneLine className="h-6 w-6" />
-                        ) : material.type === "writing" ? (
-                          <RiPencilLine className="h-6 w-6" />
-                        ) : (
-                          <RiMic2Line className="h-6 w-6" />
-                        )} */}
                         {index + 1}
                       </Button>
 
@@ -141,53 +144,30 @@ export default function ThematicsPage() {
                       >
                         {material.title}
                       </Button>
+
+                      {user?.role === Role.TEACHER && (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              className="shrink-0"
+                              variant="default"
+                              size="icon"
+                              onClick={() => {
+                                navigate(
+                                  `/teacher/tests/thematic/statistics/${material.id}`
+                                );
+                              }}
+                            >
+                              <RiBarChartBoxLine className="w-5 h-5" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="right" align="center">
+                            View statistics
+                          </TooltipContent>
+                        </Tooltip>
+                      )}
                     </div>
                   ))}
-                  {/* <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <div className="flex items-center gap-2 w-full">
-                        <Button
-                          className="pointer-events-none shrink-0"
-                          variant="outline"
-                          size="icon"
-                        >
-                          <RiStarLine className="h-6 w-6" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="flex-1 min-w-0 text-left truncate px-3 py-2"
-                        >
-                          Test materials
-                        </Button>
-                      </div>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      {materials?.map((material: Material) => (
-                        <DropdownMenuItem
-                          onClick={() => {
-                            const type = material.type;
-                            switch (type) {
-                              case "listening":
-                                navigate(`/listenings/${material.id}`);
-                                break;
-                              case "reading":
-                                navigate(`/readings/${material.id}`);
-                                break;
-                              case "writing":
-                                navigate(`/writings/${material.id}`);
-                                break;
-                              case "speaking":
-                                navigate(`/speakings/${material.id}`);
-                                break;
-                            }
-                          }}
-                        >
-                          {material.title}
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu> */}
                 </CardContent>
               </Card>
             );

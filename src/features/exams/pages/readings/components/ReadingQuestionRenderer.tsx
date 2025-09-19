@@ -1,4 +1,4 @@
-import parse, { Element } from "html-react-parser";
+import parse, { Element, domToReact } from "html-react-parser";
 import { useRef, useEffect, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { RiEraserLine, RiMarkPenLine } from "@remixicon/react";
@@ -144,12 +144,10 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
   const processSelection = useCallback(() => {
     if (!enabledHighlight) return;
 
-    // Clear any existing timeout
     if (selectionTimeoutRef.current) {
       clearTimeout(selectionTimeoutRef.current);
     }
 
-    // Use a short timeout to ensure selection is captured
     selectionTimeoutRef.current = setTimeout(() => {
       const selection = window.getSelection();
       if (
@@ -159,7 +157,6 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
       ) {
         const range = selection.getRangeAt(0);
         const selectedText = selection.toString().trim();
-        // Check for non-collapsed range and non-empty selection
         if (!range.collapsed && selectedText.length > 0) {
           const rect = range.getBoundingClientRect();
 
@@ -195,12 +192,11 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
         setSelectedHighlightElement(null);
         setDropdownPos(null);
       }
-    }, 150); // Slightly longer delay to capture double-click/triple-click selections
+    }, 150);
   }, [enabledHighlight]);
 
   const handleMouseUp = useCallback(() => {
     const currentTime = Date.now();
-    // Debounce: ignore if less than 300ms since last mouseup
     if (currentTime - lastMouseUpTimeRef.current < 300) {
       return;
     }
@@ -322,8 +318,7 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
               style={{ cursor: "pointer" }}
               key={domNode.attribs["data-highlight-id"] || undefined}
             >
-              {domNode.children &&
-                domNode.children.map((child: any, idx: number) => parse(child))}
+              {domToReact(domNode.children)}
             </span>
           );
         }
@@ -455,7 +450,7 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
             question_number: number;
             question_text: string;
           }[] = JSON.parse(attribs["data-questions"] || "[]");
-          const table_name = attribs["table_name"];
+          const table_name = attribs["table_name"] || "Legend";
 
           return (
             <div className="space-y-8 my-8">
@@ -604,6 +599,154 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
             </div>
           );
         }
+
+        if (domNode.name === "drag-drop-matching-sentence-endings") {
+          const { attribs } = domNode;
+          let options: { value: string; label: string }[] = [];
+          try {
+            options = JSON.parse(attribs["data-options"] || "[]");
+          } catch (e) {
+            console.error("Invalid data-options JSON:", e);
+            return <span className="text-destructive">Invalid drag drop options</span>;
+          }
+
+          if (!options.length) {
+            console.warn("No options provided for drag-drop-matching-sentence-endings:", attribs);
+            return <span className="text-destructive">No drag drop options</span>;
+          }
+
+          const isRepeat = attribs["data-repeat"] === "true"; // data-repeat ni o'qi, default false
+
+          const [droppedValues, setDroppedValues] = useState<{ [key: string]: string }>({});
+          const [usedOptions, setUsedOptions] = useState<Set<string>>(new Set());
+
+          const handleDragStart = (e: React.DragEvent<HTMLDivElement>, value: string) => {
+            e.dataTransfer.setData("text/plain", value);
+            e.currentTarget.style.opacity = "0.5"; // Visual feedback
+          };
+
+          const handleDragEnd = (e: React.DragEvent<HTMLDivElement>) => {
+            e.currentTarget.style.opacity = "1"; // Reset opacity
+          };
+
+          const handleDrop = (e: React.DragEvent<HTMLDivElement>, questionNumber: string) => {
+            e.preventDefault();
+            const value = e.dataTransfer.getData("text/plain");
+            if (value) {
+              // Oldingi qiymatni tozalash (overwrite uchun)
+              const oldValue = droppedValues[questionNumber];
+              if (oldValue && !isRepeat) {
+                setUsedOptions((prev) => {
+                  const newSet = new Set(prev);
+                  newSet.delete(oldValue); // Oldingi qiymatni qaytarish
+                  return newSet;
+                });
+              }
+
+              // Yangi qiymatni o'rnatish
+              setDroppedValues((prev) => ({ ...prev, [questionNumber]: value }));
+              if (!isRepeat) {
+                setUsedOptions((prev) => new Set([...prev, value]));
+              }
+
+              const answerIndex = parseInt(questionNumber) - 1;
+              form.setValue(`answers.${answerIndex}.answer`, value);
+
+              e.currentTarget.style.backgroundColor = ""; // Reset drop zone
+            }
+          };
+
+          const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+            e.preventDefault();
+            e.currentTarget.style.backgroundColor = "#e0f7fa"; // Highlight drop zone
+          };
+
+          const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+            e.currentTarget.style.backgroundColor = ""; // Reset drop zone
+          };
+
+          const handleClear = (questionNumber: string) => {
+            const value = droppedValues[questionNumber];
+            setDroppedValues((prev) => {
+              const newValues = { ...prev };
+              delete newValues[questionNumber];
+              return newValues;
+            });
+            if (!isRepeat && value) {
+              setUsedOptions((prev) => {
+                const newSet = new Set(prev);
+                newSet.delete(value);
+                return newSet;
+              });
+            }
+            const answerIndex = parseInt(questionNumber) - 1;
+            form.setValue(`answers.${answerIndex}.answer`, "");
+          };
+
+          return (
+            <div className="my-6">
+              {/* Parsed content with drop zones */}
+              {domToReact(domNode.children, {
+                replace: (innerNode) => {
+                  if (innerNode instanceof Element && innerNode.name === "drag-drop-sentence-input") {
+                    const innerAttribs = innerNode.attribs;
+                    const number = innerAttribs["data-question-number"] ?? "";
+                    const type = innerAttribs["data-question-type"] ?? "";
+
+                    if (!number || type !== "matching_sentence_endings") {
+                      return <span className="text-destructive">Invalid drag-drop input</span>;
+                    }
+
+                    return (
+                      <span
+                        key={number}
+                        onDrop={(e) => handleDrop(e, number)}
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                        className="inline-block min-w-[150px] border-2 border-dashed border-gray-400 p-2 mx-1 bg-gray-50 rounded-md text-center"
+                      >
+                        {droppedValues[number] ? (
+                          <div className="flex items-center justify-between">
+                            <span className="font-semibold">
+                              {options.find(opt => opt.value === droppedValues[number])?.label || droppedValues[number]}
+                            </span>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => handleClear(number)}
+                              className="ml-2"
+                            >
+                              Clear
+                            </Button>
+                          </div>
+                        ) : (
+                          <span className="text-gray-500 italic">Drop here</span>
+                        )}
+                      </span>
+                    );
+                  }
+                  return undefined;
+                },
+              })}
+              {/* Draggable options (pastda) */}
+              <div className="flex flex-wrap gap-3 mt-6">
+                {options.map((option) => (
+                  (!usedOptions.has(option.value) || isRepeat) && (
+                    <div
+                      key={option.value}
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, option.value)}
+                      onDragEnd={handleDragEnd}
+                      className="p-3 bg-blue-100 border border-blue-500 rounded-lg cursor-move hover:bg-blue-200 transition-colors min-w-[150px] text-center"
+                    >
+                      {option.label}
+                    </div>
+                  )
+                ))}
+              </div>
+            </div>
+          );
+        }
       }
 
       return undefined;
@@ -615,6 +758,9 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
       <style>{`
         .highlight {
           background-color: #fde68a;
+        }
+        .drag-drop-container {
+          min-height: 40px;
         }
       `}</style>
 
