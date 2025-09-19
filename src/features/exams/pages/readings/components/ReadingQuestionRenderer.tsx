@@ -1,7 +1,7 @@
 import parse, { Element, domToReact } from "html-react-parser";
 import { useRef, useEffect, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { RiEraserLine, RiMarkPenLine } from "@remixicon/react";
+import { RiCloseLine, RiEraserLine, RiMarkPenLine } from "@remixicon/react";
 import { ReadingFormValues } from "@/features/exams/schemas/reading-schema";
 import MyQuestionCheckboxGroup from "@/shared/components/atoms/question-inputs/MyQuestionCheckboxGroup";
 import { ReadingQuestionType } from "@/shared/enums/reading-question-type.enum";
@@ -607,20 +607,36 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
             options = JSON.parse(attribs["data-options"] || "[]");
           } catch (e) {
             console.error("Invalid data-options JSON:", e);
-            return <span className="text-destructive">Invalid drag drop options</span>;
+            return (
+              <span className="text-destructive">
+                Invalid drag drop options
+              </span>
+            );
           }
 
           if (!options.length) {
-            console.warn("No options provided for drag-drop-matching-sentence-endings:", attribs);
-            return <span className="text-destructive">No drag drop options</span>;
+            console.warn(
+              "No options provided for drag-drop-matching-sentence-endings:",
+              attribs
+            );
+            return (
+              <span className="text-destructive">No drag drop options</span>
+            );
           }
 
           const isRepeat = attribs["data-repeat"] === "true"; // data-repeat ni o'qi, default false
 
-          const [droppedValues, setDroppedValues] = useState<{ [key: string]: string }>({});
-          const [usedOptions, setUsedOptions] = useState<Set<string>>(new Set());
+          const [droppedValues, setDroppedValues] = useState<{
+            [key: string]: string;
+          }>({});
+          const [usedOptions, setUsedOptions] = useState<Set<string>>(
+            new Set()
+          );
 
-          const handleDragStart = (e: React.DragEvent<HTMLDivElement>, value: string) => {
+          const handleDragStart = (
+            e: React.DragEvent<HTMLDivElement>,
+            value: string
+          ) => {
             e.dataTransfer.setData("text/plain", value);
             e.currentTarget.style.opacity = "0.5"; // Visual feedback
           };
@@ -629,7 +645,10 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
             e.currentTarget.style.opacity = "1"; // Reset opacity
           };
 
-          const handleDrop = (e: React.DragEvent<HTMLDivElement>, questionNumber: string) => {
+          const handleDrop = (
+            e: React.DragEvent<HTMLDivElement>,
+            questionNumber: string
+          ) => {
             e.preventDefault();
             const value = e.dataTransfer.getData("text/plain");
             if (value) {
@@ -644,7 +663,10 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
               }
 
               // Yangi qiymatni o'rnatish
-              setDroppedValues((prev) => ({ ...prev, [questionNumber]: value }));
+              setDroppedValues((prev) => ({
+                ...prev,
+                [questionNumber]: value,
+              }));
               if (!isRepeat) {
                 setUsedOptions((prev) => new Set([...prev, value]));
               }
@@ -688,13 +710,20 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
               {/* Parsed content with drop zones */}
               {domToReact(domNode.children, {
                 replace: (innerNode) => {
-                  if (innerNode instanceof Element && innerNode.name === "drag-drop-sentence-input") {
+                  if (
+                    innerNode instanceof Element &&
+                    innerNode.name === "drag-drop-sentence-input"
+                  ) {
                     const innerAttribs = innerNode.attribs;
                     const number = innerAttribs["data-question-number"] ?? "";
                     const type = innerAttribs["data-question-type"] ?? "";
 
                     if (!number || type !== "matching_sentence_endings") {
-                      return <span className="text-destructive">Invalid drag-drop input</span>;
+                      return (
+                        <span className="text-destructive">
+                          Invalid drag-drop input
+                        </span>
+                      );
                     }
 
                     return (
@@ -703,24 +732,26 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
                         onDrop={(e) => handleDrop(e, number)}
                         onDragOver={handleDragOver}
                         onDragLeave={handleDragLeave}
-                        className="inline-block min-w-[150px] border-2 border-dashed border-gray-400 p-2 mx-1 bg-gray-50 rounded-md text-center"
+                        className="inline-block min-w-[150px] border-2 border-gray-400 border-dashed p-1 my-1 mx-2 rounded-md text-center"
                       >
                         {droppedValues[number] ? (
                           <div className="flex items-center justify-between">
                             <span className="font-semibold">
-                              {options.find(opt => opt.value === droppedValues[number])?.label || droppedValues[number]}
+                              {options.find(
+                                (opt) => opt.value === droppedValues[number]
+                              )?.label || droppedValues[number]}
                             </span>
-                            <Button
-                              size="sm"
-                              variant="destructive"
+                            <button
                               onClick={() => handleClear(number)}
-                              className="ml-2"
+                              className="text-destructive hover:text-destructive/70 ml-2"
                             >
-                              Clear
-                            </Button>
+                              <RiCloseLine size={20} />
+                            </button>
                           </div>
                         ) : (
-                          <span className="text-gray-500 italic">Drop here</span>
+                          <span className="text-muted-foreground">
+                            {number}
+                          </span>
                         )}
                       </span>
                     );
@@ -730,19 +761,20 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
               })}
               {/* Draggable options (pastda) */}
               <div className="flex flex-wrap gap-3 mt-6">
-                {options.map((option) => (
-                  (!usedOptions.has(option.value) || isRepeat) && (
-                    <div
-                      key={option.value}
-                      draggable
-                      onDragStart={(e) => handleDragStart(e, option.value)}
-                      onDragEnd={handleDragEnd}
-                      className="p-3 bg-blue-100 border border-blue-500 rounded-lg cursor-move hover:bg-blue-200 transition-colors min-w-[150px] text-center"
-                    >
-                      {option.label}
-                    </div>
-                  )
-                ))}
+                {options.map(
+                  (option) =>
+                    (!usedOptions.has(option.value) || isRepeat) && (
+                      <div
+                        key={option.value}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, option.value)}
+                        onDragEnd={handleDragEnd}
+                        className="p-2 bg-primary text-primary-foreground rounded-lg cursor-move hover:bg-muted-foreground transition-colors min-w-[150px] text-center"
+                      >
+                        {option.label}
+                      </div>
+                    )
+                )}
               </div>
             </div>
           );
