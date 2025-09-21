@@ -86,36 +86,18 @@ export function useStudentColumns(): ColumnDef<Student>[] {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem
+                  onClick={() => navigate(`/teacher/students/${id}/mock`)}
+                >
+                  <RiBookOpenLine className="w-5 h-5" />
+                  Mock
+                </DropdownMenuItem>
+                <DropdownMenuItem
                   onClick={() =>
-                    navigate(`/teacher/students/${id}/results/reading`)
+                    navigate(`/teacher/students/${id}/thematic`)
                   }
                 >
                   <RiBookOpenLine className="w-5 h-5" />
-                  Reading
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() =>
-                    navigate(`/teacher/students/${id}/results/listening`)
-                  }
-                >
-                  <RiHeadphoneLine className="w-5 h-5" />
-                  Listening
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() =>
-                    navigate(`/teacher/students/${id}/results/writing`)
-                  }
-                >
-                  <RiPencilLine className="w-5 h-5" />
-                  Writing
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() =>
-                    navigate(`/teacher/students/${id}/results/speaking`)
-                  }
-                >
-                  <RiMic2Line className="w-5 h-5" />
-                  Speaking
+                  Thematic
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

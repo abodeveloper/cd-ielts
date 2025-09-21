@@ -80,3 +80,16 @@ export const getStudentResultOne = async (
   );
   return response.data;
 };
+
+export const getStudentMocks = async (
+  id: string | undefined,
+  page: number,
+  search: string
+) => {
+  let url = `/api/student-mocks/${id}/?page=${page}`;
+  if (search) {
+    url += `&search=${search}`;
+  }
+  const response = await api.get(url);
+  return response.data;
+};
