@@ -82,6 +82,9 @@ const TestThematicsPage = lazy(
 const TestThematicsStatisticsPage = lazy(
   () => import("@/features/test-materials/ThematicsStatisticsPage")
 );
+const TestThematicStatisticsByGroupPage = lazy(
+  () => import("@/features/test-materials/ThematicStatisticsByGroupPage")
+);
 const ReadingMaterialStatisticsPage = lazy(
   () => import("@/features/test-materials/ReadingMaterialStatisticPage")
 );
@@ -187,6 +190,10 @@ export const routes = [
           {
             path: "thematic/statistics/:material_id",
             element: <TestThematicsStatisticsPage />,
+          },
+          {
+            path: "thematic/statistics/:material_id/groups/:group_id",
+            element: <TestThematicStatisticsByGroupPage />,
           },
         ],
       },
