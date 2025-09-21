@@ -8,6 +8,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
+  RiArticleLine,
+  RiBookmark3Line,
   RiBookOpenLine,
   RiHeadphoneLine,
   RiMic2Line,
@@ -88,16 +90,46 @@ export function useStudentColumns(): ColumnDef<Student>[] {
                 <DropdownMenuItem
                   onClick={() => navigate(`/teacher/students/${id}/mock`)}
                 >
-                  <RiBookOpenLine className="w-5 h-5" />
+                  <RiArticleLine className="w-5 h-5" />
                   Mock
                 </DropdownMenuItem>
                 <DropdownMenuItem
+                  onClick={() => navigate(`/teacher/students/${id}/thematic`)}
+                >
+                  <RiBookmark3Line className="w-5 h-5" />
+                  Thematic
+                </DropdownMenuItem>
+                <DropdownMenuItem
                   onClick={() =>
-                    navigate(`/teacher/students/${id}/thematic`)
+                    navigate(`/teacher/students/${id}/results/reading`)
                   }
                 >
                   <RiBookOpenLine className="w-5 h-5" />
-                  Thematic
+                  Reading
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() =>
+                    navigate(`/teacher/students/${id}/results/listening`)
+                  }
+                >
+                  <RiHeadphoneLine className="w-5 h-5" />
+                  Listening
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() =>
+                    navigate(`/teacher/students/${id}/results/speaking`)
+                  }
+                >
+                  <RiMic2Line className="w-5 h-5" />
+                  Speaking
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() =>
+                    navigate(`/teacher/students/${id}/results/Writing`)
+                  }
+                >
+                  <RiPencilLine className="w-5 h-5" />
+                  Writing
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

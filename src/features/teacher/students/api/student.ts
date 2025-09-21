@@ -93,3 +93,12 @@ export const getStudentMocks = async (
   const response = await api.get(url);
   return response.data;
 };
+
+export const getStudentMockResult = async (
+  student_id: string | undefined,
+  test_id: string | undefined
+) => {
+  const url = `/api/student-mocks/${student_id}/${test_id}/`;
+  const response = await api.get(url);
+  return response.data;
+};

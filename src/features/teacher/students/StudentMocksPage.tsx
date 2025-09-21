@@ -13,7 +13,7 @@ import { getStudentMocks, getStudentOne } from "./api/student";
 import { useStudentMocksColumns } from "./hooks/useStudentMocksColumns";
 
 export default function StudentMocksPage() {
-  const { id } = useParams();
+  const { student_id } = useParams();
   const navigate = useNavigate();
 
   const {
@@ -21,8 +21,8 @@ export default function StudentMocksPage() {
     isLoading: studentIsLoading,
     isError: studentIsError,
   } = useQuery({
-    queryKey: ["students", id],
-    queryFn: () => getStudentOne(id),
+    queryKey: ["students", student_id],
+    queryFn: () => getStudentOne(student_id),
   });
 
   const [page, setPage] = useState(1);
@@ -31,8 +31,7 @@ export default function StudentMocksPage() {
 
   const { data, isLoading } = useQuery({
     queryKey: ["student-mocks", page, debouncedSearch],
-    queryFn: () =>
-      getStudentMocks(id, page, debouncedSearch),
+    queryFn: () => getStudentMocks(student_id, page, debouncedSearch),
   });
 
   const columns = useStudentMocksColumns();

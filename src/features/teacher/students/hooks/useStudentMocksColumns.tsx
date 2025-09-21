@@ -1,21 +1,19 @@
 // useGroupColumns.ts
+import { Badge } from "@/components/ui/badge";
+import {
+    RiBookOpenLine,
+    RiHeadphoneLine,
+    RiMic2Line,
+    RiPencilLine,
+} from "@remixicon/react";
 import { ColumnDef } from "@tanstack/react-table";
 import { get } from "lodash";
 import { ReactNode } from "react";
-import { NavLink, useNavigate, useParams } from "react-router-dom";
+import { NavLink, useParams } from "react-router-dom";
 import { Student } from "../types";
-import { Badge } from "@/components/ui/badge";
-import {
-  RiBookOpenLine,
-  RiHeadphoneLine,
-  RiMic2Line,
-  RiPencilLine,
-} from "@remixicon/react";
 
 export function useStudentMocksColumns(): ColumnDef<Student>[] {
-  const navigate = useNavigate();
-
-  const { id } = useParams();
+  const { student_id } = useParams();
 
   return [
     {
@@ -72,7 +70,7 @@ export function useStudentMocksColumns(): ColumnDef<Student>[] {
         return (
           <>
             <NavLink
-              to={`/teacher/students/${id}/mock/${test_id}`}
+              to={`/teacher/students/${student_id}/mock/${test_id}`}
               className={"text-blue-500"}
             >
               View
