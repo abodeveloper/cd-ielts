@@ -91,47 +91,6 @@ export function useThematicResultsColumns(
     },
   ];
 
-  const speakingColumns: ColumnDef<Result>[] = [
-    {
-      accessorKey: "feedback",
-      header: "Feedback",
-      cell: ({ row }) => {
-        const material_info = row.original.material_info;
-
-        return <>{get(material_info, "feedback")}</>;
-      },
-    },
-    {
-      accessorKey: "score",
-      header: "Score",
-      cell: ({ row }) => {
-        const material_info = row.original.material_info;
-
-        return <Badge variant={"default"}>{get(material_info, "score")}</Badge>;
-      },
-    },
-    {
-      accessorKey: "material_info",
-      header: "Answer review",
-      cell: ({ row }) => {
-        const student_id = row.original.student_id;
-        const material_info = row.getValue("material_info");
-        const id = get(material_info, "id", null);
-
-        return (
-          <>
-            <NavLink
-              to={`/teacher/students/${student_id}/thematic/writing/${id}`}
-              className={"text-blue-500"}
-            >
-              View
-            </NavLink>
-          </>
-        );
-      },
-    },
-  ];
-
   const listeningColumns: ColumnDef<Result>[] = [
     {
       accessorKey: "total_questions",
@@ -183,15 +142,6 @@ export function useThematicResultsColumns(
             {get(material_info, "score_percentage")}
           </Badge>
         );
-      },
-    },
-    {
-      accessorKey: "score",
-      header: "Score",
-      cell: ({ row }) => {
-        const material_info = row.original.material_info;
-
-        return <Badge variant={"default"}>{get(material_info, "score")}</Badge>;
       },
     },
     {
@@ -258,6 +208,47 @@ export function useThematicResultsColumns(
     {
       accessorKey: "score",
       header: "Total score",
+      cell: ({ row }) => {
+        const material_info = row.original.material_info;
+
+        return <Badge variant={"default"}>{get(material_info, "score")}</Badge>;
+      },
+    },
+    {
+      accessorKey: "material_info",
+      header: "Answer review",
+      cell: ({ row }) => {
+        const student_id = row.original.student_id;
+        const material_info = row.getValue("material_info");
+        const id = get(material_info, "id", null);
+
+        return (
+          <>
+            <NavLink
+              to={`/teacher/students/${student_id}/thematic/writing/${id}`}
+              className={"text-blue-500"}
+            >
+              View
+            </NavLink>
+          </>
+        );
+      },
+    },
+  ];
+
+  const speakingColumns: ColumnDef<Result>[] = [
+    {
+      accessorKey: "feedback",
+      header: "Feedback",
+      cell: ({ row }) => {
+        const material_info = row.original.material_info;
+
+        return <>{get(material_info, "feedback")}</>;
+      },
+    },
+    {
+      accessorKey: "score",
+      header: "Score",
       cell: ({ row }) => {
         const material_info = row.original.material_info;
 
