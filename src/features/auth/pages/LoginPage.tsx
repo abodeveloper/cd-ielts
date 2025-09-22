@@ -1,4 +1,5 @@
-import Image from "@/assets/ielts.webp";
+import Image from "@/assets/right-logo.jpg";
+// import Image from "@/assets/ielts.webp";
 import Logo from "@/assets/logo.jpg";
 import { Role } from "@/shared/enums/role.enum";
 import { useAuthStore } from "@/store/auth-store";
