@@ -50,8 +50,17 @@ export const getOneMockMaterial = async (id: string | number | undefined) => {
   return response.data;
 };
 
-export const getOneThematicMaterial = async (id: string | number | undefined) => {
+export const getOneThematicMaterial = async (
+  id: string | number | undefined
+) => {
   const response = await api.get(`/api/thematic-material-info/${id}/`);
+  return response.data;
+};
+
+export const getOneThematicMaterialSection = async (
+  id: string | number | undefined
+) => {
+  const response = await api.get(`/api/detail-material/${id}/`);
   return response.data;
 };
 
@@ -100,7 +109,6 @@ export const getMockMaterialResults = async (
   const response = await api.get(url);
   return response.data;
 };
-
 
 export const getThematicMaterialGroups = async (
   page: number,

@@ -7,6 +7,7 @@ import { useAuthStore } from "@/store/auth-store";
 import { RiArticleLine, RiBookmark3Line, RiUserLine } from "@remixicon/react";
 import { useNavigate } from "react-router-dom";
 import MyMocksPage from "./components/MyMocksPage";
+import MyThematicsPage from "./components/MyThematicsPage";
 
 const MyResultsPage = () => {
   const navigate = useNavigate();
@@ -74,7 +75,7 @@ const MyResultsPage = () => {
             <MyMocksPage />
           </TabsContent>
           <TabsContent value="thematic" className="mt-6">
-            Thematic
+            <MyThematicsPage />
           </TabsContent>
         </Tabs>
       </div>

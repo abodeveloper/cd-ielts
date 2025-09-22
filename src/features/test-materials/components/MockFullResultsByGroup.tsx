@@ -64,19 +64,6 @@ const MockFullResultsByGroup = ({ testData }: { testData: any }) => {
       />
     );
 
-  const a = {
-    title: "Matching endings drag-drop",
-    test_info: {
-      test_title: "Matching headings",
-      test_id: 3,
-      test_type: "Thematic",
-    },
-    skill_info: {
-      skill_title: "Reading Thematic materials",
-      skill_id: 3,
-    },
-  };
-
   return (
     <div className="space-y-8">
       <div className="space-y-6">

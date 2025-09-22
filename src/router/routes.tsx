@@ -14,6 +14,9 @@ const MyResultsPage = lazy(
 const MyMockResultPage = lazy(
   () => import("@/features/student/results/MyMockResultPage")
 );
+const MyThematicResultPage = lazy(
+  () => import("@/features/student/results/MyThematicResultPage")
+);
 const ProfilePage = lazy(() => import("@/features/profile/ProfilePage"));
 
 // Imtihon sahifalari
@@ -123,6 +126,10 @@ export const routes = [
       { path: "profile", element: <ProfilePage /> },
       { path: "results", element: <MyResultsPage /> },
       { path: "results/mock/:material_id", element: <MyMockResultPage /> },
+      {
+        path: "results/thematic/:material_id",
+        element: <MyThematicResultPage />,
+      },
       {
         path: "results/:id/:test_type/:skill/:obj_id",
         element: <StudentResultPage />,
