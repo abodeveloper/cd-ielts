@@ -9,7 +9,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getMockMaterialResults } from "../api/test-material";
 import { useMockFullResultsColumns } from "../hooks/useMockFullResultsColumns";
-import PDFGenerator from "./Pdfgenerator";
+import MockFullResultsPdf from "./MockFullResultsPdf";
 
 const MockFullResultsByGroup = ({ testData }: { testData: any }) => {
   const { material_id, group_id } = useParams();
@@ -89,7 +89,7 @@ const MockFullResultsByGroup = ({ testData }: { testData: any }) => {
               onChange={(event) => setSearchInput(event.target.value)}
               className="max-w-sm w-64"
             />
-            <PDFGenerator data={groups} testData={testData} />
+            <MockFullResultsPdf data={groups} testData={testData} />
           </div>
         </div>
         <div className="space-y-4">

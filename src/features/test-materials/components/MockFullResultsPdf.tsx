@@ -58,7 +58,10 @@ interface PDFGeneratorProps {
   testData?: TestData; // Test ma'lumotlari ixtiyoriy
 }
 
-const PDFGenerator: React.FC<PDFGeneratorProps> = ({ data, testData }) => {
+const MockFullResultsPdf: React.FC<PDFGeneratorProps> = ({
+  data,
+  testData,
+}) => {
   const generatePDF = () => {
     const doc = new jsPDF();
 
@@ -221,9 +224,9 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({ data, testData }) => {
 
   return (
     <Button onClick={generatePDF}>
-      <RiDownloadLine className="w-5 h-5"/> Doownload
+      <RiDownloadLine className="w-5 h-5" /> Doownload
     </Button>
   );
 };
 
-export default PDFGenerator;
+export default MockFullResultsPdf;
