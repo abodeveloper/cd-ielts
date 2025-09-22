@@ -41,7 +41,7 @@ export function useMockWritingResultsColumns(): ColumnDef<Result>[] {
         return (
           <>
             {!is_completed ? (
-              <Badge variant={"destructive"}>Not done</Badge>
+              <Badge variant={"destructive"}>Not completed</Badge>
             ) : (
               <Badge variant={"secondary"}>{get(writing_task1, "score")}</Badge>
             )}
@@ -60,7 +60,7 @@ export function useMockWritingResultsColumns(): ColumnDef<Result>[] {
     //     return (
     //       <>
     //         {!is_completed ? (
-    //           <Badge variant={"destructive"}>Not done</Badge>
+    //           <Badge variant={"destructive"}>Not completed</Badge>
     //         ) : (
     //           <div>{get(writing_task, "feedback")}</div>
     //         )}
@@ -79,7 +79,7 @@ export function useMockWritingResultsColumns(): ColumnDef<Result>[] {
         return (
           <>
             {!is_completed ? (
-              <Badge variant={"destructive"}>Not done</Badge>
+              <Badge variant={"destructive"}>Not completed</Badge>
             ) : (
               <Badge variant={"secondary"}>{get(writing_task1, "score")}</Badge>
             )}
@@ -98,7 +98,7 @@ export function useMockWritingResultsColumns(): ColumnDef<Result>[] {
     //     return (
     //       <>
     //         {!is_completed ? (
-    //           <Badge variant={"destructive"}>Not done</Badge>
+    //           <Badge variant={"destructive"}>Not completed</Badge>
     //         ) : (
     //           <div>{get(writing_task, "feedback")}</div>
     //         )}

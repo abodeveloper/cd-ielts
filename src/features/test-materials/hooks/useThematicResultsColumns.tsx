@@ -178,7 +178,7 @@ export function useThematicResultsColumns(
         return (
           <>
             {!is_completed ? (
-              <Badge variant={"destructive"}>Not done</Badge>
+              <Badge variant={"destructive"}>Not completed</Badge>
             ) : (
               <Badge variant={"secondary"}>{get(writing_task1, "score")}</Badge>
             )}
@@ -197,7 +197,7 @@ export function useThematicResultsColumns(
         return (
           <>
             {!is_completed ? (
-              <Badge variant={"destructive"}>Not done</Badge>
+              <Badge variant={"destructive"}>Not completed</Badge>
             ) : (
               <Badge variant={"secondary"}>{get(writing_task1, "score")}</Badge>
             )}

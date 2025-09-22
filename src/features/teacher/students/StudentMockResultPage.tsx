@@ -6,11 +6,11 @@ import BackButton from "@/shared/components/atoms/back-button/BackButton";
 import ErrorMessage from "@/shared/components/atoms/error-message/ErrorMessage";
 import LoadingSpinner from "@/shared/components/atoms/loading-spinner/LoadingSpinner";
 import {
-    RiBookOpenLine,
-    RiHeadphoneLine,
-    RiLayout2Line,
-    RiMic2Line,
-    RiPencilLine,
+  RiBookOpenLine,
+  RiHeadphoneLine,
+  RiLayout2Line,
+  RiMic2Line,
+  RiPencilLine,
 } from "@remixicon/react";
 import { useQuery } from "@tanstack/react-query";
 import { get } from "lodash";
@@ -374,7 +374,7 @@ const StudentMockResultPage = () => {
                         {get(writing, "writing_task1.score")}
                       </Badge>
                     ) : (
-                      <Badge variant={"destructive"}>Not done</Badge>
+                      <Badge variant={"destructive"}>Not completed</Badge>
                     )}
                   </div>
                 </div>
@@ -388,7 +388,7 @@ const StudentMockResultPage = () => {
                         {get(writing, "writing_task2.score")}
                       </Badge>
                     ) : (
-                      <Badge variant={"destructive"}>Not done</Badge>
+                      <Badge variant={"destructive"}>Not completed</Badge>
                     )}
                   </div>
                 </div>

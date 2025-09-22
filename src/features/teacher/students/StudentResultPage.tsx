@@ -14,6 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import BackButton from "@/shared/components/atoms/back-button/BackButton";
 import ErrorMessage from "@/shared/components/atoms/error-message/ErrorMessage";
 import LoadingSpinner from "@/shared/components/atoms/loading-spinner/LoadingSpinner";
 import {
@@ -50,37 +51,16 @@ const StudentResultPage = () => {
       />
     );
 
-  const questions = [
-    {
-      speaking_part: 1,
-      question: [
-        {
-          question_number: 1,
-          question: "<p>egergerg</p>",
-        },
-        {
-          question_number: 2,
-          question: "<p>egergerg</p>",
-        },
-      ],
-    },
-    {
-      speaking_part: 2,
-      question: [
-        {
-          question_number: 1,
-          question: "<p>egergerg</p>",
-        },
-        {
-          question_number: 2,
-          question: "<p>egergerg</p>",
-        },
-      ],
-    },
-  ];
-
   return (
     <div className="space-y-8">
+      <div className="flex items-center justify-between gap-2">
+        <div className="text-xl font-semibold">
+          {get(data, "student.full_name")}
+        </div>
+        <div className="flex gap-2">
+          <BackButton label="Back" />
+        </div>
+      </div>
       <Card className="w-full">
         <CardHeader className="flex flex-row items-center gap-4">
           <CardTitle>{get(data, "student.full_name")}</CardTitle>

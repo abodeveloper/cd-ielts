@@ -1,7 +1,5 @@
 import { DataTable } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
-import ErrorMessage from "@/shared/components/atoms/error-message/ErrorMessage";
-import LoadingSpinner from "@/shared/components/atoms/loading-spinner/LoadingSpinner";
 import { useDebounce } from "@/shared/hooks/useDebounce";
 import { useQuery } from "@tanstack/react-query";
 import { get } from "lodash";

@@ -39,7 +39,7 @@ export function useMockFullResultsColumns(): ColumnDef<Result>[] {
         return (
           <>
             {!is_completed ? (
-              <Badge variant={"destructive"}>Not done</Badge>
+              <Badge variant={"destructive"}>Not completed</Badge>
             ) : (
               <>
                 {get(material_info, "listening_total_questions")} /{" "}
@@ -61,7 +61,7 @@ export function useMockFullResultsColumns(): ColumnDef<Result>[] {
         return (
           <>
             {!is_completed ? (
-              <Badge variant={"destructive"}>Not done</Badge>
+              <Badge variant={"destructive"}>Not completed</Badge>
             ) : (
               <>
                 {get(material_info, "reading_total_questions")} /{" "}
@@ -84,7 +84,7 @@ export function useMockFullResultsColumns(): ColumnDef<Result>[] {
         return (
           <>
             {!is_completed ? (
-              <Badge variant={"destructive"}>Not done</Badge>
+              <Badge variant={"destructive"}>Not completed</Badge>
             ) : (
               <>{get(material_info, "writing_task1_score")}</>
             )}
@@ -103,7 +103,7 @@ export function useMockFullResultsColumns(): ColumnDef<Result>[] {
         return (
           <>
             {!is_completed ? (
-              <Badge variant={"destructive"}>Not done</Badge>
+              <Badge variant={"destructive"}>Not completed</Badge>
             ) : (
               <>{get(material_info, "writing_task2_score")}</>
             )}
@@ -121,7 +121,7 @@ export function useMockFullResultsColumns(): ColumnDef<Result>[] {
         return (
           <>
             {!is_completed ? (
-              <Badge variant={"destructive"}>Not done</Badge>
+              <Badge variant={"destructive"}>Not completed</Badge>
             ) : (
               <>{get(material_info, "writing_overall_score")}</>
             )}
@@ -139,7 +139,7 @@ export function useMockFullResultsColumns(): ColumnDef<Result>[] {
         return (
           <>
             {!is_completed ? (
-              <Badge variant={"destructive"}>Not done</Badge>
+              <Badge variant={"destructive"}>Not completed</Badge>
             ) : (
               <>{get(material_info, "speaking_overall_score")}</>
             )}

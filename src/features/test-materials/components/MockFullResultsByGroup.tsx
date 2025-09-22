@@ -9,8 +9,9 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getMockMaterialResults } from "../api/test-material";
 import { useMockFullResultsColumns } from "../hooks/useMockFullResultsColumns";
+import PDFGenerator from "./Pdfgenerator";
 
-const MockFullResultsByGroup = () => {
+const MockFullResultsByGroup = ({ testData }: { testData: any }) => {
   const { material_id, group_id } = useParams();
 
   const [page, setPage] = useState(1);
@@ -63,18 +64,32 @@ const MockFullResultsByGroup = () => {
       />
     );
 
+  const a = {
+    title: "Matching endings drag-drop",
+    test_info: {
+      test_title: "Matching headings",
+      test_id: 3,
+      test_type: "Thematic",
+    },
+    skill_info: {
+      skill_title: "Reading Thematic materials",
+      skill_id: 3,
+    },
+  };
+
   return (
     <div className="space-y-8">
       <div className="space-y-6">
         <div className="flex items-center justify-between gap-2">
           <div className="text-xl font-semibold">Full results</div>
-          <div className="flex gap-2">
+          <div className="flex gap-4">
             <Input
               placeholder="Search ..."
               value={searchInput}
               onChange={(event) => setSearchInput(event.target.value)}
               className="max-w-sm w-64"
             />
+            <PDFGenerator data={groups} testData={testData} />
           </div>
         </div>
         <div className="space-y-4">

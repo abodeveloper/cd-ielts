@@ -185,7 +185,7 @@ const MockStatisticsByGroupPage = () => {
           <MockSpeakingResultsByGroup />
         </TabsContent>
         <TabsContent value="full" className="mt-6">
-          <MockFullResultsByGroup />
+          <MockFullResultsByGroup testData={material} />
         </TabsContent>
       </Tabs>
     </div>

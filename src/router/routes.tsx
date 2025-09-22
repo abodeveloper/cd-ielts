@@ -62,6 +62,9 @@ const StudentMockResultPage = lazy(
 const StudentThematicsPage = lazy(
   () => import("@/features/teacher/students/StudentThematicsPage")
 );
+const StudentThematicResultPage = lazy(
+  () => import("@/features/teacher/students/StudentThematicResultPage")
+);
 const StudentReadingResultsPage = lazy(
   () => import("@/features/teacher/students/StudentReadingResultsPage")
 );
@@ -120,7 +123,10 @@ export const routes = [
       { path: "profile", element: <ProfilePage /> },
       { path: "results", element: <MyResultsPage /> },
       { path: "results/mock/:material_id", element: <MyMockResultPage /> },
-
+      {
+        path: "results/:id/:test_type/:skill/:obj_id",
+        element: <StudentResultPage />,
+      },
       // {
       //   path: "exams",
       //   children: [
@@ -137,7 +143,6 @@ export const routes = [
           { index: true, element: <Navigate to="mock" /> },
           { path: "mock", element: <TestMocksPage /> },
           { path: "mock/:id", element: <TestMockDetailPage /> },
-
           { path: "thematic", element: <TestThematicsPage /> },
         ],
       },
@@ -165,6 +170,10 @@ export const routes = [
       {
         path: "students/:student_id/thematic",
         element: <StudentThematicsPage />,
+      },
+      {
+        path: "students/:student_id/thematic/:material_id",
+        element: <StudentThematicResultPage />,
       },
       {
         path: "students/:student_id/mock",
