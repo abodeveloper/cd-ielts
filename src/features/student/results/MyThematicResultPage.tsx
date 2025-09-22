@@ -1,20 +1,20 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { getStudentThematicResult } from "@/features/teacher/students/api/student";
 import { getOneThematicMaterialSection } from "@/features/test-materials/api/test-material";
 import BackButton from "@/shared/components/atoms/back-button/BackButton";
 import ErrorMessage from "@/shared/components/atoms/error-message/ErrorMessage";
 import LoadingSpinner from "@/shared/components/atoms/loading-spinner/LoadingSpinner";
 import { useAuthStore } from "@/store/auth-store";
 import {
-    RiBookOpenLine,
-    RiHeadphoneLine,
-    RiMic2Line,
-    RiPencilLine,
+  RiBookOpenLine,
+  RiHeadphoneLine,
+  RiMic2Line,
+  RiPencilLine,
 } from "@remixicon/react";
 import { useQuery } from "@tanstack/react-query";
 import { get } from "lodash";
 import { NavLink, useNavigate, useParams } from "react-router-dom";
-import { getStudentThematicResult } from "./api/student";
 
 const MyThematicResultPage = () => {
   const { user } = useAuthStore();
