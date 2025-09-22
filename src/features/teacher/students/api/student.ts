@@ -102,3 +102,25 @@ export const getStudentMockResult = async (
   const response = await api.get(url);
   return response.data;
 };
+
+export const getStudentThematics = async (
+  id: string | undefined,
+  page: number,
+  search: string
+) => {
+  let url = `/api/student-thematics/${id}/?page=${page}`;
+  if (search) {
+    url += `&search=${search}`;
+  }
+  const response = await api.get(url);
+  return response.data;
+};
+
+export const getStudentThematicResult = async (
+  student_id: string | undefined,
+  test_id: string | undefined
+) => {
+  const url = `/api/student-thematics/${student_id}/${test_id}/`;
+  const response = await api.get(url);
+  return response.data;
+};

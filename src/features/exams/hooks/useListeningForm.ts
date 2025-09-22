@@ -102,7 +102,7 @@ export const useListeningForm = (
 
     // bo‘sh massiv tayyorlab olamiz
     const allQuestions: {
-      reading_id: number;
+      listening_id: number;
       question_number: number;
       answer: string;
     }[] = Array(maxQuestionNumber).fill(null);
@@ -112,7 +112,7 @@ export const useListeningForm = (
       part?.question_numbers?.forEach((q) => {
         const index = q.question_number - 1; // 1-based bo‘lsa
         allQuestions[index] = {
-          reading_id: part.id,
+          listening_id: part.id,
           question_number: q.question_number,
           answer: "",
         };

@@ -169,7 +169,7 @@ export function useThematicResultsColumns(
   const writingColumns: ColumnDef<Result>[] = [
     {
       accessorKey: "writing_task1_score",
-      header: "Writiing (T1) score",
+      header: "Writing (T1) score",
       cell: ({ row }) => {
         const material_info = row.original.material_info;
         const writing_task1 = get(material_info, "writing_task1");
@@ -188,7 +188,7 @@ export function useThematicResultsColumns(
     },
     {
       accessorKey: "writing_task2_score",
-      header: "Writiing (T2) score",
+      header: "Writing (T2) score",
       cell: ({ row }) => {
         const material_info = row.original.material_info;
         const writing_task1 = get(material_info, "writing_task2");

@@ -7,7 +7,7 @@ import {
   RiBookOpenLine,
   RiHeadphoneLine,
   RiMic2Line,
-  RiPencilLine
+  RiPencilLine,
 } from "@remixicon/react";
 import { useQuery } from "@tanstack/react-query";
 import { get } from "lodash";
@@ -55,8 +55,8 @@ const ThematicStatisticsByGroupPage = () => {
         <div className="text-xl font-semibold">{get(group, "name")}</div>
         <div className="flex gap-2">
           <BackButton
-            to={`/teacher/tests/mock/statistics/${material_id}`}
-            label="Back to mock groups"
+            to={`/teacher/tests/thematic/statistics/${material_id}`}
+            label="Back to thematic groups"
           />
         </div>
       </div>

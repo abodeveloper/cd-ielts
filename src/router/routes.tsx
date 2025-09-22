@@ -8,8 +8,11 @@ import StudentProtectedRoute from "./StudentProtectedRoute";
 const LoginPage = lazy(() => import("@/features/auth/pages/LoginPage"));
 const Layout = lazy(() => import("@/layout/layout"));
 const HomePage = lazy(() => import("@/features/student/home/HomePage"));
-const ResultsPage = lazy(
-  () => import("@/features/student/results/ResultsPage")
+const MyResultsPage = lazy(
+  () => import("@/features/student/results/MyResultsPage")
+);
+const MyMockResultPage = lazy(
+  () => import("@/features/student/results/MyMockResultPage")
 );
 const ProfilePage = lazy(() => import("@/features/profile/ProfilePage"));
 
@@ -55,6 +58,9 @@ const StudentMocksPage = lazy(
 );
 const StudentMockResultPage = lazy(
   () => import("@/features/teacher/students/StudentMockResultPage")
+);
+const StudentThematicsPage = lazy(
+  () => import("@/features/teacher/students/StudentThematicsPage")
 );
 const StudentReadingResultsPage = lazy(
   () => import("@/features/teacher/students/StudentReadingResultsPage")
@@ -111,8 +117,10 @@ export const routes = [
     children: [
       { index: true, element: <Navigate to="home" /> },
       { path: "home", element: <HomePage /> },
-      { path: "results", element: <ResultsPage /> },
       { path: "profile", element: <ProfilePage /> },
+      { path: "results", element: <MyResultsPage /> },
+      { path: "results/mock/:material_id", element: <MyMockResultPage /> },
+
       // {
       //   path: "exams",
       //   children: [
@@ -155,8 +163,8 @@ export const routes = [
       { path: "students", element: <StudentsPage /> },
       { path: "students/:id", element: <StudentDetailPage /> },
       {
-        path: "students/:id/thematic",
-        element: <StudentMocksPage />,
+        path: "students/:student_id/thematic",
+        element: <StudentThematicsPage />,
       },
       {
         path: "students/:student_id/mock",

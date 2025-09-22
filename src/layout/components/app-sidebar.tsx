@@ -57,6 +57,11 @@ const studentData = {
         { title: "Thematic", url: "/student/tests/thematic" },
       ],
     },
+    {
+      title: "My results",
+      url: "/student/results",
+      icon: RiAwardLine,
+    },
     // {
     //   title: "Exams",
     //   url: "#",

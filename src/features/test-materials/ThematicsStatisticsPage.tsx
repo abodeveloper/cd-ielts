@@ -93,7 +93,7 @@ const ThematicsStatisticsPage = () => {
       <div className="flex items-center justify-between gap-2">
         <div className="text-xl font-semibold">{get(material, "title")}</div>
         <div className="flex gap-2">
-          <BackButton to={"/teacher/tests/mock"} label="Back to mocks" />
+          <BackButton to={"/teacher/tests/thematic"} label="Back to thematics" />
         </div>
       </div>
       <Card className="w-full">
@@ -162,7 +162,7 @@ const ThematicsStatisticsPage = () => {
       </Card>
       <div className="space-y-6">
         <div className="flex items-center justify-between gap-2">
-          <div className="text-xl font-semibold">Mock Groups</div>
+          <div className="text-xl font-semibold">Thematic groups</div>
           <div className="flex gap-2">
             <Input
               placeholder="Search ..."

@@ -2,6 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
+import BackButton from "@/shared/components/atoms/back-button/BackButton";
 import ErrorMessage from "@/shared/components/atoms/error-message/ErrorMessage";
 import LoadingSpinner from "@/shared/components/atoms/loading-spinner/LoadingSpinner";
 import { useDebounce } from "@/shared/hooks/useDebounce";
@@ -9,11 +10,10 @@ import { useQuery } from "@tanstack/react-query";
 import { get } from "lodash";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { getStudentMocks, getStudentOne } from "./api/student";
-import { useStudentMocksColumns } from "./hooks/useStudentMocksColumns";
-import BackButton from "@/shared/components/atoms/back-button/BackButton";
+import { getStudentOne, getStudentThematics } from "./api/student";
+import { useStudentThematicsColumns } from "./hooks/useStudentThematicColumns";
 
-export default function StudentMocksPage() {
+export default function StudentThematicsPage() {
   const { student_id } = useParams();
   const navigate = useNavigate();
 
@@ -31,11 +31,11 @@ export default function StudentMocksPage() {
   const debouncedSearch = useDebounce<string>(searchInput);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["student-mocks", page, debouncedSearch],
-    queryFn: () => getStudentMocks(student_id, page, debouncedSearch),
+    queryKey: ["student-thematics", page, debouncedSearch],
+    queryFn: () => getStudentThematics(student_id, page, debouncedSearch),
   });
 
-  const columns = useStudentMocksColumns();
+  const columns = useStudentThematicsColumns();
 
   // Data and pagination info
   const results = get(data, "results", []);
@@ -107,7 +107,7 @@ export default function StudentMocksPage() {
       </Card>
       <div className="space-y-6">
         <div className="flex items-center justify-between gap-2">
-          <div className="text-xl font-semibold">Student mocks</div>
+          <div className="text-xl font-semibold">Student thematics</div>
           <div className="flex gap-2">
             <Input
               placeholder="Search ..."
