@@ -110,7 +110,7 @@ export const useReadingForm = (
       reading_id: number;
       question_number: number;
       answer: string;
-    }[] = Array(maxQuestionNumber).fill(null);
+    }[] = Array(maxQuestionNumber)?.fill(null);
 
     // endi har bir question_number ni o‘z joyiga qo‘yamiz
     data.reading_parts.forEach((part) => {

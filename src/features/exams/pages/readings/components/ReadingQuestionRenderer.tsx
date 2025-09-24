@@ -220,7 +220,6 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
           isNodeInExcludedTag(range.startContainer) ||
           isNodeInExcludedTag(range.endContainer)
         ) {
-          selection.removeAllRanges();
           setSelectedRange(null);
           setSelectedHighlightElement(null);
           setDropdownPos(null);
@@ -372,12 +371,6 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
     setDropdownPos(null);
   };
 
-  // Prevent selection for drag-drop-sentence-input
-  const preventSelection = (e: React.MouseEvent<HTMLElement>) => {
-    e.preventDefault();
-    window.getSelection()?.removeAllRanges();
-  };
-
   const parsedHtml = parse(htmlString, {
     replace: (domNode) => {
       if (domNode instanceof Element) {
@@ -434,14 +427,18 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
             type === ReadingQuestionType.MULTIPLE_CHOICE
           ) {
             return (
-              <div style={{ margin: "8px 0" }} key={number}>
+              <div style={{ margin: "8px 0", userSelect: "none" }} key={number}>
                 {inputElement}
               </div>
             );
           }
           return (
             <span
-              style={{ display: "inline-block", minWidth: 150 }}
+              style={{
+                display: "inline-block",
+                minWidth: 150,
+                userSelect: "none",
+              }}
               key={number}
             >
               {inputElement}
@@ -479,7 +476,11 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
           );
 
           return (
-            <div className="my-6" key={questionNumbers.join("_")}>
+            <div
+              className="my-6"
+              key={questionNumbers.join("_")}
+              style={{ userSelect: "none" }}
+            >
               <MyQuestionCheckboxGroup
                 control={form.control}
                 name={`sharedAnswers_${questionNumbers.join("_")}`}
@@ -513,6 +514,7 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
               questions={questions}
               form={form}
               isRepeatAnswer={repeatAnswer}
+              style={{ userSelect: "none" }}
             />
           );
         }
@@ -529,7 +531,7 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
           const table_name = attribs["table_name"] || "Legend";
 
           return (
-            <div className="space-y-8 my-8">
+            <div className="space-y-8 my-8" style={{ userSelect: "none" }}>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -615,7 +617,7 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
           }[] = JSON.parse(attribs["data-questions"] || "[]");
 
           return (
-            <div className="space-y-8 my-8">
+            <div className="space-y-8 my-8" style={{ userSelect: "none" }}>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -780,7 +782,7 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
           };
 
           return (
-            <div className="my-6" onMouseDown={preventSelection} onSelectStart={preventSelection}>
+            <div className="my-6" style={{ userSelect: "none" }}>
               {domToReact(domNode.children, {
                 replace: (innerNode) => {
                   if (
@@ -805,12 +807,14 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
                         onDrop={(e) => handleDrop(e, number)}
                         onDragOver={handleDragOver}
                         onDragLeave={handleDragLeave}
-                        onMouseDown={preventSelection}
-                        onSelectStart={preventSelection}
                         className="inline-block min-w-[150px] border-2 border-gray-400 border-dashed p-1 my-1 mx-2 rounded-md text-center"
+                        style={{ userSelect: "none" }}
                       >
                         {droppedValues[number] ? (
-                          <div className="flex items-center justify-between">
+                          <div
+                            className="flex items-center justify-between"
+                            style={{ userSelect: "none" }}
+                          >
                             <span className="font-semibold">
                               {options.find(
                                 (opt) => opt.value === droppedValues[number]
@@ -834,7 +838,10 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
                   return undefined;
                 },
               })}
-              <div className="flex flex-wrap gap-3 mt-6">
+              <div
+                className="flex flex-wrap gap-3 mt-6"
+                style={{ userSelect: "none" }}
+              >
                 {options.map(
                   (option) =>
                     (!usedOptions.has(option.value) || isRepeat) && (
@@ -843,9 +850,8 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
                         draggable
                         onDragStart={(e) => handleDragStart(e, option.value)}
                         onDragEnd={handleDragEnd}
-                        onMouseDown={preventSelection}
-                        onSelectStart={preventSelection}
                         className="p-2 bg-primary text-primary-foreground rounded-lg cursor-move hover:bg-muted-foreground transition-colors min-w-[150px] text-center"
+                        style={{ userSelect: "none" }}
                       >
                         {option.label}
                       </div>
