@@ -23,6 +23,17 @@ import {
   FormLabel,
 } from "@/components/ui/form";
 
+// List of custom tags to exclude from highlighting
+const EXCLUDED_TAGS = [
+  "question-input",
+  "list-selection-tegs",
+  "drag-drop-tegs",
+  "table-tegs",
+  "table-tegs-input",
+  "drag-drop-matching-sentence-endings",
+  "drag-drop-sentence-input",
+];
+
 interface ReadingQuestionRendererProps {
   htmlString: string;
   form: UseFormReturn<ReadingFormValues>;
@@ -51,6 +62,20 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
   const generateHighlightId = () =>
     Date.now().toString() + Math.random().toString(36).slice(2);
 
+  const isNodeInExcludedTag = (node: Node): boolean => {
+    let currentNode: Node | null = node;
+    while (currentNode && currentNode !== contentRef.current) {
+      if (
+        currentNode instanceof HTMLElement &&
+        EXCLUDED_TAGS.includes(currentNode.tagName.toLowerCase())
+      ) {
+        return true;
+      }
+      currentNode = currentNode.parentNode;
+    }
+    return false;
+  };
+
   const getAllBlocksInRange = (range: Range): HTMLElement[] => {
     if (!contentRef.current) return [];
 
@@ -61,16 +86,21 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
       {
         acceptNode(node) {
           if (!(node instanceof HTMLElement)) return NodeFilter.FILTER_REJECT;
+
+          // Skip custom elements
+          if (EXCLUDED_TAGS.includes(node.tagName.toLowerCase())) {
+            return NodeFilter.FILTER_REJECT;
+          }
+
           const style = window.getComputedStyle(node);
           if (
-            style.display === "block" ||
-            style.display === "list-item" ||
-            style.display === "table" ||
-            ["P", "DIV", "LI"].includes(node.tagName)
+            (style.display === "block" ||
+              style.display === "list-item" ||
+              style.display === "table" ||
+              ["P", "DIV", "LI"].includes(node.tagName)) &&
+            range.intersectsNode(node)
           ) {
-            if (range.intersectsNode(node)) {
-              return NodeFilter.FILTER_ACCEPT;
-            }
+            return NodeFilter.FILTER_ACCEPT;
           }
           return NodeFilter.FILTER_SKIP;
         },
@@ -87,6 +117,33 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
   };
 
   const applyHighlightToRange = (range: Range, highlightId: string) => {
+    // Check if the range intersects with any excluded elements
+    const commonAncestor = range.commonAncestorContainer;
+    let parentElement: HTMLElement | null = null;
+
+    if (commonAncestor.nodeType === Node.TEXT_NODE) {
+      parentElement = commonAncestor.parentElement;
+    } else if (commonAncestor instanceof HTMLElement) {
+      parentElement = commonAncestor;
+    }
+
+    // If the range is inside an excluded tag, prevent highlighting
+    if (
+      parentElement &&
+      EXCLUDED_TAGS.includes(parentElement.tagName.toLowerCase())
+    ) {
+      return;
+    }
+
+    // Check if the range contains any excluded elements
+    const containsExcluded = Array.from(
+      parentElement?.querySelectorAll(EXCLUDED_TAGS.join(","))
+    ).some((el) => range.intersectsNode(el));
+
+    if (containsExcluded) {
+      return;
+    }
+
     const fragment = range.extractContents();
     const span = document.createElement("span");
     span.className = "highlight";
@@ -157,6 +214,19 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
       ) {
         const range = selection.getRangeAt(0);
         const selectedText = selection.toString().trim();
+
+        // Check if the selected range includes custom tags
+        if (
+          isNodeInExcludedTag(range.startContainer) ||
+          isNodeInExcludedTag(range.endContainer)
+        ) {
+          selection.removeAllRanges();
+          setSelectedRange(null);
+          setSelectedHighlightElement(null);
+          setDropdownPos(null);
+          return;
+        }
+
         if (!range.collapsed && selectedText.length > 0) {
           const rect = range.getBoundingClientRect();
 
@@ -300,6 +370,12 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
     setSelectedRange(null);
     setSelectedHighlightElement(null);
     setDropdownPos(null);
+  };
+
+  // Prevent selection for drag-drop-sentence-input
+  const preventSelection = (e: React.MouseEvent<HTMLElement>) => {
+    e.preventDefault();
+    window.getSelection()?.removeAllRanges();
   };
 
   const parsedHtml = parse(htmlString, {
@@ -624,7 +700,7 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
             );
           }
 
-          const isRepeat = attribs["data-repeat"] === "true"; // data-repeat ni o'qi, default false
+          const isRepeat = attribs["data-repeat"] === "true";
 
           const [droppedValues, setDroppedValues] = useState<{
             [key: string]: string;
@@ -638,11 +714,11 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
             value: string
           ) => {
             e.dataTransfer.setData("text/plain", value);
-            e.currentTarget.style.opacity = "0.5"; // Visual feedback
+            e.currentTarget.style.opacity = "0.5";
           };
 
           const handleDragEnd = (e: React.DragEvent<HTMLDivElement>) => {
-            e.currentTarget.style.opacity = "1"; // Reset opacity
+            e.currentTarget.style.opacity = "1";
           };
 
           const handleDrop = (
@@ -652,17 +728,15 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
             e.preventDefault();
             const value = e.dataTransfer.getData("text/plain");
             if (value) {
-              // Oldingi qiymatni tozalash (overwrite uchun)
               const oldValue = droppedValues[questionNumber];
               if (oldValue && !isRepeat) {
                 setUsedOptions((prev) => {
                   const newSet = new Set(prev);
-                  newSet.delete(oldValue); // Oldingi qiymatni qaytarish
+                  newSet.delete(oldValue);
                   return newSet;
                 });
               }
 
-              // Yangi qiymatni o'rnatish
               setDroppedValues((prev) => ({
                 ...prev,
                 [questionNumber]: value,
@@ -674,17 +748,17 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
               const answerIndex = parseInt(questionNumber) - 1;
               form.setValue(`answers.${answerIndex}.answer`, value);
 
-              e.currentTarget.style.backgroundColor = ""; // Reset drop zone
+              e.currentTarget.style.backgroundColor = "";
             }
           };
 
           const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
             e.preventDefault();
-            e.currentTarget.style.backgroundColor = "#e0f7fa"; // Highlight drop zone
+            e.currentTarget.style.backgroundColor = "#e0f7fa";
           };
 
           const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
-            e.currentTarget.style.backgroundColor = ""; // Reset drop zone
+            e.currentTarget.style.backgroundColor = "";
           };
 
           const handleClear = (questionNumber: string) => {
@@ -706,8 +780,7 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
           };
 
           return (
-            <div className="my-6">
-              {/* Parsed content with drop zones */}
+            <div className="my-6" onMouseDown={preventSelection} onSelectStart={preventSelection}>
               {domToReact(domNode.children, {
                 replace: (innerNode) => {
                   if (
@@ -732,6 +805,8 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
                         onDrop={(e) => handleDrop(e, number)}
                         onDragOver={handleDragOver}
                         onDragLeave={handleDragLeave}
+                        onMouseDown={preventSelection}
+                        onSelectStart={preventSelection}
                         className="inline-block min-w-[150px] border-2 border-gray-400 border-dashed p-1 my-1 mx-2 rounded-md text-center"
                       >
                         {droppedValues[number] ? (
@@ -759,7 +834,6 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
                   return undefined;
                 },
               })}
-              {/* Draggable options (pastda) */}
               <div className="flex flex-wrap gap-3 mt-6">
                 {options.map(
                   (option) =>
@@ -769,6 +843,8 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
                         draggable
                         onDragStart={(e) => handleDragStart(e, option.value)}
                         onDragEnd={handleDragEnd}
+                        onMouseDown={preventSelection}
+                        onSelectStart={preventSelection}
                         className="p-2 bg-primary text-primary-foreground rounded-lg cursor-move hover:bg-muted-foreground transition-colors min-w-[150px] text-center"
                       >
                         {option.label}
