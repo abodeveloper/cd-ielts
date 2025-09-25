@@ -45,8 +45,10 @@ export const getOneTestMaterial = async (id: string | number | undefined) => {
   return response.data;
 };
 
-export const getOneMockMaterial = async (id: string | number | undefined) => {
-  const response = await api.get(`/api/material-info/${id}/`);
+export const getOneMockMaterial = async (
+  id: string | number | undefined
+) => {
+  const response = await api.get(`/api/mock-material-info/${id}/`);
   return response.data;
 };
 
