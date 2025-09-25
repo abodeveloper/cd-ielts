@@ -41,7 +41,7 @@ export function useMyThematicsColumns(): ColumnDef<any>[] {
         return (
           <>
             <NavLink
-              to={`/student/results/${student_id}/thematic/${material_id}`}
+              to={`/student/results/thematic/${material_id}`}
               className={"text-blue-500"}
             >
               View

@@ -174,7 +174,7 @@ const MyThematicResultPage = () => {
                   Answer review:
                 </div>
                 <NavLink
-                  to={`/teacher/students/${student_id}/thematic/reading/${get(
+                  to={`/student/results/${student_id}/thematic/reading/${get(
                     result,
                     "id"
                   )}`}
@@ -239,7 +239,7 @@ const MyThematicResultPage = () => {
                   Answer review:
                 </div>
                 <NavLink
-                  to={`/teacher/students/${student_id}/thematic/listening/${get(
+                  to={`/student/results/${student_id}/thematic/listening/${get(
                     result,
                     "id"
                   )}`}
@@ -300,7 +300,7 @@ const MyThematicResultPage = () => {
                   Answer review:
                 </div>
                 <NavLink
-                  to={`/teacher/students/${student_id}/mock/writing/${get(
+                  to={`/student/results/${student_id}/mock/writing/${get(
                     result,
                     "id"
                   )}`}
@@ -373,7 +373,7 @@ const MyThematicResultPage = () => {
                   Answer review:
                 </div>
                 <NavLink
-                  to={`/teacher/students/${student_id}/mock/speaking/${get(
+                  to={`/student/results/${student_id}/mock/speaking/${get(
                     result,
                     "id"
                   )}`}

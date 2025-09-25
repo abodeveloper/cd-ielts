@@ -212,7 +212,7 @@ const MyMockResultPage = () => {
                     Answer review:
                   </div>
                   <NavLink
-                    to={`/teacher/students/${student_id}/mock/reading/${get(
+                    to={`/student/results/${student_id}/mock/reading/${get(
                       reading,
                       "id"
                     )}`}
