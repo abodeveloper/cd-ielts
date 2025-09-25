@@ -154,7 +154,7 @@ export default function ThematicsPage() {
                               size="icon"
                               onClick={() => {
                                 navigate(
-                                  `/teacher/tests/thematic/statistics/${material.id}`
+                                  `/teacher/tests/thematic/statistics/${material.type}/${material.id}`
                                 );
                               }}
                             >

@@ -10,7 +10,7 @@ interface Group {
 }
 
 export function useThematicStatisticGroupColumns(): ColumnDef<Group>[] {
-  const { material_id } = useParams();
+  const { material_id, skill } = useParams();
 
   return [
     {
@@ -43,7 +43,7 @@ export function useThematicStatisticGroupColumns(): ColumnDef<Group>[] {
         return (
           <>
             <NavLink
-              to={`/teacher/tests/thematic/statistics/${material_id}/groups/${group_id}`}
+              to={`/teacher/tests/thematic/statistics/${skill}/${material_id}/groups/${group_id}`}
               className={"text-blue-500"}
             >
               View statistics

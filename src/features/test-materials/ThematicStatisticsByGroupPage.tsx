@@ -17,7 +17,7 @@ import { getOneThematicMaterial } from "./api/test-material";
 import ThematicResultsByGroup from "./components/ThematicResultsByGroup";
 
 const ThematicStatisticsByGroupPage = () => {
-  const { group_id, material_id } = useParams();
+  const { group_id, material_id, skill } = useParams();
 
   const {
     data: group,
@@ -33,8 +33,8 @@ const ThematicStatisticsByGroupPage = () => {
     isLoading: materialIsLoading,
     isError: materialIsError,
   } = useQuery({
-    queryKey: ["test-material-mock", material_id],
-    queryFn: () => getOneThematicMaterial(material_id),
+    queryKey: ["test-material-thematic", material_id],
+    queryFn: () => getOneThematicMaterial(skill, material_id),
   });
 
   if (groupIsLoading || materialIsLoading) {

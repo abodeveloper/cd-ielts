@@ -24,7 +24,7 @@ import {
 import { useThematicStatisticGroupColumns } from "./hooks/useThematicStatisticGroupColumns";
 
 const ThematicsStatisticsPage = () => {
-  const { material_id } = useParams();
+  const { material_id, skill } = useParams();
   const navigate = useNavigate();
 
   const {
@@ -32,8 +32,8 @@ const ThematicsStatisticsPage = () => {
     isLoading: materialIsLoading,
     isError: materialIsError,
   } = useQuery({
-    queryKey: ["test-material-mock", material_id],
-    queryFn: () => getOneThematicMaterial(material_id),
+    queryKey: ["test-material-thematic", material_id],
+    queryFn: () => getOneThematicMaterial(skill, material_id),
   });
 
   const [page, setPage] = useState(1);
@@ -52,13 +52,18 @@ const ThematicsStatisticsPage = () => {
 
   const { data, isLoading } = useQuery({
     queryKey: [
-      "mock-statistic-groups",
+      "thematic-statistic-groups",
       page,
       debouncedSearch,
       extraFilterQuery,
     ],
     queryFn: () =>
-      getThematicMaterialGroups(page, debouncedSearch, "", extraFilterQuery),
+      getThematicMaterialGroups(
+        skill, page,
+        debouncedSearch,
+        "",
+        extraFilterQuery
+      ),
   });
 
   const columns = useThematicStatisticGroupColumns();

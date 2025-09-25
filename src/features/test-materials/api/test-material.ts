@@ -51,9 +51,10 @@ export const getOneMockMaterial = async (id: string | number | undefined) => {
 };
 
 export const getOneThematicMaterial = async (
+  skill: string | undefined,
   id: string | number | undefined
 ) => {
-  const response = await api.get(`/api/thematic-material-info/${id}/`);
+  const response = await api.get(`/api/thematic-material-info/${skill}/${id}/`);
   return response.data;
 };
 
@@ -111,12 +112,13 @@ export const getMockMaterialResults = async (
 };
 
 export const getThematicMaterialGroups = async (
+  skill: string,
   page: number,
   search: string,
   filterQuery: string,
   extraFilterQuery: string
 ) => {
-  let url = `/api/thematic/statistics/?page=${page}`;
+  let url = `/api/thematic/statistics/${skill}/?page=${page}`;
   if (search) {
     url += `&search=${search}`;
   }

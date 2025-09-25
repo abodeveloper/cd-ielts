@@ -46,6 +46,9 @@ const SpeakingTestPage = lazy(
 );
 
 //Admin sahifalari
+const TeacherDashboardPage = lazy(
+  () => import("@/features/teacher/dashboard/DashboardPage")
+);
 const GroupsPage = lazy(() => import("@/features/teacher/groups/GroupsPage"));
 const GroupDetailPage = lazy(
   () => import("@/features/teacher/groups/GroupDetailPage")
@@ -169,7 +172,7 @@ export const routes = [
     ),
     children: [
       { index: true, element: <Navigate to="dashboard" /> },
-      { path: "dashboard", element: <div>Dashboard</div> },
+      { path: "dashboard", element: <TeacherDashboardPage /> },
       { path: "groups", element: <GroupsPage /> },
       { path: "groups/:id", element: <GroupDetailPage /> },
       { path: "students", element: <StudentsPage /> },
@@ -234,11 +237,11 @@ export const routes = [
           { path: "mock/:id", element: <TestMockDetailPage /> },
           { path: "thematic", element: <TestThematicsPage /> },
           {
-            path: "thematic/statistics/:material_id",
+            path: "thematic/statistics/:skill/:material_id",
             element: <TestThematicsStatisticsPage />,
           },
           {
-            path: "thematic/statistics/:material_id/groups/:group_id",
+            path: "thematic/statistics/:skill/:material_id/groups/:group_id",
             element: <TestThematicStatisticsByGroupPage />,
           },
         ],

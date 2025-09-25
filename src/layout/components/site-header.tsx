@@ -3,11 +3,11 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 
 export function SiteHeader() {
   return (
-    <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear border-b border-border-alpha-light">
+    <header className="sticky top-0 z-50 flex h-16 shrink-0 items-center gap-2 bg-white border-b border-border-alpha-light transition-[width,height] ease-linear">
       <div className="flex items-center gap-2 px-4">
         <SidebarTrigger className="-ml-1 scale-75" />
         <Separator orientation="vertical" className="mr-2 h-4" />
-        <h3 className={"font-medium capitalize text-xl"}>MOCK IELTS</h3>
+        <h3 className="font-medium capitalize text-xl">MOCK IELTS</h3>
       </div>
     </header>
   );
