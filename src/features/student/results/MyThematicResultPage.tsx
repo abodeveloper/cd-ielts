@@ -25,7 +25,7 @@ const MyThematicResultPage = () => {
     queryFn: () => getStudentThematicResult(skill, student_id, material_id),
   });
 
-  const type = get(result, "type", "reading");
+  const type = get(result, "skill_type", "reading");
 
   const {
     data: material,
