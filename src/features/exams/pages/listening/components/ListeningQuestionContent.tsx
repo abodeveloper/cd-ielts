@@ -5,7 +5,7 @@ import { ListeningPart } from "@/features/exams/types";
 import { cn } from "@/lib/utils";
 import HTMLRendererWithHighlight from "@/shared/components/atoms/html-renderer/HtmlRenderer";
 import { UseFormReturn } from "react-hook-form";
-import ListeningQuestionRenderer from "./ListeningQuestionRenderer";
+import ReadingQuestionRenderer from "../../readings/components/ReadingQuestionRenderer";
 
 interface Props {
   part: ListeningPart;
@@ -26,7 +26,7 @@ const ListeningQuestionContent = ({ part, form }: Props) => {
           rightContent={
             <div className="h-full overflow-y-auto overflow-x-hidden p-6 space-y-8 text-sm">
               {part.questions ? (
-                <ListeningQuestionRenderer
+                <ReadingQuestionRenderer
                   htmlString={part.questions}
                   form={form}
                 />
@@ -44,7 +44,7 @@ const ListeningQuestionContent = ({ part, form }: Props) => {
           <ResizablePanel defaultSize={100}>
             <div className="h-full overflow-y-auto overflow-x-hidden p-6 space-y-8 text-sm">
               {part.questions ? (
-                <ListeningQuestionRenderer
+                <ReadingQuestionRenderer
                   htmlString={part.questions}
                   form={form}
                 />
