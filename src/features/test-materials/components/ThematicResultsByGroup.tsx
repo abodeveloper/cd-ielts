@@ -9,8 +9,15 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getThematicMaterialResults } from "../api/test-material";
 import { useThematicResultsColumns } from "../hooks/useThematicResultsColumns";
+import ThematicFullResultsPdf from "./ThematicFullResultsPdf";
 
-const ThematicResultsByGroup = ({ type }: { type: string }) => {
+const ThematicResultsByGroup = ({
+  type,
+  material,
+}: {
+  type: string;
+  material: any;
+}) => {
   const { material_id, group_id } = useParams();
 
   const [page, setPage] = useState(1);
@@ -50,7 +57,7 @@ const ThematicResultsByGroup = ({ type }: { type: string }) => {
   );
 
   // Data and pagination info
-  const groups = get(data, "results", []);
+  const results = get(data, "results", []);
   const paginationInfo = {
     totalCount: get(data, "count", 0),
     totalPages: get(data, "total_pages", 1),
@@ -82,11 +89,17 @@ const ThematicResultsByGroup = ({ type }: { type: string }) => {
               onChange={(event) => setSearchInput(event.target.value)}
               className="max-w-sm w-64"
             />
+            <ThematicFullResultsPdf
+              testData={material}
+              group_id={group_id}
+              material_id={material_id}
+              type={type as "reading" | "listening" | "writing" | "speaking"}
+            />
           </div>
         </div>
         <div className="space-y-4">
           <DataTable
-            data={groups}
+            data={results}
             columns={columns}
             pagination={true}
             totalCount={paginationInfo.totalCount}

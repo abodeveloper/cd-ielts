@@ -114,6 +114,25 @@ export const getMockMaterialResults = async (
   return response.data;
 };
 
+export const getAllMockMaterialResults = async (
+  material_id: string| undefined,
+  group_id: string | undefined
+) => {
+  const url = `/api/all-results/full?material_id=${material_id}&group_id=${group_id}`;
+  const response = await api.get(url);
+  return response.data;
+};
+
+export const getAllThematicMaterialResults = async (
+  type: string | undefined,
+  material_id: string | undefined,
+  group_id: string | undefined
+) => {
+  const url = `/api/all-results/thematic/${type}/?material_id=${material_id}&group_id=${group_id}`;
+  const response = await api.get(url);
+  return response.data;
+};
+
 export const getThematicMaterialGroups = async (
   skill: string,
   page: number,

@@ -13,8 +13,10 @@ import {
   RiAwardLine,
   RiBookLine,
   RiDashboardLine,
+  RiGlobalLine,
   RiGroupLine,
   RiHome2Line,
+  RiMedalLine,
   RiProfileLine,
   RiUserCommunityLine,
   RiUserLine
@@ -136,16 +138,16 @@ const teacherData = {
     // },
   ],
   navSecondary: [
-    {
-      title: "Settings",
-      url: "/teacher/profile",
-      icon: IconSettings,
-    },
-    {
-      title: "Get Help",
-      url: "#",
-      icon: IconHelp,
-    },
+    // {
+    //   title: "Settings",
+    //   url: "/teacher/profile",
+    //   icon: IconSettings,
+    // },
+    // {
+    //   title: "Get Help",
+    //   url: "#",
+    //   icon: IconHelp,
+    // },
   ],
 };
 
@@ -164,14 +166,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild
-              className="data-[slot=sidebar-menu-button]:!p-1.5"
+              className="data-[slot=sidebar-menu-button]:!p-1.5 hover:bg-inherit active:bg-inherit"
             >
-              <a href="#">
-                <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-                  <IconInnerShadowTop className="!size-5" />
+              <div>
+                <div className="flex aspect-square size-8 items-center justify-center rounded-lg">
+                  <RiMedalLine className="!size-5" />
                 </div>
                 <span className="text-base font-semibold">MOCK IELTS</span>
-              </a>
+              </div>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

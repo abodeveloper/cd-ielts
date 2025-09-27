@@ -44,7 +44,7 @@ const MockFullResultsByGroup = ({ testData }: { testData: any }) => {
   const columns = useMockFullResultsColumns();
 
   // Data and pagination info
-  const groups = get(data, "results", []);
+  const results = get(data, "results", []);
   const paginationInfo = {
     totalCount: get(data, "count", 0),
     totalPages: get(data, "total_pages", 1),
@@ -76,12 +76,16 @@ const MockFullResultsByGroup = ({ testData }: { testData: any }) => {
               onChange={(event) => setSearchInput(event.target.value)}
               className="max-w-sm w-64"
             />
-            <MockFullResultsPdf data={groups} testData={testData} />
+            <MockFullResultsPdf
+              group_id={group_id}
+              material_id={material_id}
+              testData={testData}
+            />
           </div>
         </div>
         <div className="space-y-4">
           <DataTable
-            data={groups}
+            data={results}
             columns={columns}
             pagination={true}
             totalCount={paginationInfo.totalCount}

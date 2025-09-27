@@ -127,27 +127,9 @@ const ThematicStatisticsByGroupPage = () => {
               </Badge>
             </div>
           </div>
-          <div className="space-y-2 mt-4">
-            {get(material, "materials", [])?.map((section: any) => (
-              <div key={section.id} className="mb-2">
-                <Badge variant={"outline"} className="inline-flex gap-2 p-1">
-                  {section.type === "reading" ? (
-                    <RiBookOpenLine className="h-6 w-6" />
-                  ) : section.type === "listening" ? (
-                    <RiHeadphoneLine className="h-6 w-6" />
-                  ) : section.type === "writing" ? (
-                    <RiPencilLine className="h-6 w-6" />
-                  ) : (
-                    <RiMic2Line className="h-6 w-6" />
-                  )}
-                  {get(section, "title", "N/A")}
-                </Badge>
-              </div>
-            ))}
-          </div>
         </CardContent>
       </Card>
-      <ThematicResultsByGroup type={get(material, "test_info.type")} />
+      <ThematicResultsByGroup type={get(material, "test_info.type")} material={material} />
     </div>
   );
 };
