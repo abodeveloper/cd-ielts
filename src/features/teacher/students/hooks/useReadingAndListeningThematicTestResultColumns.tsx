@@ -84,7 +84,7 @@ export function useThematicTestResultColumns({
 
         return (
           <NavLink
-            to={`/teacher/students/${id}/thematic/${type}/${test_id}`}
+            to={`/teacher/students/${id}/thematic/${type}/${test_id}/view`}
             className={"text-blue-500"}
           >
             View

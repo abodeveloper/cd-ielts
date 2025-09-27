@@ -138,7 +138,7 @@ export function useMockWritingResultsColumns(): ColumnDef<Result>[] {
         return (
           <>
             <NavLink
-              to={`/teacher/students/${student_id}/mock/writing/${id}`}
+              to={`/teacher/students/${student_id}/mock/writing/${id}/view`}
               className={"text-blue-500"}
             >
               View

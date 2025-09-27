@@ -61,9 +61,10 @@ export const getOneThematicMaterial = async (
 };
 
 export const getOneThematicMaterialSection = async (
+  skill: string | undefined,
   id: string | number | undefined
 ) => {
-  const response = await api.get(`/api/detail-material/${id}/`);
+  const response = await api.get(`/api/detail-material/${skill}/${id}/`);
   return response.data;
 };
 

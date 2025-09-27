@@ -258,7 +258,7 @@ const StudentMockResultPage = () => {
                     to={`/teacher/students/${student_id}/mock/reading/${get(
                       reading,
                       "id"
-                    )}`}
+                    )}/view`}
                     className={"text-blue-500"}
                   >
                     View
@@ -339,7 +339,7 @@ const StudentMockResultPage = () => {
                     to={`/teacher/students/${student_id}/mock/listening/${get(
                       listening,
                       "id"
-                    )}`}
+                    )}/view`}
                     className={"text-blue-500"}
                   >
                     View
@@ -408,7 +408,7 @@ const StudentMockResultPage = () => {
                     to={`/teacher/students/${student_id}/mock/writing/${get(
                       writing,
                       "id"
-                    )}`}
+                    )}/view`}
                     className={"text-blue-500"}
                   >
                     View
@@ -489,7 +489,7 @@ const StudentMockResultPage = () => {
                     to={`/teacher/students/${student_id}/mock/speaking/${get(
                       speaking,
                       "id"
-                    )}`}
+                    )}/view`}
                     className={"text-blue-500"}
                   >
                     View

@@ -24,7 +24,7 @@ export default function AdminProtectedRoute({
   }
 
   if (!user || user.role !== Role.TEACHER) {
-    return <Navigate to="/teacher" state={{ from: location }} replace />;
+    return <Navigate to="/student" state={{ from: location }} replace />;
   }
 
   // Agar hamma shartlar to‘g‘ri bo‘lsa, sahifani ko‘rsatish

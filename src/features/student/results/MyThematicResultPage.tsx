@@ -6,23 +6,15 @@ import BackButton from "@/shared/components/atoms/back-button/BackButton";
 import ErrorMessage from "@/shared/components/atoms/error-message/ErrorMessage";
 import LoadingSpinner from "@/shared/components/atoms/loading-spinner/LoadingSpinner";
 import { useAuthStore } from "@/store/auth-store";
-import {
-  RiBookOpenLine,
-  RiHeadphoneLine,
-  RiMic2Line,
-  RiPencilLine,
-} from "@remixicon/react";
 import { useQuery } from "@tanstack/react-query";
 import { get } from "lodash";
-import { NavLink, useNavigate, useParams } from "react-router-dom";
+import { NavLink, useParams } from "react-router-dom";
 
 const MyThematicResultPage = () => {
   const { user } = useAuthStore();
-  const { material_id } = useParams();
+  const { material_id, skill } = useParams();
 
   const student_id = get(user, "id");
-
-  const navigate = useNavigate();
 
   const {
     data: result,
@@ -30,7 +22,7 @@ const MyThematicResultPage = () => {
     isError: resultIsError,
   } = useQuery({
     queryKey: ["test-material-thematic-result", student_id, material_id],
-    queryFn: () => getStudentThematicResult(student_id, material_id),
+    queryFn: () => getStudentThematicResult(skill, student_id, material_id),
   });
 
   const type = get(result, "type", "reading");
@@ -41,7 +33,7 @@ const MyThematicResultPage = () => {
     isError: materialIsError,
   } = useQuery({
     queryKey: ["test-material-thematic", material_id],
-    queryFn: () => getOneThematicMaterialSection(material_id),
+    queryFn: () => getOneThematicMaterialSection(skill, material_id),
   });
 
   if (resultIsLoading || materialIsLoading) {
@@ -102,24 +94,6 @@ const MyThematicResultPage = () => {
               </Badge>
             </div>
           </div>
-          <div className="space-y-2 mt-4">
-            {get(material, "materials", [])?.map((section: any) => (
-              <div key={section.id} className="mb-2">
-                <Badge variant={"outline"} className="inline-flex gap-2 p-1">
-                  {section.type === "reading" ? (
-                    <RiBookOpenLine className="h-6 w-6" />
-                  ) : section.type === "listening" ? (
-                    <RiHeadphoneLine className="h-6 w-6" />
-                  ) : section.type === "writing" ? (
-                    <RiPencilLine className="h-6 w-6" />
-                  ) : (
-                    <RiMic2Line className="h-6 w-6" />
-                  )}
-                  {get(section, "title", "N/A")}
-                </Badge>
-              </div>
-            ))}
-          </div>
         </CardContent>
       </Card>
       {type === "reading" && (
@@ -176,7 +150,7 @@ const MyThematicResultPage = () => {
                 <NavLink
                   to={`/student/results/${student_id}/thematic/reading/${get(
                     result,
-                    "id"
+                    "material_info.reading_material_id"
                   )}`}
                   className={"text-blue-500"}
                 >
@@ -241,7 +215,7 @@ const MyThematicResultPage = () => {
                 <NavLink
                   to={`/student/results/${student_id}/thematic/listening/${get(
                     result,
-                    "id"
+                    "material_info.listening_material_id"
                   )}`}
                   className={"text-blue-500"}
                 >
@@ -302,7 +276,7 @@ const MyThematicResultPage = () => {
                 <NavLink
                   to={`/student/results/${student_id}/mock/writing/${get(
                     result,
-                    "id"
+                    "material_info.writing_material_id"
                   )}`}
                   className={"text-blue-500"}
                 >
@@ -375,7 +349,7 @@ const MyThematicResultPage = () => {
                 <NavLink
                   to={`/student/results/${student_id}/mock/speaking/${get(
                     result,
-                    "id"
+                    "material_info.speaking_material_id"
                   )}`}
                   className={"text-blue-500"}
                 >

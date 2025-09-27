@@ -16,7 +16,7 @@ import { NavLink, useNavigate, useParams } from "react-router-dom";
 import { getStudentOne, getStudentThematicResult } from "./api/student";
 
 const StudentThematicResultPage = () => {
-  const { student_id, material_id } = useParams();
+  const { student_id, material_id, skill } = useParams();
 
   const navigate = useNavigate();
 
@@ -35,10 +35,10 @@ const StudentThematicResultPage = () => {
     isError: resultIsError,
   } = useQuery({
     queryKey: ["test-material-thematic-result", student_id, material_id],
-    queryFn: () => getStudentThematicResult(student_id, material_id),
+    queryFn: () => getStudentThematicResult(skill, student_id, material_id),
   });
 
-  const type = get(result, "type", "reading");
+  const type = get(result, "skill_type", "reading");
 
   const {
     data: material,
@@ -46,7 +46,7 @@ const StudentThematicResultPage = () => {
     isError: materialIsError,
   } = useQuery({
     queryKey: ["test-material-thematic", material_id],
-    queryFn: () => getOneThematicMaterialSection(material_id),
+    queryFn: () => getOneThematicMaterialSection(skill, material_id),
   });
 
   if (resultIsLoading || studentIsLoading || materialIsLoading) {
@@ -219,8 +219,8 @@ const StudentThematicResultPage = () => {
                 <NavLink
                   to={`/teacher/students/${student_id}/thematic/reading/${get(
                     result,
-                    "id"
-                  )}`}
+                    "material_info.reading_material_id"
+                  )}/view`}
                   className={"text-blue-500"}
                 >
                   View
@@ -284,7 +284,7 @@ const StudentThematicResultPage = () => {
                 <NavLink
                   to={`/teacher/students/${student_id}/thematic/listening/${get(
                     result,
-                    "id"
+                    "material_info.listening_material_id"
                   )}`}
                   className={"text-blue-500"}
                 >
@@ -343,10 +343,10 @@ const StudentThematicResultPage = () => {
                   Answer review:
                 </div>
                 <NavLink
-                  to={`/teacher/students/${student_id}/mock/writing/${get(
+                  to={`/teacher/students/${student_id}/thematic/writing/${get(
                     result,
-                    "id"
-                  )}`}
+                    "material_info.writing_material_id"
+                  )}/view`}
                   className={"text-blue-500"}
                 >
                   View
@@ -416,10 +416,10 @@ const StudentThematicResultPage = () => {
                   Answer review:
                 </div>
                 <NavLink
-                  to={`/teacher/students/${student_id}/mock/speaking/${get(
+                  to={`/teacher/students/${student_id}/thematic/speaking/${get(
                     result,
-                    "id"
-                  )}`}
+                    "material_info.speaking_material_id"
+                  )}/view`}
                   className={"text-blue-500"}
                 >
                   View

@@ -24,7 +24,7 @@ export default function StudentProtectedRoute({
   }
 
   if (!user || user?.role !== Role.STUDENT) {
-    return <Navigate to="/student" state={{ from: location }} replace />;
+    return <Navigate to="/teacher" state={{ from: location }} replace />;
   }
 
   return <>{children}</>;

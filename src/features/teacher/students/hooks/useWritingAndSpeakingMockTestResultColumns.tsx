@@ -65,7 +65,7 @@ export function useWritingAndSpeakingMockTestResultColumns({
 
         return (
           <NavLink
-            to={`/teacher/students/${id}/mock/${type}/${test_id}`}
+            to={`/teacher/students/${id}/mock/${type}/${test_id}/view`}
             className={"text-blue-500"}
           >
             View

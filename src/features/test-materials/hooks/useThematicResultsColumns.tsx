@@ -81,7 +81,7 @@ export function useThematicResultsColumns(
 
         return (
           <NavLink
-            to={`/teacher/students/${student_id}/thematic/reading/${id}`}
+            to={`/teacher/students/${student_id}/thematic/reading/${id}/view`}
             className={"text-blue-500"}
           >
             View
@@ -155,7 +155,7 @@ export function useThematicResultsColumns(
         return (
           <>
             <NavLink
-              to={`/teacher/students/${student_id}/thematic/listening/${id}`}
+              to={`/teacher/students/${student_id}/thematic/listening/${id}/view`}
               className={"text-blue-500"}
             >
               View
@@ -225,7 +225,7 @@ export function useThematicResultsColumns(
         return (
           <>
             <NavLink
-              to={`/teacher/students/${student_id}/thematic/writing/${id}`}
+              to={`/teacher/students/${student_id}/thematic/writing/${id}/view`}
               className={"text-blue-500"}
             >
               View
@@ -266,7 +266,7 @@ export function useThematicResultsColumns(
         return (
           <>
             <NavLink
-              to={`/teacher/students/${student_id}/thematic/writing/${id}`}
+              to={`/teacher/students/${student_id}/thematic/writing/${id}/view`}
               className={"text-blue-500"}
             >
               View

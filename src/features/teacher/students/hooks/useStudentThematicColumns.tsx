@@ -3,9 +3,8 @@ import { ColumnDef } from "@tanstack/react-table";
 import { get } from "lodash";
 import { ReactNode } from "react";
 import { NavLink, useParams } from "react-router-dom";
-import { Student } from "../types";
 
-export function useStudentThematicsColumns(): ColumnDef<Student>[] {
+export function useStudentThematicsColumns(): ColumnDef<any>[] {
   const { student_id } = useParams();
 
   return [
@@ -38,11 +37,12 @@ export function useStudentThematicsColumns(): ColumnDef<Student>[] {
       header: "Results",
       cell: ({ row }) => {
         const material_id = row.getValue("id");
+        const type = row.original.type;
 
         return (
           <>
             <NavLink
-              to={`/teacher/students/${student_id}/thematic/${material_id}`}
+              to={`/teacher/students/${student_id}/thematic/${type}/${material_id}`}
               className={"text-blue-500"}
             >
               View

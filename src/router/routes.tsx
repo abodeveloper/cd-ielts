@@ -130,7 +130,7 @@ export const routes = [
       { path: "results", element: <MyResultsPage /> },
       { path: "results/mock/:material_id", element: <MyMockResultPage /> },
       {
-        path: "results/thematic/:material_id",
+        path: "results/thematic/:skill/:material_id",
         element: <MyThematicResultPage />,
       },
       {
@@ -182,7 +182,7 @@ export const routes = [
         element: <StudentThematicsPage />,
       },
       {
-        path: "students/:student_id/thematic/:material_id",
+        path: "students/:student_id/thematic/:skill/:material_id",
         element: <StudentThematicResultPage />,
       },
       {
@@ -214,7 +214,7 @@ export const routes = [
         element: <StudentSpeakingResultsPage />,
       },
       {
-        path: "students/:id/:test_type/:skill/:obj_id",
+        path: "students/:id/:test_type/:skill/:obj_id/view",
         element: <StudentResultPage />,
       },
       {

@@ -114,7 +114,7 @@ export function useMockListeningResultsColumns(): ColumnDef<Result>[] {
         return (
           <>
             <NavLink
-              to={`/teacher/students/${student_id}/mock/listening/${id}`}
+              to={`/teacher/students/${student_id}/mock/listening/${id}/view`}
               className={"text-blue-500"}
             >
               View

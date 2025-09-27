@@ -117,10 +117,11 @@ export const getStudentThematics = async (
 };
 
 export const getStudentThematicResult = async (
+  skill: string | undefined,
   student_id: string | undefined,
-  test_id: string | undefined
+  material_id: string | undefined
 ) => {
-  const url = `/api/student-thematics/${student_id}/${test_id}/`;
+  const url = `/api/student-thematics/${student_id}/${skill}/${material_id}/`;
   const response = await api.get(url);
   return response.data;
 };

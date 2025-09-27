@@ -102,7 +102,7 @@ export function useMockTestResultColumns({
         return (
           <>
             <NavLink
-              to={`/teacher/students/${id}/${test_type}/${type}/${test_id}`}
+              to={`/teacher/students/${id}/${test_type}/${type}/${test_id}/view`}
               className={"text-blue-500"}
             >
               View

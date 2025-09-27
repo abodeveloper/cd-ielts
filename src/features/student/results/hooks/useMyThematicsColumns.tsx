@@ -37,11 +37,12 @@ export function useMyThematicsColumns(): ColumnDef<any>[] {
       header: "Results",
       cell: ({ row }) => {
         const material_id = row.getValue("id");
+        const type = row.original.type;
 
         return (
           <>
             <NavLink
-              to={`/student/results/thematic/${material_id}`}
+              to={`/student/results/thematic/${type}/${material_id}`}
               className={"text-blue-500"}
             >
               View
