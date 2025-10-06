@@ -1,7 +1,7 @@
 export enum ReadingQuestionType {
   TRUE_FALSE_NOT_GIVEN = "true_false_not_given",
   YES_NO_NOT_GIVEN = "yes_no_not_given",
-  MULTIPLE_CHOICE = "multiple_choice",
+  MULTIPLE_CHOICE = "multiple_choice_multiple_answers",
   MATCHING_HEADINGS = "matching_headings",
   MATCHING_INFORMATION = "matching_information",
   MATCHING_FEATURES = "matching_features",

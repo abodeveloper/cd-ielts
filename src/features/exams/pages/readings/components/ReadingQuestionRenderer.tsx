@@ -702,7 +702,7 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
             );
           }
 
-          const isRepeat = attribs["data-repeat"] === "true";
+          const isRepeat = attribs["data-repeat"] === "True";
 
           const [droppedValues, setDroppedValues] = useState<{
             [key: string]: string;
