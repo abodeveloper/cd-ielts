@@ -528,7 +528,7 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
             question_number: number;
             question_text: string;
           }[] = JSON.parse(attribs["data-questions"] || "[]");
-          const table_name = attribs["table_name"] || "Legend";
+          const table_name = attribs["table_name"] || "";
 
           return (
             <div className="space-y-8 my-8" style={{ userSelect: "none" }}>
@@ -562,19 +562,21 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
                                     onChange={() =>
                                       field.onChange(option.value)
                                     }
+                                    checked={field.value === option.value} // Ensure only the selected value is checked
+                                    name={`question_${question.question_number}`} // Unique name per row
                                     value={option.value}
-                                    id={`${question.question_number}`}
+                                    id={`${question.question_number}_${option.value}`} // Unique ID for accessibility
                                     className="h-4 w-4 rounded-full border border-primary appearance-none 
-                                    checked:bg-white 
-                                    relative 
-                                    checked:after:content-[''] 
-                                    checked:after:block 
-                                    checked:after:w-2.5 checked:after:h-2.5 
-                                    checked:after:rounded-full 
-                                    checked:after:bg-primary 
-                                    checked:after:mx-auto checked:after:my-auto 
-                                    checked:after:absolute checked:after:inset-0
-                                    disabled:cursor-not-allowed disabled:opacity-50"
+                              checked:bg-white 
+                              relative 
+                              checked:after:content-[''] 
+                              checked:after:block 
+                              checked:after:w-2.5 checked:after:h-2.5 
+                              checked:after:rounded-full 
+                              checked:after:bg-primary 
+                              checked:after:mx-auto checked:after:my-auto 
+                              checked:after:absolute checked:after:inset-0
+                              disabled:cursor-not-allowed disabled:opacity-50"
                                   />
                                 </FormControl>
                               </FormItem>
@@ -793,7 +795,11 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
                     const number = innerAttribs["data-question-number"] ?? "";
                     const type = innerAttribs["data-question-type"] ?? "";
 
-                    if (!number || type !== "matching_sentence_endings") {
+                    if (
+                      !number ||
+                      (type !== "matching_sentence_endings" &&
+                        type !== "matching_headings")
+                    ) {
                       return (
                         <span className="text-destructive">
                           Invalid drag-drop input
