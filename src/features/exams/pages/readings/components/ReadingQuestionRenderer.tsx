@@ -23,17 +23,6 @@ import {
   FormLabel,
 } from "@/components/ui/form";
 
-// List of custom tags to exclude from highlighting
-const EXCLUDED_TAGS = [
-  "question-input",
-  "list-selection-tegs",
-  "drag-drop-tegs",
-  "table-tegs",
-  "table-tegs-input",
-  "drag-drop-matching-sentence-endings",
-  "drag-drop-sentence-input",
-];
-
 interface ReadingQuestionRendererProps {
   htmlString: string;
   form: UseFormReturn<ReadingFormValues>;
@@ -62,133 +51,104 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
   const generateHighlightId = () =>
     Date.now().toString() + Math.random().toString(36).slice(2);
 
-  const isNodeInExcludedTag = (node: Node): boolean => {
-    let currentNode: Node | null = node;
-    while (currentNode && currentNode !== contentRef.current) {
-      if (
-        currentNode instanceof HTMLElement &&
-        EXCLUDED_TAGS.includes(currentNode.tagName.toLowerCase())
-      ) {
-        return true;
-      }
-      currentNode = currentNode.parentNode;
+  const isNonSelectableElement = (node: Node): boolean => {
+    if (node instanceof HTMLElement) {
+      const tagName = node.tagName.toLowerCase();
+      return ["input", "button", "textarea", "select"].includes(tagName);
     }
     return false;
   };
 
-  const getAllBlocksInRange = (range: Range): HTMLElement[] => {
+  const applyHighlightToRange = (range: Range, highlightId: string) => {
+    try {
+      if (range.collapsed) return;
+
+      // Prevent highlighting within non-selectable elements
+      if (
+        isNonSelectableElement(range.startContainer) ||
+        isNonSelectableElement(range.endContainer)
+      ) {
+        return;
+      }
+
+      // Split text nodes if necessary to ensure clean highlighting
+      if (
+        range.startContainer.nodeType === Node.TEXT_NODE &&
+        range.startOffset > 0
+      ) {
+        const newNode = range.startContainer.splitText(range.startOffset);
+        range.setStart(newNode, 0);
+      }
+      if (
+        range.endContainer.nodeType === Node.TEXT_NODE &&
+        range.endOffset < range.endContainer.textContent!.length
+      ) {
+        range.endContainer.splitText(range.endOffset);
+      }
+
+      const fragment = range.extractContents();
+      const span = document.createElement("span");
+      span.className = "highlight";
+      span.dataset.highlightId = highlightId;
+      span.appendChild(fragment);
+      range.insertNode(span);
+
+      // Normalize the DOM to merge adjacent text nodes
+      span.parentNode?.normalize();
+    } catch (error) {
+      console.warn("Error applying highlight:", error);
+    }
+  };
+
+  const getAllNodesInRange = (range: Range): Node[] => {
     if (!contentRef.current) return [];
 
-    const blocks: HTMLElement[] = [];
+    const nodes: Node[] = [];
     const treeWalker = document.createTreeWalker(
       contentRef.current,
-      NodeFilter.SHOW_ELEMENT,
+      NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT,
       {
         acceptNode(node) {
-          if (!(node instanceof HTMLElement)) return NodeFilter.FILTER_REJECT;
-
-          // Skip custom elements
-          if (EXCLUDED_TAGS.includes(node.tagName.toLowerCase())) {
-            return NodeFilter.FILTER_REJECT;
-          }
-
-          const style = window.getComputedStyle(node);
-          if (
-            (style.display === "block" ||
-              style.display === "list-item" ||
-              style.display === "table" ||
-              ["P", "DIV", "LI"].includes(node.tagName)) &&
-            range.intersectsNode(node)
-          ) {
-            return NodeFilter.FILTER_ACCEPT;
-          }
+          if (isNonSelectableElement(node)) return NodeFilter.FILTER_REJECT;
+          if (range.intersectsNode(node)) return NodeFilter.FILTER_ACCEPT;
           return NodeFilter.FILTER_SKIP;
         },
-      },
-      false
+      }
     );
 
     let currentNode = treeWalker.nextNode();
     while (currentNode) {
-      blocks.push(currentNode as HTMLElement);
+      nodes.push(currentNode);
       currentNode = treeWalker.nextNode();
     }
-    return blocks;
-  };
-
-  const applyHighlightToRange = (range: Range, highlightId: string) => {
-    // Check if the range intersects with any excluded elements
-    const commonAncestor = range.commonAncestorContainer;
-    let parentElement: HTMLElement | null = null;
-
-    if (commonAncestor.nodeType === Node.TEXT_NODE) {
-      parentElement = commonAncestor.parentElement;
-    } else if (commonAncestor instanceof HTMLElement) {
-      parentElement = commonAncestor;
-    }
-
-    // If the range is inside an excluded tag, prevent highlighting
-    if (
-      parentElement &&
-      EXCLUDED_TAGS.includes(parentElement.tagName.toLowerCase())
-    ) {
-      return;
-    }
-
-    // Check if the range contains any excluded elements
-    const containsExcluded = Array.from(
-      parentElement?.querySelectorAll(EXCLUDED_TAGS.join(","))
-    ).some((el) => range.intersectsNode(el));
-
-    if (containsExcluded) {
-      return;
-    }
-
-    const fragment = range.extractContents();
-    const span = document.createElement("span");
-    span.className = "highlight";
-    span.dataset.highlightId = highlightId;
-    span.appendChild(fragment);
-    range.insertNode(span);
+    return nodes;
   };
 
   const handleHighlightClick = () => {
     if (!enabledHighlight || !selectedRange) return;
 
-    const range = selectedRange.cloneRange();
     const highlightId = generateHighlightId();
+    const range = selectedRange.cloneRange();
 
-    const blocks = getAllBlocksInRange(range);
-    if (blocks.length === 0) {
+    // Apply highlight to all valid nodes in the range
+    const nodes = getAllNodesInRange(range);
+    if (nodes.length === 0) {
       applyHighlightToRange(range, highlightId);
     } else {
-      blocks.forEach((block) => {
-        const blockRange = document.createRange();
-
-        let startContainer = range.startContainer;
-        let startOffset = range.startOffset;
-        let endContainer = range.endContainer;
-        let endOffset = range.endOffset;
-
-        if (!block.contains(startContainer)) {
-          startContainer = block;
-          startOffset = 0;
-        }
-
-        if (!block.contains(endContainer)) {
-          endContainer = block;
-          endOffset = block.childNodes.length;
-        }
-
-        try {
-          blockRange.setStart(startContainer, startOffset);
-          blockRange.setEnd(endContainer, endOffset);
-
-          if (!blockRange.collapsed) {
-            applyHighlightToRange(blockRange, highlightId);
+      nodes.forEach((node) => {
+        if (node.nodeType === Node.TEXT_NODE) {
+          const nodeRange = document.createRange();
+          nodeRange.selectNodeContents(node);
+          // Adjust range to stay within the selected range
+          if (range.comparePoint(node, 0) < 0) {
+            nodeRange.setStart(range.startContainer, range.startOffset);
           }
-        } catch {
-          // Ignore range errors
+          if (range.comparePoint(node, node.textContent!.length) > 0) {
+            nodeRange.setEnd(range.endContainer, range.endOffset);
+          }
+          if (!nodeRange.collapsed) {
+            applyHighlightToRange(nodeRange, highlightId);
+          }
         }
       });
     }
@@ -215,10 +175,9 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
         const range = selection.getRangeAt(0);
         const selectedText = selection.toString().trim();
 
-        // Check if the selected range includes custom tags
         if (
-          isNodeInExcludedTag(range.startContainer) ||
-          isNodeInExcludedTag(range.endContainer)
+          isNonSelectableElement(range.startContainer) ||
+          isNonSelectableElement(range.endContainer)
         ) {
           setSelectedRange(null);
           setSelectedHighlightElement(null);
@@ -228,16 +187,14 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
 
         if (!range.collapsed && selectedText.length > 0) {
           const rect = range.getBoundingClientRect();
-
-          let commonAncestor = range.commonAncestorContainer as HTMLElement;
-          if (commonAncestor.nodeType === Node.TEXT_NODE) {
-            commonAncestor = commonAncestor.parentNode as HTMLElement;
-          }
+          const commonAncestor =
+            range.commonAncestorContainer instanceof HTMLElement
+              ? range.commonAncestorContainer
+              : range.commonAncestorContainer.parentElement;
 
           if (
             commonAncestor &&
-            commonAncestor.classList &&
-            commonAncestor.classList.contains("highlight")
+            commonAncestor.classList?.contains("highlight")
           ) {
             setSelectedHighlightElement(commonAncestor);
             setSelectedRange(null);
@@ -246,10 +203,20 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
             setSelectedRange(range);
           }
 
+          // Adjust dropdown position to stay within viewport
+          const viewportWidth = window.innerWidth;
+          const dropdownWidth = 200; // Approximate dropdown width
+          let xPos = rect.left + window.scrollX + rect.width / 2;
+          if (xPos + dropdownWidth / 2 > viewportWidth) {
+            xPos = viewportWidth - dropdownWidth / 2 - 10;
+          } else if (xPos - dropdownWidth / 2 < 0) {
+            xPos = dropdownWidth / 2 + 10;
+          }
+
           setDropdownPos({
-            x: rect.left + window.scrollX + rect.width / 2,
+            x: xPos,
             y: rect.bottom + window.scrollY + 10,
-            width: 0,
+            width: dropdownWidth,
           });
         } else {
           setSelectedRange(null);
@@ -307,63 +274,77 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
     setSelectedRange(null);
 
     const rect = target.getBoundingClientRect();
+    const viewportWidth = window.innerWidth;
+    const dropdownWidth = 200;
+    let xPos = rect.left + window.scrollX + rect.width / 2;
+    if (xPos + dropdownWidth / 2 > viewportWidth) {
+      xPos = viewportWidth - dropdownWidth / 2 - 10;
+    } else if (xPos - dropdownWidth / 2 < 0) {
+      xPos = dropdownWidth / 2 + 10;
+    }
+
     setDropdownPos({
-      x: rect.left + window.scrollX + rect.width / 2,
+      x: xPos,
       y: rect.bottom + window.scrollY + 10,
-      width: 0,
+      width: dropdownWidth,
     });
   };
 
   const handleClearClick = () => {
     if (!enabledHighlight) return;
 
-    if (selectedHighlightElement) {
-      const targetElement = selectedHighlightElement;
-      const parent = targetElement.parentNode;
-      if (parent) {
-        while (targetElement.firstChild) {
-          parent.insertBefore(targetElement.firstChild, targetElement);
-        }
-        parent.removeChild(targetElement);
-      }
-    } else if (selectedRange && !selectedHighlightElement) {
-      const range = selectedRange.cloneRange();
-      if (!contentRef.current) return;
-
-      const highlightsToRemove: HTMLElement[] = [];
-      const treeWalker = document.createTreeWalker(
-        contentRef.current,
-        NodeFilter.SHOW_ELEMENT,
-        {
-          acceptNode(node) {
-            if (
-              node instanceof HTMLElement &&
-              node.classList.contains("highlight") &&
-              range.intersectsNode(node)
-            ) {
-              return NodeFilter.FILTER_ACCEPT;
-            }
-            return NodeFilter.FILTER_SKIP;
-          },
-        },
-        false
-      );
-
-      let currentNode = treeWalker.nextNode();
-      while (currentNode) {
-        highlightsToRemove.push(currentNode as HTMLElement);
-        currentNode = treeWalker.nextNode();
-      }
-
-      highlightsToRemove.forEach((el) => {
-        const parent = el.parentNode;
+    try {
+      if (selectedHighlightElement) {
+        const targetElement = selectedHighlightElement;
+        const parent = targetElement.parentNode;
         if (parent) {
-          while (el.firstChild) {
-            parent.insertBefore(el.firstChild, el);
+          while (targetElement.firstChild) {
+            parent.insertBefore(targetElement.firstChild, targetElement);
           }
-          parent.removeChild(el);
+          parent.removeChild(targetElement);
+          parent.normalize();
         }
-      });
+      } else if (selectedRange && !selectedHighlightElement) {
+        const range = selectedRange.cloneRange();
+        if (!contentRef.current) return;
+
+        const highlightsToRemove: HTMLElement[] = [];
+        const treeWalker = document.createTreeWalker(
+          contentRef.current,
+          NodeFilter.SHOW_ELEMENT,
+          {
+            acceptNode(node) {
+              if (
+                node instanceof HTMLElement &&
+                node.classList.contains("highlight") &&
+                range.intersectsNode(node)
+              ) {
+                return NodeFilter.FILTER_ACCEPT;
+              }
+              return NodeFilter.FILTER_SKIP;
+            },
+          }
+        );
+
+        let currentNode = treeWalker.nextNode();
+        while (currentNode) {
+          highlightsToRemove.push(currentNode as HTMLElement);
+          currentNode = treeWalker.nextNode();
+        }
+
+        highlightsToRemove.forEach((el) => {
+          const parent = el.parentNode;
+          if (parent) {
+            while (el.firstChild) {
+              parent.insertBefore(el.firstChild, el);
+            }
+            parent.removeChild(el);
+            parent.normalize();
+          }
+        });
+      }
+    } catch (error) {
+      console.warn("Error clearing highlight:", error);
     }
 
     setSelectedRange(null);
@@ -371,14 +352,20 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
     setDropdownPos(null);
   };
 
+  // Prevent text selection from interfering with interactive elements
+  const handlePreventSelection = (e: React.MouseEvent | React.DragEvent) => {
+    const selection = window.getSelection();
+    if (selection && selection.rangeCount > 0) {
+      selection.removeAllRanges();
+    }
+  };
+
   const parsedHtml = parse(htmlString, {
     replace: (domNode) => {
       if (domNode instanceof Element) {
         if (
           domNode.name === "span" &&
-          domNode.attribs &&
-          domNode.attribs.class &&
-          domNode.attribs.class.includes("highlight")
+          domNode.attribs?.class?.includes("highlight")
         ) {
           return (
             <span
@@ -396,13 +383,17 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
           const { attribs } = domNode;
           const number = attribs["data-question-number"] ?? "";
           const type = attribs["data-question-type"] ?? "";
-          const options = JSON.parse(attribs["data-question-options"] || "[]");
-          const questions = JSON.parse(
-            attribs["data-question"] ||
-              `[
-                
-              ]`
-          );
+          let options: any[] = [];
+          let questions: any[] = [];
+          try {
+            options = JSON.parse(attribs["data-question-options"] || "[]");
+            questions = JSON.parse(attribs["data-question"] || "[]");
+          } catch (error) {
+            console.warn("Error parsing question-input attributes:", error);
+            return (
+              <span className="text-destructive">Invalid question input</span>
+            );
+          }
 
           if (!number || !type) {
             console.warn("Missing question-number or question-type:", attribs);
@@ -427,7 +418,7 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
             type === ReadingQuestionType.MULTIPLE_CHOICE
           ) {
             return (
-              <div style={{ margin: "8px 0", userSelect: "none" }} key={number}>
+              <div style={{ margin: "8px 0" }} key={number}>
                 {inputElement}
               </div>
             );
@@ -437,7 +428,6 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
               style={{
                 display: "inline-block",
                 minWidth: 150,
-                userSelect: "none",
               }}
               key={number}
             >
@@ -448,11 +438,23 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
 
         if (domNode.name === "list-selection-tegs") {
           const { attribs } = domNode;
-          const questionNumbers = JSON.parse(
-            attribs["question_numbers"] || "[]"
-          );
-          const options = JSON.parse(attribs["data-options"] || "[]");
+          let questionNumbers: string[] = [];
+          let options: any[] = [];
           const questionType = attribs["question_type"] || "";
+          try {
+            questionNumbers = JSON.parse(attribs["question_numbers"] || "[]");
+            options = JSON.parse(attribs["data-options"] || "[]");
+          } catch (error) {
+            console.warn(
+              "Error parsing list-selection-tegs attributes:",
+              error
+            );
+            return (
+              <span className="text-destructive">
+                Invalid list selection tags
+              </span>
+            );
+          }
 
           if (
             !questionNumbers.length ||
@@ -476,11 +478,7 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
           );
 
           return (
-            <div
-              className="my-6"
-              key={questionNumbers.join("_")}
-              style={{ userSelect: "none" }}
-            >
+            <div className="my-6" key={questionNumbers.join("_")}>
               <MyQuestionCheckboxGroup
                 control={form.control}
                 name={`sharedAnswers_${questionNumbers.join("_")}`}
@@ -505,8 +503,17 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
         if (domNode.name === "drag-drop-tegs") {
           const { attribs } = domNode;
           const repeatAnswer = Boolean(attribs["repeat_answer"] || false);
-          const options = JSON.parse(attribs["data-options"] || "[]");
-          const questions = JSON.parse(attribs["data-questions"] || "[]");
+          let options: any[] = [];
+          let questions: any[] = [];
+          try {
+            options = JSON.parse(attribs["data-options"] || "[]");
+            questions = JSON.parse(attribs["data-questions"] || "[]");
+          } catch (error) {
+            console.warn("Error parsing drag-drop-tegs attributes:", error);
+            return (
+              <span className="text-destructive">Invalid drag-drop tags</span>
+            );
+          }
 
           return (
             <DragDropTags
@@ -514,24 +521,26 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
               questions={questions}
               form={form}
               isRepeatAnswer={repeatAnswer}
-              style={{ userSelect: "none" }}
             />
           );
         }
 
         if (domNode.name === "table-tegs") {
           const { attribs } = domNode;
-          const options: { value: string; label: string }[] = JSON.parse(
-            attribs["data-options"] || "[]"
-          );
-          const questions: {
-            question_number: number;
-            question_text: string;
-          }[] = JSON.parse(attribs["data-questions"] || "[]");
+          let options: { value: string; label: string }[] = [];
+          let questions: { question_number: number; question_text: string }[] =
+            [];
           const table_name = attribs["table_name"] || "";
+          try {
+            options = JSON.parse(attribs["data-options"] || "[]");
+            questions = JSON.parse(attribs["data-questions"] || "[]");
+          } catch (error) {
+            console.warn("Error parsing table-tegs attributes:", error);
+            return <span className="text-destructive">Invalid table tags</span>;
+          }
 
           return (
-            <div className="space-y-8 my-8" style={{ userSelect: "none" }}>
+            <div className="space-y-8 my-8">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -559,13 +568,14 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
                                 <FormControl>
                                   <input
                                     type="radio"
+                                    onMouseDown={handlePreventSelection}
                                     onChange={() =>
                                       field.onChange(option.value)
                                     }
-                                    checked={field.value === option.value} // Ensure only the selected value is checked
-                                    name={`question_${question.question_number}`} // Unique name per row
+                                    checked={field.value === option.value}
+                                    name={`question_${question.question_number}`}
                                     value={option.value}
-                                    id={`${question.question_number}_${option.value}`} // Unique ID for accessibility
+                                    id={`${question.question_number}_${option.value}`}
                                     className="h-4 w-4 rounded-full border border-primary appearance-none 
                               checked:bg-white 
                               relative 
@@ -610,16 +620,21 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
 
         if (domNode.name === "table-tegs-input") {
           const { attribs } = domNode;
-          const options: { value: string; label: string }[] = JSON.parse(
-            attribs["data-options"] || "[]"
-          );
-          const questions: {
-            question_number: number;
-            question_text: string;
-          }[] = JSON.parse(attribs["data-questions"] || "[]");
+          let options: { value: string; label: string }[] = [];
+          let questions: { question_number: number; question_text: string }[] =
+            [];
+          try {
+            options = JSON.parse(attribs["data-options"] || "[]");
+            questions = JSON.parse(attribs["data-questions"] || "[]");
+          } catch (error) {
+            console.warn("Error parsing table-tegs-input attributes:", error);
+            return (
+              <span className="text-destructive">Invalid table input tags</span>
+            );
+          }
 
           return (
-            <div className="space-y-8 my-8" style={{ userSelect: "none" }}>
+            <div className="space-y-8 my-8">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -647,6 +662,7 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
                                 <FormControl>
                                   <input
                                     type="radio"
+                                    onMouseDown={handlePreventSelection}
                                     onChange={() =>
                                       field.onChange(option.value)
                                     }
@@ -685,8 +701,8 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
           let options: { value: string; label: string }[] = [];
           try {
             options = JSON.parse(attribs["data-options"] || "[]");
-          } catch (e) {
-            console.error("Invalid data-options JSON:", e);
+          } catch (error) {
+            console.error("Invalid data-options JSON:", error);
             return (
               <span className="text-destructive">
                 Invalid drag drop options
@@ -719,6 +735,7 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
           ) => {
             e.dataTransfer.setData("text/plain", value);
             e.currentTarget.style.opacity = "0.5";
+            handlePreventSelection(e);
           };
 
           const handleDragEnd = (e: React.DragEvent<HTMLDivElement>) => {
@@ -784,7 +801,7 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
           };
 
           return (
-            <div className="my-6" style={{ userSelect: "none" }}>
+            <div className="my-6">
               {domToReact(domNode.children, {
                 replace: (innerNode) => {
                   if (
@@ -814,13 +831,9 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
                         onDragOver={handleDragOver}
                         onDragLeave={handleDragLeave}
                         className="inline-block min-w-[150px] border-2 border-gray-400 border-dashed p-1 my-1 mx-2 rounded-md text-center"
-                        style={{ userSelect: "none" }}
                       >
                         {droppedValues[number] ? (
-                          <div
-                            className="flex items-center justify-between"
-                            style={{ userSelect: "none" }}
-                          >
+                          <div className="flex items-center justify-between">
                             <span className="font-semibold">
                               {options.find(
                                 (opt) => opt.value === droppedValues[number]
@@ -828,6 +841,7 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
                             </span>
                             <button
                               onClick={() => handleClear(number)}
+                              onMouseDown={handlePreventSelection}
                               className="text-destructive hover:text-destructive/70 ml-2"
                             >
                               <RiCloseLine size={20} />
@@ -844,10 +858,7 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
                   return undefined;
                 },
               })}
-              <div
-                className="flex flex-wrap gap-3 mt-6"
-                style={{ userSelect: "none" }}
-              >
+              <div className="flex flex-wrap gap-3 mt-6">
                 {options.map(
                   (option) =>
                     (!usedOptions.has(option.value) || isRepeat) && (
@@ -857,7 +868,6 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
                         onDragStart={(e) => handleDragStart(e, option.value)}
                         onDragEnd={handleDragEnd}
                         className="p-2 bg-primary text-primary-foreground rounded-lg cursor-move hover:bg-muted-foreground transition-colors min-w-[150px] text-center"
-                        style={{ userSelect: "none" }}
                       >
                         {option.label}
                       </div>
@@ -878,9 +888,21 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
       <style>{`
         .highlight {
           background-color: #fde68a;
+          transition: background-color 0.2s;
+        }
+        .highlight:hover {
+          background-color: #fad980;
         }
         .drag-drop-container {
           min-height: 40px;
+        }
+        input, button, [draggable] {
+          pointer-events: auto;
+          user-select: none; /* Prevent text selection in inputs and buttons */
+        }
+        /* Ensure text within custom tags is selectable */
+        question-input, list-selection-tegs, drag-drop-tegs, table-tegs, table-tegs-input, drag-drop-matching-sentence-endings, drag-drop-sentence-input {
+          user-select: text;
         }
       `}</style>
 
