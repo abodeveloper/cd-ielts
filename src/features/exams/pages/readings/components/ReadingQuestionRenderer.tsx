@@ -63,7 +63,6 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
     try {
       if (range.collapsed) return;
 
-      // Prevent highlighting within non-selectable elements
       if (
         isNonSelectableElement(range.startContainer) ||
         isNonSelectableElement(range.endContainer)
@@ -71,7 +70,6 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
         return;
       }
 
-      // Split text nodes if necessary to ensure clean highlighting
       if (
         range.startContainer.nodeType === Node.TEXT_NODE &&
         range.startOffset > 0
@@ -93,7 +91,6 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
       span.appendChild(fragment);
       range.insertNode(span);
 
-      // Normalize the DOM to merge adjacent text nodes
       span.parentNode?.normalize();
     } catch (error) {
       console.warn("Error applying highlight:", error);
@@ -130,7 +127,6 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
     const highlightId = generateHighlightId();
     const range = selectedRange.cloneRange();
 
-    // Apply highlight to all valid nodes in the range
     const nodes = getAllNodesInRange(range);
     if (nodes.length === 0) {
       applyHighlightToRange(range, highlightId);
@@ -139,7 +135,6 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
         if (node.nodeType === Node.TEXT_NODE) {
           const nodeRange = document.createRange();
           nodeRange.selectNodeContents(node);
-          // Adjust range to stay within the selected range
           if (range.comparePoint(node, 0) < 0) {
             nodeRange.setStart(range.startContainer, range.startOffset);
           }
@@ -203,9 +198,8 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
             setSelectedRange(range);
           }
 
-          // Adjust dropdown position to stay within viewport
           const viewportWidth = window.innerWidth;
-          const dropdownWidth = 200; // Approximate dropdown width
+          const dropdownWidth = 200;
           let xPos = rect.left + window.scrollX + rect.width / 2;
           if (xPos + dropdownWidth / 2 > viewportWidth) {
             xPos = viewportWidth - dropdownWidth / 2 - 10;
@@ -352,7 +346,6 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
     setDropdownPos(null);
   };
 
-  // Prevent text selection from interfering with interactive elements
   const handlePreventSelection = (e: React.MouseEvent | React.DragEvent) => {
     const selection = window.getSelection();
     if (selection && selection.rangeCount > 0) {
@@ -721,13 +714,31 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
           }
 
           const isRepeat = attribs["data-repeat"] === "True";
-
           const [droppedValues, setDroppedValues] = useState<{
             [key: string]: string;
           }>({});
           const [usedOptions, setUsedOptions] = useState<Set<string>>(
             new Set()
           );
+
+          // Form qiymatlaridan droppedValues va usedOptions ni sinxronlash
+          useEffect(() => {
+            const answers = form.getValues("answers") || [];
+            const newDroppedValues: { [key: string]: string } = {};
+            const newUsedOptions = new Set<string>();
+
+            answers.forEach((answer: any, index: number) => {
+              if (answer?.answer) {
+                newDroppedValues[(index + 1).toString()] = answer.answer;
+                if (!isRepeat) {
+                  newUsedOptions.add(answer.answer);
+                }
+              }
+            });
+
+            setDroppedValues(newDroppedValues);
+            setUsedOptions(newUsedOptions);
+          }, [htmlString, form, isRepeat]);
 
           const handleDragStart = (
             e: React.DragEvent<HTMLDivElement>,
@@ -898,9 +909,8 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
         }
         input, button, [draggable] {
           pointer-events: auto;
-          user-select: none; /* Prevent text selection in inputs and buttons */
+          user-select: none;
         }
-        /* Ensure text within custom tags is selectable */
         question-input, list-selection-tegs, drag-drop-tegs, table-tegs, table-tegs-input, drag-drop-matching-sentence-endings, drag-drop-sentence-input {
           user-select: text;
         }
