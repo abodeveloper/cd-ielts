@@ -2,6 +2,7 @@ import parse from "html-react-parser";
 import { useRef, useEffect, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { RiEraserLine, RiMarkPenLine } from "@remixicon/react";
+import { processHtmlWithLineBreaks } from "@/shared/utils/text-processor";
 
 interface HTMLRendererProps {
   htmlString: string;
@@ -284,7 +285,10 @@ const HTMLRendererWithHighlight = ({
     setDropdownPos(null);
   };
 
-  const parsedHtml = parse(htmlString, {
+  // Process the HTML string to handle line breaks
+  const processedHtmlString = processHtmlWithLineBreaks(htmlString);
+
+  const parsedHtml = parse(processedHtmlString, {
     replace: (domNode) => {
       if (
         domNode.type === "tag" &&
