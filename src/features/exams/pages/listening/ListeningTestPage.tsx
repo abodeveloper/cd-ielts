@@ -11,10 +11,9 @@ const ListeningTestPage = () => {
         <ConfirmDetailsStep />,
         <ReadyStep />,
         <ListeningTestStep />,
-        <ListeningAnswerStep />,
+        <ListeningAnswerStep disableOverflow={true} />,
       ]}
     />
-    // <FlowPage steps={[<ListeningTestStep />]} />
   );
 };
 

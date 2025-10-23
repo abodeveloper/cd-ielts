@@ -7,7 +7,6 @@ import TestMicrophoneStep from "./steps/TestMicrophoneStep";
 const SpeakingTestPage = () => {
   return (
     <FlowPage steps={[<ConfirmDetailsStep />, <ReadyStepSpeaking/>, <TestMicrophoneStep/>, <SpeakingTestStep />]} />
-    // <FlowPage steps={[<SpeakingTestStep />]} />
   );
 };
 

@@ -20,26 +20,14 @@ const MyThematicResultPage = lazy(
 const ProfilePage = lazy(() => import("@/features/profile/ProfilePage"));
 
 // Imtihon sahifalari
-const ReadingsPage = lazy(
-  () => import("@/features/exams/pages/readings/ReadingsPage")
-);
 const ReadingTestPage = lazy(
   () => import("@/features/exams/pages/readings/ReadingTestPage")
-);
-const ListeningsPage = lazy(
-  () => import("@/features/exams/pages/listening/ListeningsPage")
 );
 const ListeningTestPage = lazy(
   () => import("@/features/exams/pages/listening/ListeningTestPage")
 );
-const WritingsPage = lazy(
-  () => import("@/features/exams/pages/writing/WritingsPage")
-);
 const WritingTestPage = lazy(
   () => import("@/features/exams/pages/writing/WritingTestPage")
-);
-const SpeakingsPage = lazy(
-  () => import("@/features/exams/pages/speaking/SpeakingsPage")
 );
 const SpeakingTestPage = lazy(
   () => import("@/features/exams/pages/speaking/SpeakingTestPage")
