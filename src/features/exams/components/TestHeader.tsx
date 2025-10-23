@@ -7,6 +7,8 @@ import { TestType } from "@/shared/enums/test-type.enum";
 import { useAuthStore } from "@/store/auth-store";
 import {
   RiArrowLeftLine,
+  RiPauseLine,
+  RiPlayLine,
   RiShieldUserLine,
   RiTimerLine,
   RiVolumeMuteLine,
@@ -21,7 +23,11 @@ interface TestHeaderProps {
   testType: TestType;
   type: "Mock" | "Thematic";
   audioRef?: React.RefObject<HTMLAudioElement | null>;
-  handleVolumeChange?: (value: number) => void; // handleVolumeChange yangilandi
+  handleVolumeChange?: (value: number) => void;
+  handlePauseToggle?: () => void; // New prop for pause functionality
+  isPaused?: boolean; // New prop to track pause state
+  studentHasStarted?: boolean; // New prop to track if student has started audio
+  userHasStarted?: boolean; // New prop to track if user has manually started audio
 }
 
 const TestHeader = ({
@@ -30,6 +36,10 @@ const TestHeader = ({
   testType = TestType.READING,
   audioRef,
   handleVolumeChange,
+  handlePauseToggle,
+  isPaused = false,
+  studentHasStarted = false,
+  userHasStarted = false,
   type,
 }: TestHeaderProps) => {
   const navigate = useNavigate();
@@ -94,21 +104,55 @@ const TestHeader = ({
           {testType === TestType.LISTENING &&
             audioRef &&
             handleVolumeChange && (
-              <div className="flex items-center gap-2">
-                {volume === 0 ? (
-                  <RiVolumeMuteLine className="w-5 h-5" />
-                ) : (
-                  <RiVolumeUpLine className="w-5 h-5" />
+              <div className="flex items-center gap-4">
+                {/* Pause/Play Button - Only for Thematic tests */}
+                {type === "Thematic" && handlePauseToggle && (
+                  <Button
+                    onClick={handlePauseToggle}
+                    variant="outline"
+                    size="sm"
+                    type="button"
+                    className="flex items-center gap-1 h-8 w-8 p-0"
+                    disabled={
+                      user?.role === Role.STUDENT && 
+                      studentHasStarted && 
+                      !isPaused
+                    }
+                    title={
+                      user?.role === Role.STUDENT && studentHasStarted && !isPaused
+                        ? "Students cannot pause after starting audio"
+                        : !userHasStarted
+                        ? "Start audio"
+                        : isPaused
+                        ? "Resume audio"
+                        : "Pause audio"
+                    }
+                  >
+                    {!userHasStarted || isPaused ? (
+                      <RiPlayLine className="w-4 h-4" />
+                    ) : (
+                      <RiPauseLine className="w-4 h-4" />
+                    )}
+                  </Button>
                 )}
-                <Slider
-                  id="volume"
-                  min={0}
-                  max={1}
-                  step={0.01}
-                  defaultValue={[0.5]}
-                  onValueChange={onVolumeChange}
-                  className="w-24"
-                />
+                
+                {/* Volume Controls */}
+                <div className="flex items-center gap-2">
+                  {volume === 0 ? (
+                    <RiVolumeMuteLine className="w-5 h-5" />
+                  ) : (
+                    <RiVolumeUpLine className="w-5 h-5" />
+                  )}
+                  <Slider
+                    id="volume"
+                    min={0}
+                    max={1}
+                    step={0.01}
+                    defaultValue={[0.5]}
+                    onValueChange={onVolumeChange}
+                    className="w-24"
+                  />
+                </div>
               </div>
             )}
 

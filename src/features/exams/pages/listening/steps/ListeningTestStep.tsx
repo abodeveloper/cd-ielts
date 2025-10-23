@@ -47,6 +47,27 @@ const ListeningTestStep = ({ onNext }: StepProps) => {
     return savedVolume ? parseFloat(savedVolume) : 1;
   });
 
+  // Pause state for thematic tests
+  const [isPaused, setIsPaused] = useState(false);
+  // Track if student has started the audio (for disabling button after first play)
+  const [studentHasStarted, setStudentHasStarted] = useState(false);
+  // Track if user has manually started the audio
+  const [userHasStarted, setUserHasStarted] = useState(false);
+
+  // Update pause state when query data is available
+  useEffect(() => {
+    if (query.data) {
+      const testType = get(query, "data.material.test_type", "Mock");
+      if (testType === "Thematic") {
+        setIsPaused(true); // Start paused for thematic tests
+        setUserHasStarted(false); // Ensure user hasn't started yet
+      } else {
+        setIsPaused(false); // Mock tests play normally
+        setUserHasStarted(true); // Mock tests auto-start
+      }
+    }
+  }, [query.data]);
+
   const {
     timeLeft,
     formatTime,
@@ -100,15 +121,23 @@ const ListeningTestStep = ({ onNext }: StepProps) => {
     }
   }, [query.isSuccess, parts, audioPreloaded, volume]);
 
-  // TestSoundStep dan o‘tish
+  // TestSoundStep dan o'tish
   const handleContinue = () => {
     setShowTestSoundStep(false);
-    // Birinchi audioni ijro etishni boshlash
+    // Birinchi audioni ijro etishni boshlash - faqat Mock testlar uchun
     if (audioRefs.current.length > 0) {
       activeAudioRef.current = audioRefs.current[0];
-      activeAudioRef.current.play().catch((error) => {
-        console.error("Birinchi audio ijro etishda xato:", error);
-      });
+      
+      // Check if it's a thematic test
+      const testType = get(query, "data.material.test_type", "Mock");
+      if (testType === "Mock") {
+        // Mock tests auto-play
+        activeAudioRef.current.play().catch((error) => {
+          console.error("Birinchi audio ijro etishda xato:", error);
+        });
+      } else {
+        // Thematic tests start paused - don't auto-play
+      }
     }
   };
 
@@ -121,9 +150,26 @@ const ListeningTestStep = ({ onNext }: StepProps) => {
     });
   }, [volume]);
 
+  // Ensure thematic tests start paused
+  useEffect(() => {
+    if (query.data && audioPreloaded) {
+      const testType = get(query, "data.material.test_type", "Mock");
+      if (testType === "Thematic" && activeAudioRef.current) {
+        activeAudioRef.current.pause();
+        activeAudioRef.current.currentTime = 0;
+      }
+    }
+  }, [query.data, audioPreloaded]);
+
   // Audio fayllarni ketma-ket ijro qilish
   useEffect(() => {
     if (showTestSoundStep || !audioPreloaded || parts.length === 0) {
+      return;
+    }
+
+    // Check if it's a thematic test and user hasn't started yet
+    const testType = get(query, "data.material.test_type", "Mock");
+    if (testType === "Thematic" && !userHasStarted) {
       return;
     }
 
@@ -158,16 +204,26 @@ const ListeningTestStep = ({ onNext }: StepProps) => {
         }
         activeAudioRef.current = nextAudio;
         activeAudioRef.current.volume = volume; // Ovoz balandligini sozlash
-        activeAudioRef.current.play().catch((error) => {
-          console.error(
-            `Audio ijro etishda xato (part ${parts[currentAudioIndex].id}):`,
-            error
-          );
-        });
+        
+        // For thematic tests, ensure audio is paused initially
+        if (testType === "Thematic" && !userHasStarted) {
+          activeAudioRef.current.pause();
+          activeAudioRef.current.currentTime = 0;
+        }
+        
+        // Only play if not paused (for thematic tests) AND user has manually started
+        if (!isPaused && userHasStarted) {
+          activeAudioRef.current.play().catch((error) => {
+            console.error(
+              `Audio ijro etishda xato (part ${parts[currentAudioIndex].id}):`,
+              error
+            );
+          });
+        }
         activeAudioRef.current.addEventListener("ended", handleAudioEnd);
       } else if (currentAudio) {
         // Agar audio o'zgarmagan bo'lsa va ijro etilmayotgan bo'lsa, ijro etish
-        if (currentAudio.paused) {
+        if (currentAudio.paused && !isPaused && userHasStarted) {
           currentAudio.play().catch((error) => {
             console.error("Audio ijro etishda xato:", error);
           });
@@ -182,13 +238,13 @@ const ListeningTestStep = ({ onNext }: StepProps) => {
         activeAudioRef.current.removeEventListener("ended", handleAudioEnd);
       }
     };
-  }, [currentAudioIndex, parts, showTestSoundStep, audioPreloaded, volume]);
+  }, [currentAudioIndex, parts, showTestSoundStep, audioPreloaded, volume, isPaused, userHasStarted]);
 
   // MediaSession API orqali media tugmalarini bloklash (faol audio elementga ta'sir qiladi)
   useEffect(() => {
     if ("mediaSession" in navigator) {
       navigator.mediaSession.setActionHandler("play", () => {
-        if (activeAudioRef.current && activeAudioRef.current.paused) {
+        if (activeAudioRef.current && activeAudioRef.current.paused && userHasStarted) {
           activeAudioRef.current.play();
         }
       });
@@ -216,11 +272,36 @@ const ListeningTestStep = ({ onNext }: StepProps) => {
         }
       });
     }
-  }, [currentAudioIndex, parts.length]);
+  }, [currentAudioIndex, parts.length, userHasStarted]);
 
   // Ovoz balandligini boshqarish
   const handleVolumeChange = (value: number) => {
     setVolume(value);
+  };
+
+  // Pause/Play toggle handler
+  const handlePauseToggle = () => {
+    if (activeAudioRef.current) {
+      if (isPaused) {
+        // Starting audio
+        activeAudioRef.current.play();
+        setIsPaused(false);
+        setUserHasStarted(true); // Mark that user has manually started audio
+        
+        // If user is student, mark that they have started the audio
+        const { user } = useAuthStore.getState();
+        if (user?.role === Role.STUDENT) {
+          setStudentHasStarted(true);
+        }
+      } else {
+        // Pausing audio - only allow if user is teacher or student hasn't started yet
+        const { user } = useAuthStore.getState();
+        if (user?.role === Role.TEACHER || !studentHasStarted) {
+          activeAudioRef.current.pause();
+          setIsPaused(true);
+        }
+      }
+    }
   };
 
   const activePart = parts.find((part) => `tab-${part.id}` === activeTab);
@@ -265,6 +346,10 @@ const ListeningTestStep = ({ onNext }: StepProps) => {
                 // activeAudioRef.current ni yuborish, chunki endi u bitta audio elementini bildiradi
                 audioRef={activeAudioRef}
                 handleVolumeChange={handleVolumeChange}
+                handlePauseToggle={handlePauseToggle}
+                isPaused={isPaused}
+                studentHasStarted={studentHasStarted}
+                userHasStarted={userHasStarted}
               />
               <PartInfo activePart={activePart} testType={TestType.LISTENING} />
             </div>
