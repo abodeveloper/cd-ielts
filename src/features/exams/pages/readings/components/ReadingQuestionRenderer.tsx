@@ -518,12 +518,14 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
           );
         }
 
+        // TABLE-TEGS - Form bilan sinxronlashtirilgan versiya
         if (domNode.name === "table-tegs") {
           const { attribs } = domNode;
           let options: { value: string; label: string }[] = [];
           let questions: { question_number: number; question_text: string }[] =
             [];
           const table_name = attribs["table_name"] || "";
+
           try {
             options = JSON.parse(attribs["data-options"] || "[]");
             questions = JSON.parse(attribs["data-questions"] || "[]");
@@ -544,51 +546,58 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {questions.map((question, index) => (
-                    <TableRow key={index}>
-                      <TableCell>
-                        {question?.question_number}. {question?.question_text}
-                      </TableCell>
-                      {options?.map((option) => (
-                        <TableCell key={option.value}>
-                          <FormField
-                            control={form.control}
-                            name={`answers.${
-                              question.question_number - 1
-                            }.answer`}
-                            render={({ field }) => (
-                              <FormItem className="flex items-center space-x-2">
-                                <FormControl>
-                                  <input
-                                    type="radio"
-                                    onMouseDown={handlePreventSelection}
-                                    onChange={() =>
-                                      field.onChange(option.value)
-                                    }
-                                    checked={field.value === option.value}
-                                    name={`question_${question.question_number}`}
-                                    value={option.value}
-                                    id={`${question.question_number}_${option.value}`}
-                                    className="h-4 w-4 rounded-full border border-primary appearance-none 
-                              checked:bg-white 
-                              relative 
-                              checked:after:content-[''] 
-                              checked:after:block 
-                              checked:after:w-2.5 checked:after:h-2.5 
-                              checked:after:rounded-full 
-                              checked:after:bg-primary 
-                              checked:after:mx-auto checked:after:my-auto 
-                              checked:after:absolute checked:after:inset-0
-                              disabled:cursor-not-allowed disabled:opacity-50"
-                                  />
-                                </FormControl>
-                              </FormItem>
-                            )}
-                          />
+                  {questions.map((question, index) => {
+                    const questionIndex = question.question_number - 1;
+                    return (
+                      <TableRow key={index}>
+                        <TableCell>
+                          {question?.question_number}. {question?.question_text}
                         </TableCell>
-                      ))}
-                    </TableRow>
-                  ))}
+                        {options?.map((option) => (
+                          <TableCell key={option.value}>
+                            <FormField
+                              control={form.control}
+                              name={`answers.${questionIndex}.answer`}
+                              render={({ field }) => {
+                                // Form qiymatini kuzatish va checked holatini to'g'ri belgilash
+                                const currentValue = form.watch(
+                                  `answers.${questionIndex}.answer`
+                                );
+                                return (
+                                  <FormItem className="flex items-center space-x-2">
+                                    <FormControl>
+                                      <input
+                                        type="radio"
+                                        onMouseDown={handlePreventSelection}
+                                        onChange={() =>
+                                          field.onChange(option.value)
+                                        }
+                                        checked={currentValue === option.value}
+                                        name={`table_tegs_question_${question.question_number}`}
+                                        value={option.value}
+                                        id={`${question.question_number}_${option.value}_table`}
+                                        className="h-4 w-4 rounded-full border border-primary appearance-none 
+                                          checked:bg-white 
+                                          relative 
+                                          checked:after:content-[''] 
+                                          checked:after:block 
+                                          checked:after:w-2.5 checked:after:h-2.5 
+                                          checked:after:rounded-full 
+                                          checked:after:bg-primary 
+                                          checked:after:mx-auto checked:after:my-auto 
+                                          checked:after:absolute checked:after:inset-0
+                                          disabled:cursor-not-allowed disabled:opacity-50"
+                                      />
+                                    </FormControl>
+                                  </FormItem>
+                                );
+                              }}
+                            />
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
 
@@ -611,11 +620,13 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
           );
         }
 
+        // TABLE-TEGS-INPUT - Form bilan sinxronlashtirilgan versiya
         if (domNode.name === "table-tegs-input") {
           const { attribs } = domNode;
           let options: { value: string; label: string }[] = [];
           let questions: { question_number: number; question_text: string }[] =
             [];
+
           try {
             options = JSON.parse(attribs["data-options"] || "[]");
             questions = JSON.parse(attribs["data-questions"] || "[]");
@@ -638,57 +649,66 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {questions.map((question, index) => (
-                    <TableRow key={index}>
-                      <TableCell>
-                        {question?.question_number}. {question?.question_text}
-                      </TableCell>
-                      {options?.map((option) => (
-                        <TableCell key={option.value}>
-                          <FormField
-                            control={form.control}
-                            name={`answers.${
-                              question.question_number - 1
-                            }.answer`}
-                            render={({ field }) => (
-                              <FormItem className="flex items-center space-x-2">
-                                <FormControl>
-                                  <input
-                                    type="radio"
-                                    onMouseDown={handlePreventSelection}
-                                    onChange={() =>
-                                      field.onChange(option.value)
-                                    }
-                                    name={`${question.question_number - 1}`}
-                                    value={option.value}
-                                    id={`${question.question_number}`}
-                                    className="h-4 w-4 rounded-full border border-primary appearance-none 
-                                    checked:bg-white 
-                                    relative 
-                                    checked:after:content-[''] 
-                                    checked:after:block 
-                                    checked:after:w-2.5 checked:after:h-2.5 
-                                    checked:after:rounded-full 
-                                    checked:after:bg-primary 
-                                    checked:after:mx-auto checked:after:my-auto 
-                                    checked:after:absolute checked:after:inset-0
-                                    disabled:cursor-not-allowed disabled:opacity-50"
-                                  />
-                                </FormControl>
-                                <FormLabel></FormLabel>
-                              </FormItem>
-                            )}
-                          />
+                  {questions.map((question, index) => {
+                    const questionIndex = question.question_number - 1;
+                    return (
+                      <TableRow key={index}>
+                        <TableCell>
+                          {question?.question_number}. {question?.question_text}
                         </TableCell>
-                      ))}
-                    </TableRow>
-                  ))}
+                        {options?.map((option) => (
+                          <TableCell key={option.value}>
+                            <FormField
+                              control={form.control}
+                              name={`answers.${questionIndex}.answer`}
+                              render={({ field }) => {
+                                // Form qiymatini kuzatish va checked holatini to'g'ri belgilash
+                                const currentValue = form.watch(
+                                  `answers.${questionIndex}.answer`
+                                );
+                                return (
+                                  <FormItem className="flex items-center space-x-2">
+                                    <FormControl>
+                                      <input
+                                        type="radio"
+                                        onMouseDown={handlePreventSelection}
+                                        onChange={() =>
+                                          field.onChange(option.value)
+                                        }
+                                        checked={currentValue === option.value}
+                                        name={`table_tegs_input_question_${question.question_number}`}
+                                        value={option.value}
+                                        id={`${question.question_number}_${option.value}_input`}
+                                        className="h-4 w-4 rounded-full border border-primary appearance-none 
+                                          checked:bg-white 
+                                          relative 
+                                          checked:after:content-[''] 
+                                          checked:after:block 
+                                          checked:after:w-2.5 checked:after:h-2.5 
+                                          checked:after:rounded-full 
+                                          checked:after:bg-primary 
+                                          checked:after:mx-auto checked:after:my-auto 
+                                          checked:after:absolute checked:after:inset-0
+                                          disabled:cursor-not-allowed disabled:opacity-50"
+                                      />
+                                    </FormControl>
+                                    <FormLabel></FormLabel>
+                                  </FormItem>
+                                );
+                              }}
+                            />
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>
           );
         }
 
+        // DRAG-DROP-MATCHING-SENTENCE-ENDINGS - Form bilan sinxronlashtirilgan versiya
         if (domNode.name === "drag-drop-matching-sentence-endings") {
           const { attribs } = domNode;
           let options: { value: string; label: string }[] = [];
