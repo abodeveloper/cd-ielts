@@ -4,7 +4,7 @@ import axios from "axios";
 
 // Axios instance
 const api = axios.create({
-  baseURL: "https://cdmock.pythonanywhere.com",
+  baseURL: "https://admin.ieltswonder.uz",
   withCredentials: true, // Cookie yuboriladi
   headers: {
     "Content-Type": "application/json",

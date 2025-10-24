@@ -53,17 +53,30 @@ const TestNavigation = <T extends AllTestParts>({
   return (
     <Card className="w-full shadow-md p-2 sticky bottom-0 z-50 rounded-none">
       <CardContent className="p-0 flex items-center justify-between gap-2 h-[80px]">
-        <TabsList className="grid grid-cols-2 gap-2 min-h-min">
+        <TabsList className={cn(
+          testType === TestType.WRITING 
+            ? "!flex !flex-row w-full gap-2 min-h-min" 
+            : "grid grid-cols-2 gap-2 min-h-min"
+        )}>
           {data.map((part) => {
             const question_numbers = get(part, "question_numbers", []);
 
             return (
-              <div key={part.id} className="flex gap-2">
-                <TabsTrigger value={`tab-${part.id}`}>
+              <div key={part.id} className={cn(
+                testType === TestType.WRITING ? "flex gap-1" : "flex gap-2"
+              )}>
+                <TabsTrigger 
+                  value={`tab-${part.id}`} 
+                  className={cn(
+                    testType === TestType.WRITING 
+                      ? "flex items-center gap-1 px-2 py-1 text-sm"
+                      : "flex items-center gap-2"
+                  )}
+                >
                   Part {renderNumber(part)}
                 </TabsTrigger>
                 {!isEmpty(question_numbers) && (
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-1">
                     {question_numbers?.map((item) => {
                       const value = form.watch(
                         `answers.${item?.question_number - 1}.answer`
@@ -75,7 +88,10 @@ const TestNavigation = <T extends AllTestParts>({
                           htmlFor={item?.question_number?.toString()}
                           onClick={() => setActiveTab(`tab-${part.id}`)}
                           className={cn(
-                            "cursor-pointer rounded h-7 w-7 text-sm flex items-center justify-center",
+                            "cursor-pointer rounded text-sm flex items-center justify-center",
+                            testType === TestType.WRITING 
+                              ? "h-6 w-6"
+                              : "h-7 w-7",
                             isAnswered
                               ? "bg-primary text-background hover:bg-primary/90"
                               : "border border-primary text-primary hover:bg-primary/10"
