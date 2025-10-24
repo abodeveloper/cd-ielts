@@ -1,5 +1,4 @@
 import { cookieService } from "@/lib/cookieService";
-import { useAuthStore } from "@/store/auth-store";
 import axios from "axios";
 
 // Axios instance
@@ -34,17 +33,8 @@ api.interceptors.response.use(
       const { status } = error.response;
 
       if (status === 401) {
-        console.warn("Unauthorized. Logging out...");
-
-        // Tokenni tozalash va auth holatini yangilash
-        useAuthStore.getState().logout();
-
-        // Login sahifasiga yo‘naltirish (faqat agar login sahifasida bo‘lmasa)
-        if (window.location.pathname !== "/login") {
-          window.location.href = "/login";
-        }
-
-        return Promise.reject(error);
+        console.warn("Unauthorized access - staying on current page");
+        // No automatic logout or redirect - user stays on current page
       }
 
       if (status === 403) {
