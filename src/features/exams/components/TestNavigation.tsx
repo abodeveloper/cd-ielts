@@ -77,7 +77,9 @@ const TestNavigation = <T extends AllTestParts>({
                 </TabsTrigger>
                 {!isEmpty(question_numbers) && (
                   <div className="flex flex-wrap gap-1">
-                    {question_numbers?.map((item) => {
+                    {question_numbers
+                      ?.sort((a, b) => a.question_number - b.question_number)
+                      .map((item) => {
                       const value = form.watch(
                         `answers.${item?.question_number - 1}.answer`
                       );
