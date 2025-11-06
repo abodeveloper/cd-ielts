@@ -4,6 +4,20 @@ import parse, { Element } from "html-react-parser";
 import { UseFormReturn } from "react-hook-form";
 import ListeningDragDropTags from "./ListeningDragDropTags";
 import ListeningQuestionInput from "./ListeningQuestionInput";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+} from "@/components/ui/form";
 
 interface QuestionRendererProps {
   htmlString: string;
@@ -84,6 +98,122 @@ const ListeningQuestionRenderer: React.FC<QuestionRendererProps> = ({
                   form={form}
                   isRepeatAnswer={repeatAnswer}
                 />
+              );
+            }
+
+            /** --------------------
+             * Table Tags Input
+             -------------------- **/
+            if (domNode.name === "table-tegs-input") {
+              const { attribs } = domNode;
+              let options: { value: string; label: string }[] = [];
+              let questions: { question_number: number; question_text: string }[] =
+                [];
+
+              try {
+                options = JSON.parse(attribs["data-options"] || "[]");
+                questions = JSON.parse(attribs["data-questions"] || "[]");
+              } catch (error) {
+                console.warn("Error parsing table-tegs-input attributes:", error);
+                return (
+                  <span className="text-destructive">
+                    Invalid table input tags
+                  </span>
+                );
+              }
+
+              const repeatAnswer = attribs["repeat_answer"] !== "False"; // Default true if not specified
+
+              return (
+                <div className="space-y-8 my-8">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead></TableHead>
+                        {options?.map((option) => (
+                          <TableHead key={option.value}>{option.value}</TableHead>
+                        ))}
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {questions.map((question, index) => {
+                        const questionIndex = question.question_number - 1;
+
+                        // Agar repeat_answer false bo'lsa, boshqa savollarda ishlatilgan optionlarni topish
+                        const usedOptions = !repeatAnswer
+                          ? questions
+                              .filter(
+                                (q) => q.question_number !== question.question_number
+                              )
+                              .map((q) => {
+                                const qIndex = q.question_number - 1;
+                                return form.watch(`answers.${qIndex}.answer`);
+                              })
+                              .filter((val) => val && val.trim() !== "")
+                          : [];
+
+                        return (
+                          <TableRow key={index}>
+                            <TableCell>
+                              {question?.question_number}. {question?.question_text}
+                            </TableCell>
+                            {options?.map((option) => {
+                              const isUsed =
+                                !repeatAnswer && usedOptions.includes(option.value);
+                              const currentValue = form.watch(
+                                `answers.${questionIndex}.answer`
+                              );
+                              const isCurrentOption = currentValue === option.value;
+
+                              // Agar option ishlatilgan bo'lsa va bu joriy savolning javobi bo'lmasa, disabled qilish
+                              const isDisabled = isUsed && !isCurrentOption;
+
+                              return (
+                                <TableCell key={option.value}>
+                                  <FormField
+                                    control={form.control}
+                                    name={`answers.${questionIndex}.answer`}
+                                    render={({ field }) => {
+                                      return (
+                                        <FormItem className="flex items-center space-x-2">
+                                          <FormControl>
+                                            <input
+                                              type="radio"
+                                              onChange={() =>
+                                                field.onChange(option.value)
+                                              }
+                                              checked={currentValue === option.value}
+                                              name={`table_tegs_input_question_${question.question_number}`}
+                                              value={option.value}
+                                              id={`${question.question_number}_${option.value}_input`}
+                                              disabled={isDisabled}
+                                              className="h-4 w-4 rounded-full border border-primary appearance-none 
+                                                checked:bg-white 
+                                                relative 
+                                                checked:after:content-[''] 
+                                                checked:after:block 
+                                                checked:after:w-2.5 checked:after:h-2.5 
+                                                checked:after:rounded-full 
+                                                checked:after:bg-primary 
+                                                checked:after:mx-auto checked:after:my-auto 
+                                                checked:after:absolute checked:after:inset-0
+                                                disabled:cursor-not-allowed disabled:opacity-50"
+                                            />
+                                          </FormControl>
+                                          <FormLabel></FormLabel>
+                                        </FormItem>
+                                      );
+                                    }}
+                                  />
+                                </TableCell>
+                              );
+                            })}
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
               );
             }
           }

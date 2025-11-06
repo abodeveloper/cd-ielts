@@ -637,6 +637,8 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
             );
           }
 
+          const repeatAnswer = attribs["repeat_answer"] !== "False"; // Default true if not specified
+
           return (
             <div className="space-y-8 my-8">
               <Table>
@@ -651,54 +653,74 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
                 <TableBody>
                   {questions.map((question, index) => {
                     const questionIndex = question.question_number - 1;
+                    
+                    // Agar repeat_answer false bo'lsa, boshqa savollarda ishlatilgan optionlarni topish
+                    const usedOptions = !repeatAnswer
+                      ? questions
+                          .filter((q) => q.question_number !== question.question_number)
+                          .map((q) => {
+                            const qIndex = q.question_number - 1;
+                            return form.watch(`answers.${qIndex}.answer`);
+                          })
+                          .filter((val) => val && val.trim() !== "")
+                      : [];
+
                     return (
                       <TableRow key={index}>
                         <TableCell>
                           {question?.question_number}. {question?.question_text}
                         </TableCell>
-                        {options?.map((option) => (
-                          <TableCell key={option.value}>
-                            <FormField
-                              control={form.control}
-                              name={`answers.${questionIndex}.answer`}
-                              render={({ field }) => {
-                                // Form qiymatini kuzatish va checked holatini to'g'ri belgilash
-                                const currentValue = form.watch(
-                                  `answers.${questionIndex}.answer`
-                                );
-                                return (
-                                  <FormItem className="flex items-center space-x-2">
-                                    <FormControl>
-                                      <input
-                                        type="radio"
-                                        onMouseDown={handlePreventSelection}
-                                        onChange={() =>
-                                          field.onChange(option.value)
-                                        }
-                                        checked={currentValue === option.value}
-                                        name={`table_tegs_input_question_${question.question_number}`}
-                                        value={option.value}
-                                        id={`${question.question_number}_${option.value}_input`}
-                                        className="h-4 w-4 rounded-full border border-primary appearance-none 
-                                          checked:bg-white 
-                                          relative 
-                                          checked:after:content-[''] 
-                                          checked:after:block 
-                                          checked:after:w-2.5 checked:after:h-2.5 
-                                          checked:after:rounded-full 
-                                          checked:after:bg-primary 
-                                          checked:after:mx-auto checked:after:my-auto 
-                                          checked:after:absolute checked:after:inset-0
-                                          disabled:cursor-not-allowed disabled:opacity-50"
-                                      />
-                                    </FormControl>
-                                    <FormLabel></FormLabel>
-                                  </FormItem>
-                                );
-                              }}
-                            />
-                          </TableCell>
-                        ))}
+                        {options?.map((option) => {
+                          const isUsed = !repeatAnswer && usedOptions.includes(option.value);
+                          const currentValue = form.watch(
+                            `answers.${questionIndex}.answer`
+                          );
+                          const isCurrentOption = currentValue === option.value;
+                          
+                          // Agar option ishlatilgan bo'lsa va bu joriy savolning javobi bo'lmasa, disabled qilish
+                          const isDisabled = isUsed && !isCurrentOption;
+
+                          return (
+                            <TableCell key={option.value}>
+                              <FormField
+                                control={form.control}
+                                name={`answers.${questionIndex}.answer`}
+                                render={({ field }) => {
+                                  return (
+                                    <FormItem className="flex items-center space-x-2">
+                                      <FormControl>
+                                        <input
+                                          type="radio"
+                                          onMouseDown={handlePreventSelection}
+                                          onChange={() =>
+                                            field.onChange(option.value)
+                                          }
+                                          checked={currentValue === option.value}
+                                          name={`table_tegs_input_question_${question.question_number}`}
+                                          value={option.value}
+                                          id={`${question.question_number}_${option.value}_input`}
+                                          disabled={isDisabled}
+                                          className="h-4 w-4 rounded-full border border-primary appearance-none 
+                                            checked:bg-white 
+                                            relative 
+                                            checked:after:content-[''] 
+                                            checked:after:block 
+                                            checked:after:w-2.5 checked:after:h-2.5 
+                                            checked:after:rounded-full 
+                                            checked:after:bg-primary 
+                                            checked:after:mx-auto checked:after:my-auto 
+                                            checked:after:absolute checked:after:inset-0
+                                            disabled:cursor-not-allowed disabled:opacity-50"
+                                        />
+                                      </FormControl>
+                                      <FormLabel></FormLabel>
+                                    </FormItem>
+                                  );
+                                }}
+                              />
+                            </TableCell>
+                          );
+                        })}
                       </TableRow>
                     );
                   })}
