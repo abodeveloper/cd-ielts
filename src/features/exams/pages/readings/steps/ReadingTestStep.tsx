@@ -81,6 +81,7 @@ const ReadingTestStep = ({ onNext }: StepProps) => {
             activeTab={activeTab}
             testType={TestType.READING}
             form={form}
+            testId={id}
           />
           <TestNavigation
             data={parts}

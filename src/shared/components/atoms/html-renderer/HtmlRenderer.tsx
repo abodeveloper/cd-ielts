@@ -1,19 +1,22 @@
-import parse from "html-react-parser";
+import parse, { domToReact } from "html-react-parser";
 import { useRef, useEffect, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { RiEraserLine, RiMarkPenLine } from "@remixicon/react";
 import { processHtmlWithLineBreaks } from "@/shared/utils/text-processor";
+import { useHighlightPersistence } from "@/shared/hooks/useHighlightPersistence";
 
 interface HTMLRendererProps {
   htmlString: string;
   className?: string;
   enabledHighlight?: boolean;
+  storageKey?: string; // Optional: unique key for persistence
 }
 
 const HTMLRendererWithHighlight = ({
   htmlString,
   className = "",
   enabledHighlight = true,
+  storageKey,
 }: HTMLRendererProps) => {
   const contentRef = useRef<HTMLDivElement>(null);
   const [selectedRange, setSelectedRange] = useState<Range | null>(null);
@@ -26,6 +29,21 @@ const HTMLRendererWithHighlight = ({
     useState<HTMLElement | null>(null);
   const lastMouseUpTimeRef = useRef<number>(0);
   const selectionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Use persistence hook if storageKey is provided
+  const { getHtmlWithHighlights, saveHtml } = useHighlightPersistence(
+    storageKey || "",
+    htmlString,
+    undefined // We'll handle state updates manually
+  );
+
+  // Initialize currentHtml with saved version if available
+  const [currentHtml, setCurrentHtml] = useState<string>(() => {
+    if (storageKey) {
+      return getHtmlWithHighlights();
+    }
+    return htmlString;
+  });
 
   const generateHighlightId = () =>
     Date.now().toString() + Math.random().toString(36).slice(2);
@@ -72,6 +90,20 @@ const HTMLRendererWithHighlight = ({
     span.dataset.highlightId = highlightId;
     span.appendChild(fragment);
     range.insertNode(span);
+    
+      // Save HTML after highlighting if persistence is enabled
+      // Use setTimeout to ensure DOM is updated
+      if (storageKey && contentRef.current) {
+        setTimeout(() => {
+          if (contentRef.current) {
+            const htmlWithHighlights = contentRef.current.innerHTML;
+            // Ensure we're saving a valid string
+            if (htmlWithHighlights && typeof htmlWithHighlights === "string") {
+              saveHtml(htmlWithHighlights);
+            }
+          }
+        }, 0);
+      }
   };
 
   const handleHighlightClick = () => {
@@ -280,13 +312,47 @@ const HTMLRendererWithHighlight = ({
       });
     }
 
+    // Save HTML after clearing highlights if persistence is enabled
+    // Use setTimeout to ensure DOM is updated
+    if (storageKey && contentRef.current) {
+      setTimeout(() => {
+        if (contentRef.current) {
+          const htmlWithHighlights = contentRef.current.innerHTML;
+          // Ensure we're saving a valid string
+          if (htmlWithHighlights && typeof htmlWithHighlights === "string") {
+            saveHtml(htmlWithHighlights);
+          }
+        }
+      }, 0);
+    }
+
     setSelectedRange(null);
     setSelectedHighlightElement(null);
     setDropdownPos(null);
   };
 
+  // Update currentHtml when htmlString or storageKey changes
+  useEffect(() => {
+    if (storageKey) {
+      const saved = getHtmlWithHighlights();
+      // Validate that saved HTML is a string and not empty
+      if (saved && typeof saved === "string" && saved.trim().length > 0) {
+        setCurrentHtml(saved);
+      } else {
+        setCurrentHtml(htmlString);
+      }
+    } else {
+      setCurrentHtml(htmlString);
+    }
+  }, [htmlString, storageKey, getHtmlWithHighlights]);
+
+  // Ensure currentHtml is always a valid string
+  const safeHtml = typeof currentHtml === "string" && currentHtml.trim().length > 0 
+    ? currentHtml 
+    : htmlString;
+
   // Process the HTML string to handle line breaks
-  const processedHtmlString = processHtmlWithLineBreaks(htmlString);
+  const processedHtmlString = processHtmlWithLineBreaks(safeHtml);
 
   const parsedHtml = parse(processedHtmlString, {
     replace: (domNode) => {
@@ -304,8 +370,7 @@ const HTMLRendererWithHighlight = ({
             style={{ cursor: "pointer" }}
             key={domNode.attribs["data-highlight-id"] || undefined}
           >
-            {domNode.children &&
-              domNode.children.map((child: any, idx: number) => parse(child))}
+            {domNode.children && domToReact(domNode.children)}
           </span>
         );
       }

@@ -22,12 +22,14 @@ import {
   FormItem,
   FormLabel,
 } from "@/components/ui/form";
+import { useHighlightPersistence } from "@/shared/hooks/useHighlightPersistence";
 
 interface ReadingQuestionRendererProps {
   htmlString: string;
   form: UseFormReturn<ReadingFormValues>;
   className?: string;
   enabledHighlight?: boolean;
+  storageKey?: string; // Optional: unique key for persistence
 }
 
 const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
@@ -35,6 +37,7 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
   form,
   className = "",
   enabledHighlight = true,
+  storageKey,
 }) => {
   const contentRef = useRef<HTMLDivElement>(null);
   const [selectedRange, setSelectedRange] = useState<Range | null>(null);
@@ -47,6 +50,21 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
     useState<HTMLElement | null>(null);
   const lastMouseUpTimeRef = useRef<number>(0);
   const selectionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Use persistence hook if storageKey is provided
+  const { getHtmlWithHighlights, saveHtml } = useHighlightPersistence(
+    storageKey || "",
+    htmlString,
+    undefined // We'll handle state updates manually
+  );
+
+  // Initialize currentHtml with saved version if available
+  const [currentHtml, setCurrentHtml] = useState<string>(() => {
+    if (storageKey) {
+      return getHtmlWithHighlights();
+    }
+    return htmlString;
+  });
 
   const generateHighlightId = () =>
     Date.now().toString() + Math.random().toString(36).slice(2);
@@ -92,6 +110,20 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
       range.insertNode(span);
 
       span.parentNode?.normalize();
+
+      // Save HTML after highlighting if persistence is enabled
+      // Use setTimeout to ensure DOM is updated
+      if (storageKey && contentRef.current) {
+        setTimeout(() => {
+          if (contentRef.current) {
+            const htmlWithHighlights = contentRef.current.innerHTML;
+            // Ensure we're saving a valid string
+            if (htmlWithHighlights && typeof htmlWithHighlights === "string") {
+              saveHtml(htmlWithHighlights);
+            }
+          }
+        }, 0);
+      }
     } catch (error) {
       console.warn("Error applying highlight:", error);
     }
@@ -337,6 +369,20 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
           }
         });
       }
+
+      // Save HTML after clearing highlights if persistence is enabled
+      // Use setTimeout to ensure DOM is updated
+      if (storageKey && contentRef.current) {
+        setTimeout(() => {
+          if (contentRef.current) {
+            const htmlWithHighlights = contentRef.current.innerHTML;
+            // Ensure we're saving a valid string
+            if (htmlWithHighlights && typeof htmlWithHighlights === "string") {
+              saveHtml(htmlWithHighlights);
+            }
+          }
+        }, 0);
+      }
     } catch (error) {
       console.warn("Error clearing highlight:", error);
     }
@@ -353,7 +399,27 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
     }
   };
 
-  const parsedHtml = parse(htmlString, {
+  // Update currentHtml when htmlString or storageKey changes
+  useEffect(() => {
+    if (storageKey) {
+      const saved = getHtmlWithHighlights();
+      // Validate that saved HTML is a string and not empty
+      if (saved && typeof saved === "string" && saved.trim().length > 0) {
+        setCurrentHtml(saved);
+      } else {
+        setCurrentHtml(htmlString);
+      }
+    } else {
+      setCurrentHtml(htmlString);
+    }
+  }, [htmlString, storageKey, getHtmlWithHighlights]);
+
+  // Ensure currentHtml is always a valid string
+  const safeHtml = typeof currentHtml === "string" && currentHtml.trim().length > 0 
+    ? currentHtml 
+    : htmlString;
+
+  const parsedHtml = parse(safeHtml, {
     replace: (domNode) => {
       if (domNode instanceof Element) {
         if (

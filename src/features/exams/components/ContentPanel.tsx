@@ -39,6 +39,7 @@ interface ContentPanelProps<T extends AllTestParts> {
   activeTab: string;
   testType: TestType;
   form: UseFormReturn;
+  testId?: string; // Optional: test ID for highlight persistence
 }
 
 const ContentPanel = <T extends AllTestParts>({
@@ -46,6 +47,7 @@ const ContentPanel = <T extends AllTestParts>({
   activeTab,
   testType,
   form,
+  testId,
 }: ContentPanelProps<T>) => {
   const renderContent = (part: T, index: number) => {
     switch (testType) {
@@ -57,6 +59,7 @@ const ContentPanel = <T extends AllTestParts>({
             <ReadingQuestionContent
               part={part}
               form={form as UseFormReturn<ReadingFormValues>}
+              testId={testId}
             />
           </>
         );
@@ -69,6 +72,7 @@ const ContentPanel = <T extends AllTestParts>({
           <ListeningQuestionContent
             part={part}
             form={form as UseFormReturn<ListeningFormValues>}
+            testId={testId}
           />
         );
       case TestType.WRITING:
@@ -81,6 +85,7 @@ const ContentPanel = <T extends AllTestParts>({
             part={part}
             index={index}
             form={form as UseFormReturn<WritingFormValues>}
+            testId={testId}
           />
         );
       default:

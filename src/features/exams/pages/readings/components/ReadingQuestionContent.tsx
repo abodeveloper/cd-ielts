@@ -8,12 +8,22 @@ import ReadingQuestionRenderer from "./ReadingQuestionRenderer";
 interface ReadingQuestionContentProps {
   part: ReadingPart;
   form: UseFormReturn<ReadingFormValues>;
+  testId?: string;
 }
 
 const ReadingQuestionContent = ({
   part,
   form,
+  testId,
 }: ReadingQuestionContentProps) => {
+  // Create storage keys for persistence
+  const contentStorageKey = testId && part.id 
+    ? `reading-${testId}-${part.id}-content` 
+    : undefined;
+  const questionsStorageKey = testId && part.id 
+    ? `reading-${testId}-${part.id}-questions` 
+    : undefined;
+
   return (
     <div className="h-[calc(100vh-232px)]">
       <ResizableContent
@@ -21,6 +31,8 @@ const ReadingQuestionContent = ({
           <HTMLRenderer
             className="h-full overflow-y-auto p-6 text-sm"
             htmlString={part.content || "<p>Sample content for testing</p>"}
+            enabledHighlight={true}
+            storageKey={contentStorageKey}
           />
         }
         rightContent={
@@ -29,6 +41,7 @@ const ReadingQuestionContent = ({
               <ReadingQuestionRenderer
                 htmlString={part.questions}
                 form={form}
+                storageKey={questionsStorageKey}
               />
             ) : (
               <div>No questions available</div>

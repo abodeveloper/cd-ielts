@@ -10,9 +10,18 @@ import ReadingQuestionRenderer from "../../readings/components/ReadingQuestionRe
 interface Props {
   part: ListeningPart;
   form: UseFormReturn<ListeningFormValues>;
+  testId?: string;
 }
 
-const ListeningQuestionContent = ({ part, form }: Props) => {
+const ListeningQuestionContent = ({ part, form, testId }: Props) => {
+  // Create storage keys for persistence
+  const scriptStorageKey = testId && part.id 
+    ? `listening-${testId}-${part.id}-script` 
+    : undefined;
+  const questionsStorageKey = testId && part.id 
+    ? `listening-${testId}-${part.id}-questions` 
+    : undefined;
+
   return (
     <div className="h-[calc(100vh-232px)]">
       {part.is_script ? (
@@ -21,6 +30,7 @@ const ListeningQuestionContent = ({ part, form }: Props) => {
             <HTMLRendererWithHighlight
               className="h-full overflow-y-auto p-6 text-sm"
               htmlString={part.audioscript}
+              storageKey={scriptStorageKey}
             />
           }
           rightContent={
@@ -29,6 +39,7 @@ const ListeningQuestionContent = ({ part, form }: Props) => {
                 <ReadingQuestionRenderer
                   htmlString={part.questions}
                   form={form}
+                  storageKey={questionsStorageKey}
                 />
               ) : (
                 <div>No questions available</div>
@@ -47,6 +58,7 @@ const ListeningQuestionContent = ({ part, form }: Props) => {
                 <ReadingQuestionRenderer
                   htmlString={part.questions}
                   form={form}
+                  storageKey={questionsStorageKey}
                 />
               ) : (
                 <div>No questions available</div>

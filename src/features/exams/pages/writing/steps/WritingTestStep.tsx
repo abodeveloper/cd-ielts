@@ -84,6 +84,7 @@ const WritingTestStep = () => {
             activeTab={activeTab}
             testType={TestType.WRITING}
             form={form}
+            testId={id}
           />
           <TestNavigation
             data={parts}

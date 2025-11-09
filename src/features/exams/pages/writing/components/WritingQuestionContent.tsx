@@ -18,12 +18,14 @@ interface WritingQuestionContentProps {
   part: WritingPart;
   form: UseFormReturn<WritingFormValues>;
   index: number;
+  testId?: string;
 }
 
 const WritingQuestionContent = ({
   part,
   form,
   index,
+  testId,
 }: WritingQuestionContentProps) => {
   const answerValue = form.watch(`answers.${index}.answer`) || "";
   // Calculate word count by splitting on whitespace and filtering out empty strings
@@ -33,6 +35,11 @@ const WritingQuestionContent = ({
     .filter((word) => word.length > 0).length;
   const [fontSize, setFontSize] = useState("16px"); // Mahalliy holat uchun font o'lchami
 
+  // Create storage key for persistence
+  const questionStorageKey = testId && part.id 
+    ? `writing-${testId}-${part.id}-question` 
+    : undefined;
+
   return (
     <div className="h-[calc(100vh-232px)] bg-muted">
       <ResizableContent
@@ -40,6 +47,8 @@ const WritingQuestionContent = ({
           <HTMLRenderer
             className="h-full overflow-y-auto p-6 text-sm"
             htmlString={part.writing_questions[0].question}
+            enabledHighlight={true}
+            storageKey={questionStorageKey}
           />
         }
         rightContent={
