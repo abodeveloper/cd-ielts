@@ -69,73 +69,119 @@ const ReadingQuestionInput: React.FC<Props> = ({
 
   if (type === ReadingQuestionType.TRUE_FALSE_NOT_GIVEN) {
     return (
-      <RadioGroup className="gap-4 my-5">
-        <MyQuestionRadio<ReadingFormValues>
-          control={form.control}
-          name={`answers.${questionNumber}.answer`}
-          value="TRUE"
-          id={number}
-          label={"TRUE"}
-        />
-        <MyQuestionRadio<ReadingFormValues>
-          control={form.control}
-          name={`answers.${questionNumber}.answer`}
-          value="FALSE"
-          id={number}
-          label={"FALSE"}
-        />
-        <MyQuestionRadio<ReadingFormValues>
-          control={form.control}
-          name={`answers.${questionNumber}.answer`}
-          value="NOT GIVEN"
-          id={number}
-          label={"NOT GIVEN"}
-        />
-      </RadioGroup>
+      <FormField
+        control={form.control}
+        name={`answers.${questionNumber}.answer`}
+        render={({ field }) => (
+          <FormItem className="my-5">
+            <FormControl>
+              <RadioGroup
+                value={field.value || ""}
+                onValueChange={field.onChange}
+                className="gap-4"
+              >
+                <MyQuestionRadio<ReadingFormValues>
+                  control={form.control}
+                  name={`answers.${questionNumber}.answer`}
+                  value="TRUE"
+                  id={number}
+                  label={"TRUE"}
+                />
+                <MyQuestionRadio<ReadingFormValues>
+                  control={form.control}
+                  name={`answers.${questionNumber}.answer`}
+                  value="FALSE"
+                  id={number}
+                  label={"FALSE"}
+                />
+                <MyQuestionRadio<ReadingFormValues>
+                  control={form.control}
+                  name={`answers.${questionNumber}.answer`}
+                  value="NOT GIVEN"
+                  id={number}
+                  label={"NOT GIVEN"}
+                />
+              </RadioGroup>
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
     );
   }
 
   if (type === ReadingQuestionType.YES_NO_NOT_GIVEN) {
     return (
-      <RadioGroup className="gap-4 my-5">
-        <MyQuestionRadio<ReadingFormValues>
-          control={form.control}
-          name={`answers.${questionNumber}.answer`}
-          value="YES"
-          id={number}
-          label={"YES"}
-        />
-        <MyQuestionRadio<ReadingFormValues>
-          control={form.control}
-          name={`answers.${questionNumber}.answer`}
-          value="NO"
-          id={number}
-          label={"NO"}
-        />
-        <MyQuestionRadio<ReadingFormValues>
-          control={form.control}
-          name={`answers.${questionNumber}.answer`}
-          value="NOT GIVEN"
-          id={number}
-          label={"NOT GIVEN"}
-        />
-      </RadioGroup>
+      <FormField
+        control={form.control}
+        name={`answers.${questionNumber}.answer`}
+        render={({ field }) => (
+          <FormItem className="my-5">
+            <FormControl>
+              <RadioGroup
+                value={field.value || ""}
+                onValueChange={field.onChange}
+                className="gap-4"
+              >
+                <MyQuestionRadio<ReadingFormValues>
+                  control={form.control}
+                  name={`answers.${questionNumber}.answer`}
+                  value="YES"
+                  id={number}
+                  label={"YES"}
+                />
+                <MyQuestionRadio<ReadingFormValues>
+                  control={form.control}
+                  name={`answers.${questionNumber}.answer`}
+                  value="NO"
+                  id={number}
+                  label={"NO"}
+                />
+                <MyQuestionRadio<ReadingFormValues>
+                  control={form.control}
+                  name={`answers.${questionNumber}.answer`}
+                  value="NOT GIVEN"
+                  id={number}
+                  label={"NOT GIVEN"}
+                />
+              </RadioGroup>
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
     );
   }
 
   if (type === ReadingQuestionType.MULTIPLE_CHOICE) {
     return (
-      <RadioGroup className="gap-4 my-5">
-        {options?.map((option) => (
-          <MyQuestionRadio<ReadingFormValues>
-            control={form.control}
-            name={`answers.${questionNumber}.answer`}
-            value={option.value}
-            id={number}
-            label={`${option.value}) ${option.label}`}
-          />
-        ))}
-      </RadioGroup>
+      <FormField
+        control={form.control}
+        name={`answers.${questionNumber}.answer`}
+        render={({ field }) => (
+          <FormItem className="my-5">
+            <FormControl>
+              <RadioGroup
+                value={field.value || ""}
+                onValueChange={field.onChange}
+                className="gap-4"
+              >
+                {options?.map((option) => (
+                  <MyQuestionRadio<ReadingFormValues>
+                    key={option.value}
+                    control={form.control}
+                    name={`answers.${questionNumber}.answer`}
+                    value={option.value}
+                    id={number}
+                    label={`${option.value}) ${option.label}`}
+                  />
+                ))}
+              </RadioGroup>
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
     );
   }
 

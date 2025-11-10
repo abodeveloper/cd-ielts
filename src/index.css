@@ -86,3 +86,44 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Highlight styles - ensure form elements remain clickable */
+.highlight {
+  background-color: rgba(255, 255, 0, 0.3);
+  position: relative;
+  pointer-events: none; /* Highlight span itself should not block clicks */
+}
+
+/* Make text inside highlight selectable but not blocking */
+.highlight * {
+  pointer-events: auto;
+}
+
+/* Allow form elements inside highlights to receive pointer events and be fully interactive */
+.highlight input,
+.highlight button,
+.highlight label,
+.highlight textarea,
+.highlight select,
+.highlight input[type="radio"] {
+  position: relative;
+  z-index: 999 !important;
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}
+
+/* Ensure radio buttons and their containers remain interactive */
+.highlight .FormItem,
+.highlight .FormControl,
+.highlight [role="radio"],
+.highlight [role="radiogroup"] {
+  position: relative;
+  z-index: 999 !important;
+  pointer-events: auto !important;
+}
+
+/* Ensure SVG circles in radio buttons are clickable */
+.highlight svg {
+  pointer-events: auto !important;
+  z-index: 999 !important;
+}

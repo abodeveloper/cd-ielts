@@ -29,22 +29,31 @@ const MyQuestionRadio = <TFieldValues extends FieldValues>({
       control={control}
       name={name}
       rules={rules}
-      render={({ field }) => (
-        <FormItem className="flex flex-row items-center space-x-3">
-          <FormControl>
-            <RadioGroupItem
-              value={value}
-              checked={field.value === value}
-              onClick={() => field.onChange(value)}
-              {...props}
-            />
-          </FormControl>
-          <div className="space-y-1 leading-none">
-            {label && <FormLabel>{label}</FormLabel>}
-            {helperText && <FormDescription>{helperText}</FormDescription>}
-          </div>
-        </FormItem>
-      )}
+      render={({ field }) => {
+        const handleClick = () => {
+          field.onChange(value);
+        };
+
+        return (
+          <FormItem className="flex flex-row items-center space-x-3">
+            <FormControl>
+              <RadioGroupItem
+                value={value}
+                checked={field.value === value}
+                onClick={handleClick}
+                onMouseDown={(e) => {
+                  e.stopPropagation();
+                }}
+                {...props}
+              />
+            </FormControl>
+            <div className="space-y-1 leading-none cursor-pointer" onClick={handleClick}>
+              {label && <FormLabel className="cursor-pointer">{label}</FormLabel>}
+              {helperText && <FormDescription>{helperText}</FormDescription>}
+            </div>
+          </FormItem>
+        );
+      }}
     />
   ) : (
     <div className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">

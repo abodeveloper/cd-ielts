@@ -3,7 +3,6 @@ import { useRef, useEffect, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { RiEraserLine, RiMarkPenLine } from "@remixicon/react";
 import { processHtmlWithLineBreaks } from "@/shared/utils/text-processor";
-import { useHighlightPersistence } from "@/shared/hooks/useHighlightPersistence";
 
 interface HTMLRendererProps {
   htmlString: string;
@@ -30,20 +29,9 @@ const HTMLRendererWithHighlight = ({
   const lastMouseUpTimeRef = useRef<number>(0);
   const selectionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
-  // Use persistence hook if storageKey is provided
-  const { getHtmlWithHighlights, saveHtml } = useHighlightPersistence(
-    storageKey || "",
-    htmlString,
-    undefined // We'll handle state updates manually
-  );
-
-  // Initialize currentHtml with saved version if available
-  const [currentHtml, setCurrentHtml] = useState<string>(() => {
-    if (storageKey) {
-      return getHtmlWithHighlights();
-    }
-    return htmlString;
-  });
+  // Use localStorage for highlights (separate from form values)
+  const [currentHtml, setCurrentHtml] = useState<string>(htmlString);
+  const highlightsAppliedRef = useRef<boolean>(false);
 
   const generateHighlightId = () =>
     Date.now().toString() + Math.random().toString(36).slice(2);
@@ -91,19 +79,18 @@ const HTMLRendererWithHighlight = ({
     span.appendChild(fragment);
     range.insertNode(span);
     
-      // Save HTML after highlighting if persistence is enabled
-      // Use setTimeout to ensure DOM is updated
-      if (storageKey && contentRef.current) {
-        setTimeout(() => {
-          if (contentRef.current) {
-            const htmlWithHighlights = contentRef.current.innerHTML;
-            // Ensure we're saving a valid string
-            if (htmlWithHighlights && typeof htmlWithHighlights === "string") {
-              saveHtml(htmlWithHighlights);
-            }
+    // Save highlights to localStorage
+    if (storageKey && contentRef.current) {
+      setTimeout(() => {
+        if (contentRef.current) {
+          try {
+            localStorage.setItem(`highlights_${storageKey}`, contentRef.current.innerHTML);
+          } catch (error) {
+            console.warn("Failed to save highlights:", error);
           }
-        }, 0);
-      }
+        }
+      }, 0);
+    }
   };
 
   const handleHighlightClick = () => {
@@ -312,15 +299,14 @@ const HTMLRendererWithHighlight = ({
       });
     }
 
-    // Save HTML after clearing highlights if persistence is enabled
-    // Use setTimeout to ensure DOM is updated
+    // Save highlights to localStorage after clearing
     if (storageKey && contentRef.current) {
       setTimeout(() => {
         if (contentRef.current) {
-          const htmlWithHighlights = contentRef.current.innerHTML;
-          // Ensure we're saving a valid string
-          if (htmlWithHighlights && typeof htmlWithHighlights === "string") {
-            saveHtml(htmlWithHighlights);
+          try {
+            localStorage.setItem(`highlights_${storageKey}`, contentRef.current.innerHTML);
+          } catch (error) {
+            console.warn("Failed to save highlights:", error);
           }
         }
       }, 0);
@@ -331,20 +317,86 @@ const HTMLRendererWithHighlight = ({
     setDropdownPos(null);
   };
 
-  // Update currentHtml when htmlString or storageKey changes
+  // Update currentHtml when htmlString changes
+  // Always use fresh htmlString to ensure content is correct
   useEffect(() => {
-    if (storageKey) {
-      const saved = getHtmlWithHighlights();
-      // Validate that saved HTML is a string and not empty
-      if (saved && typeof saved === "string" && saved.trim().length > 0) {
-        setCurrentHtml(saved);
-      } else {
-        setCurrentHtml(htmlString);
+    setCurrentHtml(htmlString);
+    highlightsAppliedRef.current = false;
+  }, [htmlString]);
+
+  // Restore highlights from localStorage after DOM is ready
+  useEffect(() => {
+    if (storageKey && contentRef.current && !highlightsAppliedRef.current) {
+      try {
+        const savedHighlights = localStorage.getItem(`highlights_${storageKey}`);
+        if (savedHighlights) {
+          // Wait for DOM to render first
+          setTimeout(() => {
+            if (contentRef.current) {
+              // Create a temporary div to parse saved HTML
+              const tempDiv = document.createElement('div');
+              tempDiv.innerHTML = savedHighlights;
+              
+              // Extract all highlight spans
+              const highlightSpans = tempDiv.querySelectorAll('.highlight');
+              
+              if (highlightSpans.length > 0) {
+                // Apply highlights to current DOM
+                highlightSpans.forEach((savedSpan) => {
+                  const highlightId = savedSpan.getAttribute('data-highlight-id');
+                  const textContent = savedSpan.textContent;
+                  
+                  if (textContent && contentRef.current) {
+                    // Find and highlight matching text in current DOM
+                    const walker = document.createTreeWalker(
+                      contentRef.current,
+                      NodeFilter.SHOW_TEXT,
+                      null
+                    );
+                    
+                    let node;
+                    while (node = walker.nextNode()) {
+                      const text = node.textContent || '';
+                      const index = text.indexOf(textContent);
+                      
+                      if (index !== -1 && node.parentElement) {
+                        // Check if already highlighted
+                        if (!node.parentElement.classList.contains('highlight')) {
+                          try {
+                            const range = document.createRange();
+                            range.setStart(node, index);
+                            range.setEnd(node, index + textContent.length);
+                            
+                            const span = document.createElement('span');
+                            span.className = 'highlight';
+                            span.dataset.highlightId = highlightId || Date.now().toString();
+                            
+                            const fragment = range.extractContents();
+                            span.appendChild(fragment);
+                            range.insertNode(span);
+                            
+                            break;
+                          } catch (e) {
+                            // Continue to next match
+                          }
+                        }
+                      }
+                    }
+                  }
+                });
+              }
+            }
+            highlightsAppliedRef.current = true;
+          }, 150); // Small delay to ensure DOM is rendered
+        } else {
+          highlightsAppliedRef.current = true;
+        }
+      } catch (error) {
+        console.warn("Failed to restore highlights:", error);
+        highlightsAppliedRef.current = true;
       }
-    } else {
-      setCurrentHtml(htmlString);
     }
-  }, [htmlString, storageKey, getHtmlWithHighlights]);
+  }, [storageKey, currentHtml]);
 
   // Ensure currentHtml is always a valid string
   const safeHtml = typeof currentHtml === "string" && currentHtml.trim().length > 0 

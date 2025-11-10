@@ -4,6 +4,7 @@ import { ReadingPart } from "@/features/exams/types";
 import HTMLRenderer from "@/shared/components/atoms/html-renderer/HtmlRenderer";
 import { UseFormReturn } from "react-hook-form";
 import ReadingQuestionRenderer from "./ReadingQuestionRenderer";
+import { useAuthStore } from "@/store/auth-store";
 
 interface ReadingQuestionContentProps {
   part: ReadingPart;
@@ -16,12 +17,15 @@ const ReadingQuestionContent = ({
   form,
   testId,
 }: ReadingQuestionContentProps) => {
-  // Create storage keys for persistence
+  const { user } = useAuthStore();
+  const userId = user?.id || 'guest';
+  
+  // Create storage keys for persistence (per user)
   const contentStorageKey = testId && part.id 
-    ? `reading-${testId}-${part.id}-content` 
+    ? `reading-${userId}-${testId}-${part.id}-content` 
     : undefined;
   const questionsStorageKey = testId && part.id 
-    ? `reading-${testId}-${part.id}-questions` 
+    ? `reading-${userId}-${testId}-${part.id}-questions` 
     : undefined;
 
   return (

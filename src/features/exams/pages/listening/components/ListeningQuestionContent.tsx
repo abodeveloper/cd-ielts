@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import HTMLRendererWithHighlight from "@/shared/components/atoms/html-renderer/HtmlRenderer";
 import { UseFormReturn } from "react-hook-form";
 import ReadingQuestionRenderer from "../../readings/components/ReadingQuestionRenderer";
+import { useAuthStore } from "@/store/auth-store";
 
 interface Props {
   part: ListeningPart;
@@ -14,12 +15,15 @@ interface Props {
 }
 
 const ListeningQuestionContent = ({ part, form, testId }: Props) => {
-  // Create storage keys for persistence
+  const { user } = useAuthStore();
+  const userId = user?.id || 'guest';
+  
+  // Create storage keys for persistence (per user)
   const scriptStorageKey = testId && part.id 
-    ? `listening-${testId}-${part.id}-script` 
+    ? `listening-${userId}-${testId}-${part.id}-script` 
     : undefined;
   const questionsStorageKey = testId && part.id 
-    ? `listening-${testId}-${part.id}-questions` 
+    ? `listening-${userId}-${testId}-${part.id}-questions` 
     : undefined;
 
   return (

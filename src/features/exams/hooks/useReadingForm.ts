@@ -22,6 +22,9 @@ export const useReadingForm = (
   const { user } = useAuthStore();
   const navigate = useNavigate();
   const query = useReading(id);
+  
+  // User ID ni olish
+  const userId = user?.id || 'guest';
 
   const is_view = get(query.data, "is_view");
   const material = get(query.data, "material");
@@ -88,6 +91,9 @@ export const useReadingForm = (
     name: "answers",
   });
 
+  // LocalStorage key uchun unique ID (per user)
+  const storageKey = `reading_answers_${userId}_${id}`;
+
   useEffect(() => {
     const data = query.data;
 
@@ -105,17 +111,17 @@ export const useReadingForm = (
       )
     );
 
-    // bo‘sh massiv tayyorlab olamiz
+    // bo'sh massiv tayyorlab olamiz
     const allQuestions: {
       reading_id: number;
       question_number: number;
       answer: string;
     }[] = Array(maxQuestionNumber)?.fill(null);
 
-    // endi har bir question_number ni o‘z joyiga qo‘yamiz
+    // endi har bir question_number ni o'z joyiga qo'yamiz
     data.reading_parts.forEach((part) => {
       part?.question_numbers?.forEach((q) => {
-        const index = q.question_number - 1; // 1-based bo‘lsa
+        const index = q.question_number - 1; // 1-based bo'lsa
         allQuestions[index] = {
           reading_id: part.id,
           question_number: q.question_number,
@@ -124,8 +130,38 @@ export const useReadingForm = (
       });
     });
 
+    // LocalStorage dan saqlangan javoblarni yuklash
+    try {
+      const savedAnswers = localStorage.getItem(storageKey);
+      if (savedAnswers) {
+        const parsedAnswers = JSON.parse(savedAnswers);
+        // Saqlangan javoblarni merge qilish
+        allQuestions.forEach((q, index) => {
+          if (parsedAnswers[index] && parsedAnswers[index].answer) {
+            allQuestions[index].answer = parsedAnswers[index].answer;
+          }
+        });
+      }
+    } catch (error) {
+      console.warn("Failed to load saved answers:", error);
+    }
+
     replace(allQuestions);
-  }, [query.data, replace]);
+  }, [query.data, replace, storageKey]);
+
+  // Form qiymatlarini kuzatish va localStorage ga saqlash
+  useEffect(() => {
+    const subscription = form.watch((value) => {
+      if (value.answers && value.answers.length > 0) {
+        try {
+          localStorage.setItem(storageKey, JSON.stringify(value.answers));
+        } catch (error) {
+          console.warn("Failed to save answers:", error);
+        }
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form, storageKey]);
 
   const onSubmit = (data: ReadingFormValues) => {
     // null yoki undefined elementlarni olib tashlaymiz
@@ -134,6 +170,13 @@ export const useReadingForm = (
     );
 
     readingMutation.mutate(submitData);
+    
+    // Submit qilingandan keyin localStorage dan o'chirish
+    try {
+      localStorage.removeItem(storageKey);
+    } catch (error) {
+      console.warn("Failed to clear saved answers:", error);
+    }
   };
 
   return {

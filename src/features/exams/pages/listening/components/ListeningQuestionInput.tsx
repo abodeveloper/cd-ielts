@@ -1,4 +1,10 @@
 // QuestionInput.tsx
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from "@/components/ui/form";
 import { RadioGroup } from "@/components/ui/radio-group";
 import { ListeningFormValues } from "@/features/exams/schemas/listening-schema";
 import MyQuestionInput from "@/shared/components/atoms/question-inputs/MyQuestionInput";
@@ -48,21 +54,33 @@ const ListeningQuestionInput: React.FC<Props> = ({
 
   if (type === ListeningQuestionType.MULTIPLE_CHOICE) {
     return (
-      <>
-        <RadioGroup className="gap-4 my-5">
-          {options?.map((option) => {
-            return (
-              <MyQuestionRadio<ListeningFormValues>
-                control={form.control}
-                name={`answers.${questionNumber}.answer`}
-                value={option.value}
-                id={number}
-                label={`${option.value}) ${option.label}`}
-              />
-            );
-          })}
-        </RadioGroup>
-      </>
+      <FormField
+        control={form.control}
+        name={`answers.${questionNumber}.answer`}
+        render={({ field }) => (
+          <FormItem className="my-5">
+            <FormControl>
+              <RadioGroup
+                value={field.value || ""}
+                onValueChange={field.onChange}
+                className="gap-4"
+              >
+                {options?.map((option) => (
+                  <MyQuestionRadio<ListeningFormValues>
+                    key={option.value}
+                    control={form.control}
+                    name={`answers.${questionNumber}.answer`}
+                    value={option.value}
+                    id={number}
+                    label={`${option.value}) ${option.label}`}
+                  />
+                ))}
+              </RadioGroup>
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
     );
   }
 

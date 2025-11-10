@@ -5,7 +5,7 @@ import { RiCloseLine, RiEraserLine, RiMarkPenLine } from "@remixicon/react";
 import { ReadingFormValues } from "@/features/exams/schemas/reading-schema";
 import MyQuestionCheckboxGroup from "@/shared/components/atoms/question-inputs/MyQuestionCheckboxGroup";
 import { ReadingQuestionType } from "@/shared/enums/reading-question-type.enum";
-import { UseFormReturn } from "react-hook-form";
+import { UseFormReturn, useWatch } from "react-hook-form";
 import DragDropTags from "./DragDropTags";
 import ReadingQuestionInput from "./ReadingQuestionInput";
 import {
@@ -22,7 +22,6 @@ import {
   FormItem,
   FormLabel,
 } from "@/components/ui/form";
-import { useHighlightPersistence } from "@/shared/hooks/useHighlightPersistence";
 
 interface ReadingQuestionRendererProps {
   htmlString: string;
@@ -51,20 +50,9 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
   const lastMouseUpTimeRef = useRef<number>(0);
   const selectionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
-  // Use persistence hook if storageKey is provided
-  const { getHtmlWithHighlights, saveHtml } = useHighlightPersistence(
-    storageKey || "",
-    htmlString,
-    undefined // We'll handle state updates manually
-  );
-
-  // Initialize currentHtml with saved version if available
-  const [currentHtml, setCurrentHtml] = useState<string>(() => {
-    if (storageKey) {
-      return getHtmlWithHighlights();
-    }
-    return htmlString;
-  });
+  // Use localStorage for highlights (separate from form values)
+  const [currentHtml, setCurrentHtml] = useState<string>(htmlString);
+  const highlightsAppliedRef = useRef(false);
 
   const generateHighlightId = () =>
     Date.now().toString() + Math.random().toString(36).slice(2);
@@ -72,7 +60,25 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
   const isNonSelectableElement = (node: Node): boolean => {
     if (node instanceof HTMLElement) {
       const tagName = node.tagName.toLowerCase();
-      return ["input", "button", "textarea", "select"].includes(tagName);
+      // Check if it's a non-selectable element (input, button, etc.)
+      if (["input", "button", "textarea", "select"].includes(tagName)) {
+        return true;
+      }
+      // Check if it's directly inside FormControl or FormItem (radio button area)
+      const closestFormControl = node.closest('.FormControl, .FormItem');
+      if (closestFormControl) {
+        return true;
+      }
+    }
+    // For text nodes, check if parent is a form control
+    if (node.nodeType === Node.TEXT_NODE && node.parentElement) {
+      const parent = node.parentElement;
+      // Don't highlight text inside form controls
+      if (parent.closest('.FormControl, .FormItem')) {
+        return true;
+      }
+      // Allow highlighting question text in table cells
+      return false;
     }
     return false;
   };
@@ -111,15 +117,14 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
 
       span.parentNode?.normalize();
 
-      // Save HTML after highlighting if persistence is enabled
-      // Use setTimeout to ensure DOM is updated
+      // Save highlights to localStorage
       if (storageKey && contentRef.current) {
         setTimeout(() => {
           if (contentRef.current) {
-            const htmlWithHighlights = contentRef.current.innerHTML;
-            // Ensure we're saving a valid string
-            if (htmlWithHighlights && typeof htmlWithHighlights === "string") {
-              saveHtml(htmlWithHighlights);
+            try {
+              localStorage.setItem(`highlights_${storageKey}`, contentRef.current.innerHTML);
+            } catch (error) {
+              console.warn("Failed to save highlights:", error);
             }
           }
         }, 0);
@@ -257,7 +262,21 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
     }, 150);
   }, [enabledHighlight]);
 
-  const handleMouseUp = useCallback(() => {
+  const handleMouseUp = useCallback((e: MouseEvent) => {
+    // Agar radio button, input, button yoki form elementiga bosilsa, highlight qilishni to'xtatamiz
+    const target = e.target as HTMLElement;
+    if (target) {
+      const tagName = target.tagName?.toLowerCase();
+      // Check if clicked on form elements
+      if (['input', 'button', 'textarea', 'select', 'label'].includes(tagName)) {
+        return;
+      }
+      // Check if clicked inside form control (radio button area)
+      if (target.closest('.FormControl, .FormItem')) {
+        return;
+      }
+    }
+
     const currentTime = Date.now();
     if (currentTime - lastMouseUpTimeRef.current < 300) {
       return;
@@ -266,14 +285,27 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
     processSelection();
   }, [processSelection]);
 
-  const handleDoubleClick = useCallback(() => {
+  const handleDoubleClick = useCallback((e: MouseEvent) => {
+    // Agar radio button, input yoki form elementiga bosilsa, highlight qilishni to'xtatamiz
+    const target = e.target as HTMLElement;
+    if (target) {
+      const tagName = target.tagName?.toLowerCase();
+      // Check if clicked on form elements
+      if (['input', 'button', 'textarea', 'select', 'label'].includes(tagName)) {
+        return;
+      }
+      // Check if clicked inside form control (radio button area)
+      if (target.closest('.FormControl, .FormItem')) {
+        return;
+      }
+    }
     processSelection();
   }, [processSelection]);
 
   useEffect(() => {
     if (!enabledHighlight) return;
-    document.addEventListener("mouseup", handleMouseUp);
-    document.addEventListener("dblclick", handleDoubleClick);
+    document.addEventListener("mouseup", handleMouseUp as EventListener);
+    document.addEventListener("dblclick", handleDoubleClick as EventListener);
 
     const handleBodyClick = (e: MouseEvent) => {
       if (!contentRef.current?.contains(e.target as Node)) {
@@ -284,8 +316,8 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
     document.body.addEventListener("click", handleBodyClick);
 
     return () => {
-      document.removeEventListener("mouseup", handleMouseUp);
-      document.removeEventListener("dblclick", handleDoubleClick);
+      document.removeEventListener("mouseup", handleMouseUp as EventListener);
+      document.removeEventListener("dblclick", handleDoubleClick as EventListener);
       document.body.removeEventListener("click", handleBodyClick);
       if (selectionTimeoutRef.current) {
         clearTimeout(selectionTimeoutRef.current);
@@ -370,15 +402,14 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
         });
       }
 
-      // Save HTML after clearing highlights if persistence is enabled
-      // Use setTimeout to ensure DOM is updated
+      // Save highlights to localStorage after clearing
       if (storageKey && contentRef.current) {
         setTimeout(() => {
           if (contentRef.current) {
-            const htmlWithHighlights = contentRef.current.innerHTML;
-            // Ensure we're saving a valid string
-            if (htmlWithHighlights && typeof htmlWithHighlights === "string") {
-              saveHtml(htmlWithHighlights);
+            try {
+              localStorage.setItem(`highlights_${storageKey}`, contentRef.current.innerHTML);
+            } catch (error) {
+              console.warn("Failed to save highlights:", error);
             }
           }
         }, 0);
@@ -399,20 +430,86 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
     }
   };
 
-  // Update currentHtml when htmlString or storageKey changes
+  // Update currentHtml when htmlString changes
+  // ALWAYS use fresh htmlString to ensure form values are correct from localStorage
   useEffect(() => {
-    if (storageKey) {
-      const saved = getHtmlWithHighlights();
-      // Validate that saved HTML is a string and not empty
-      if (saved && typeof saved === "string" && saved.trim().length > 0) {
-        setCurrentHtml(saved);
-      } else {
-        setCurrentHtml(htmlString);
+    setCurrentHtml(htmlString);
+    highlightsAppliedRef.current = false;
+  }, [htmlString]);
+
+  // Restore highlights from localStorage after DOM is ready
+  useEffect(() => {
+    if (storageKey && contentRef.current && !highlightsAppliedRef.current) {
+      try {
+        const savedHighlights = localStorage.getItem(`highlights_${storageKey}`);
+        if (savedHighlights) {
+          // Wait for form inputs to render first
+          setTimeout(() => {
+            if (contentRef.current) {
+              // Create a temporary div to parse saved HTML
+              const tempDiv = document.createElement('div');
+              tempDiv.innerHTML = savedHighlights;
+              
+              // Extract all highlight spans
+              const highlightSpans = tempDiv.querySelectorAll('.highlight');
+              
+              if (highlightSpans.length > 0) {
+                // Apply highlights to current DOM
+                highlightSpans.forEach((savedSpan) => {
+                  const highlightId = savedSpan.getAttribute('data-highlight-id');
+                  const textContent = savedSpan.textContent;
+                  
+                  if (textContent && contentRef.current) {
+                    // Find and highlight matching text in current DOM
+                    const walker = document.createTreeWalker(
+                      contentRef.current,
+                      NodeFilter.SHOW_TEXT,
+                      null
+                    );
+                    
+                    let node;
+                    while (node = walker.nextNode()) {
+                      const text = node.textContent || '';
+                      const index = text.indexOf(textContent);
+                      
+                      if (index !== -1 && node.parentElement) {
+                        // Check if already highlighted
+                        if (!node.parentElement.classList.contains('highlight')) {
+                          try {
+                            const range = document.createRange();
+                            range.setStart(node, index);
+                            range.setEnd(node, index + textContent.length);
+                            
+                            const span = document.createElement('span');
+                            span.className = 'highlight';
+                            span.dataset.highlightId = highlightId || Date.now().toString();
+                            
+                            const fragment = range.extractContents();
+                            span.appendChild(fragment);
+                            range.insertNode(span);
+                            
+                            break;
+                          } catch (e) {
+                            // Continue to next match
+                          }
+                        }
+                      }
+                    }
+                  }
+                });
+              }
+            }
+            highlightsAppliedRef.current = true;
+          }, 150); // Small delay to ensure form inputs are rendered
+        } else {
+          highlightsAppliedRef.current = true;
+        }
+      } catch (error) {
+        console.warn("Failed to restore highlights:", error);
+        highlightsAppliedRef.current = true;
       }
-    } else {
-      setCurrentHtml(htmlString);
     }
-  }, [htmlString, storageKey, getHtmlWithHighlights]);
+  }, [storageKey, currentHtml]);
 
   // Ensure currentHtml is always a valid string
   const safeHtml = typeof currentHtml === "string" && currentHtml.trim().length > 0 
@@ -602,7 +699,7 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
 
           return (
             <div className="space-y-8 my-8">
-              <Table>
+              <Table className="selectable-table">
                 <TableHeader>
                   <TableRow>
                     <TableHead></TableHead>
@@ -614,55 +711,68 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
                 <TableBody>
                   {questions.map((question, index) => {
                     const questionIndex = question.question_number - 1;
-                    return (
-                      <TableRow key={index}>
-                        <TableCell>
-                          {question?.question_number}. {question?.question_text}
-                        </TableCell>
-                        {options?.map((option) => (
-                          <TableCell key={option.value}>
-                            <FormField
-                              control={form.control}
-                              name={`answers.${questionIndex}.answer`}
-                              render={({ field }) => {
-                                // Form qiymatini kuzatish va checked holatini to'g'ri belgilash
-                                const currentValue = form.watch(
-                                  `answers.${questionIndex}.answer`
-                                );
-                                return (
-                                  <FormItem className="flex items-center space-x-2">
-                                    <FormControl>
-                                      <input
-                                        type="radio"
-                                        onMouseDown={handlePreventSelection}
-                                        onChange={() =>
-                                          field.onChange(option.value)
-                                        }
-                                        checked={currentValue === option.value}
-                                        name={`table_tegs_question_${question.question_number}`}
-                                        value={option.value}
-                                        id={`${question.question_number}_${option.value}_table`}
-                                        className="h-4 w-4 rounded-full border border-primary appearance-none 
-                                          checked:bg-white 
-                                          relative 
-                                          checked:after:content-[''] 
-                                          checked:after:block 
-                                          checked:after:w-2.5 checked:after:h-2.5 
-                                          checked:after:rounded-full 
-                                          checked:after:bg-primary 
-                                          checked:after:mx-auto checked:after:my-auto 
-                                          checked:after:absolute checked:after:inset-0
-                                          disabled:cursor-not-allowed disabled:opacity-50"
-                                      />
-                                    </FormControl>
-                                  </FormItem>
-                                );
-                              }}
-                            />
+                    
+                    // useWatch yordamida joriy savol javobini kuzatamiz - har bir cell uchun alohida
+                    const TableTegsRow = () => {
+                      const currentValue = useWatch({
+                        control: form.control,
+                        name: `answers.${questionIndex}.answer`,
+                      });
+
+                      return (
+                        <TableRow key={index}>
+                          <TableCell className="question-text-cell">
+                            {question?.question_number}. {question?.question_text}
                           </TableCell>
-                        ))}
-                      </TableRow>
-                    );
+                          {options?.map((option) => (
+                            <TableCell key={option.value}>
+                              <FormField
+                                control={form.control}
+                                name={`answers.${questionIndex}.answer`}
+                                render={({ field }) => {
+                                  const handleRadioClick = (e: React.MouseEvent) => {
+                                    e.stopPropagation();
+                                    field.onChange(option.value);
+                                  };
+
+                                  return (
+                                    <FormItem className="flex items-center space-x-2">
+                                      <FormControl>
+                                        <input
+                                          type="radio"
+                                          onClick={handleRadioClick}
+                                          onChange={(e) => {
+                                            if (e.target.checked) {
+                                              field.onChange(option.value);
+                                            }
+                                          }}
+                                          checked={currentValue === option.value}
+                                          name={`table_tegs_question_${question.question_number}`}
+                                          value={option.value}
+                                          id={`${question.question_number}_${option.value}_table`}
+                                          className="h-4 w-4 rounded-full border border-primary appearance-none 
+                                            checked:bg-white 
+                                            relative 
+                                            checked:after:content-[''] 
+                                            checked:after:block 
+                                            checked:after:w-2.5 checked:after:h-2.5 
+                                            checked:after:rounded-full 
+                                            checked:after:bg-primary 
+                                            checked:after:mx-auto checked:after:my-auto 
+                                            checked:after:absolute checked:after:inset-0"
+                                        />
+                                      </FormControl>
+                                    </FormItem>
+                                  );
+                                }}
+                              />
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      );
+                    };
+
+                    return <TableTegsRow key={index} />;
                   })}
                 </TableBody>
               </Table>
@@ -705,9 +815,102 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
 
           const repeatAnswer = attribs["repeat_answer"] !== "False"; // Default true if not specified
 
+          // TableTegsRow komponenti - har bir qatorni alohida komponent qilib ajratamiz
+          const TableTegsRow = ({ question, index }: { question: any; index: number }) => {
+            const questionIndex = question.question_number - 1;
+            
+            // useWatch yordamida joriy savol javobini kuzatamiz
+            const currentValue = useWatch({
+              control: form.control,
+              name: `answers.${questionIndex}.answer`,
+            });
+
+            // Barcha savollarning javoblarini kuzatamiz (repeat_answer false bo'lsa kerak)
+            const allAnswers = useWatch({
+              control: form.control,
+              name: "answers",
+            });
+
+            // Agar repeat_answer false bo'lsa, boshqa savollarda ishlatilgan optionlarni topish
+            const usedOptions = !repeatAnswer
+              ? questions
+                  .filter((q: any) => q.question_number !== question.question_number)
+                  .map((q: any) => {
+                    const qIndex = q.question_number - 1;
+                    return allAnswers?.[qIndex]?.answer;
+                  })
+                  .filter((val: any) => val && String(val).trim() !== "")
+              : [];
+
+            return (
+              <TableRow key={index}>
+                <TableCell className="question-text-cell">
+                  {question?.question_number}. {question?.question_text}
+                </TableCell>
+            {options?.map((option: any) => {
+              const isUsed = !repeatAnswer && usedOptions.includes(option.value);
+              const isCurrentOption = currentValue === option.value;
+              
+              // Agar option ishlatilgan bo'lsa va bu joriy savolning javobi bo'lmasa, disabled qilish
+              const isDisabled = isUsed && !isCurrentOption;
+
+              return (
+                <TableCell key={option.value}>
+                  <FormField
+                    control={form.control}
+                    name={`answers.${questionIndex}.answer`}
+                    render={({ field }) => {
+                      const handleRadioClick = (e: React.MouseEvent) => {
+                        e.stopPropagation();
+                        if (!isDisabled) {
+                          field.onChange(option.value);
+                        }
+                      };
+
+                return (
+                  <FormItem className="flex items-center space-x-2">
+                    <FormControl>
+                      <input
+                        type="radio"
+                        onClick={handleRadioClick}
+                        onChange={(e) => {
+                          if (e.target.checked && !isDisabled) {
+                            field.onChange(option.value);
+                          }
+                        }}
+                        checked={currentValue === option.value}
+                        name={`table_tegs_input_question_${question.question_number}`}
+                        value={option.value}
+                        id={`${question.question_number}_${option.value}_input`}
+                        disabled={isDisabled}
+                        className="h-4 w-4 rounded-full border border-primary appearance-none 
+                          checked:bg-white 
+                          relative 
+                          checked:after:content-[''] 
+                          checked:after:block 
+                          checked:after:w-2.5 checked:after:h-2.5 
+                          checked:after:rounded-full 
+                          checked:after:bg-primary 
+                          checked:after:mx-auto checked:after:my-auto 
+                          checked:after:absolute checked:after:inset-0
+                          disabled:cursor-not-allowed disabled:opacity-50"
+                      />
+                    </FormControl>
+                    <FormLabel></FormLabel>
+                  </FormItem>
+                );
+              }}
+            />
+          </TableCell>
+        );
+      })}
+    </TableRow>
+  );
+};
+
           return (
             <div className="space-y-8 my-8">
-              <Table>
+              <Table className="selectable-table">
                 <TableHeader>
                   <TableRow>
                     <TableHead></TableHead>
@@ -717,79 +920,9 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {questions.map((question, index) => {
-                    const questionIndex = question.question_number - 1;
-                    
-                    // Agar repeat_answer false bo'lsa, boshqa savollarda ishlatilgan optionlarni topish
-                    const usedOptions = !repeatAnswer
-                      ? questions
-                          .filter((q) => q.question_number !== question.question_number)
-                          .map((q) => {
-                            const qIndex = q.question_number - 1;
-                            return form.watch(`answers.${qIndex}.answer`);
-                          })
-                          .filter((val) => val && val.trim() !== "")
-                      : [];
-
-                    return (
-                      <TableRow key={index}>
-                        <TableCell>
-                          {question?.question_number}. {question?.question_text}
-                        </TableCell>
-                        {options?.map((option) => {
-                          const isUsed = !repeatAnswer && usedOptions.includes(option.value);
-                          const currentValue = form.watch(
-                            `answers.${questionIndex}.answer`
-                          );
-                          const isCurrentOption = currentValue === option.value;
-                          
-                          // Agar option ishlatilgan bo'lsa va bu joriy savolning javobi bo'lmasa, disabled qilish
-                          const isDisabled = isUsed && !isCurrentOption;
-
-                          return (
-                            <TableCell key={option.value}>
-                              <FormField
-                                control={form.control}
-                                name={`answers.${questionIndex}.answer`}
-                                render={({ field }) => {
-                                  return (
-                                    <FormItem className="flex items-center space-x-2">
-                                      <FormControl>
-                                        <input
-                                          type="radio"
-                                          onMouseDown={handlePreventSelection}
-                                          onChange={() =>
-                                            field.onChange(option.value)
-                                          }
-                                          checked={currentValue === option.value}
-                                          name={`table_tegs_input_question_${question.question_number}`}
-                                          value={option.value}
-                                          id={`${question.question_number}_${option.value}_input`}
-                                          disabled={isDisabled}
-                                          className="h-4 w-4 rounded-full border border-primary appearance-none 
-                                            checked:bg-white 
-                                            relative 
-                                            checked:after:content-[''] 
-                                            checked:after:block 
-                                            checked:after:w-2.5 checked:after:h-2.5 
-                                            checked:after:rounded-full 
-                                            checked:after:bg-primary 
-                                            checked:after:mx-auto checked:after:my-auto 
-                                            checked:after:absolute checked:after:inset-0
-                                            disabled:cursor-not-allowed disabled:opacity-50"
-                                        />
-                                      </FormControl>
-                                      <FormLabel></FormLabel>
-                                    </FormItem>
-                                  );
-                                }}
-                              />
-                            </TableCell>
-                          );
-                        })}
-                      </TableRow>
-                    );
-                  })}
+                  {questions.map((question, index) => (
+                    <TableTegsRow key={question.question_number} question={question} index={index} />
+                  ))}
                 </TableBody>
               </Table>
             </div>
@@ -1020,6 +1153,16 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
           user-select: none;
         }
         question-input, list-selection-tegs, drag-drop-tegs, table-tegs, table-tegs-input, drag-drop-matching-sentence-endings, drag-drop-sentence-input {
+          user-select: text;
+        }
+        .selectable-table {
+          user-select: text;
+        }
+        .selectable-table .question-text-cell {
+          user-select: text;
+          cursor: text;
+        }
+        .selectable-table td, .selectable-table th {
           user-select: text;
         }
       `}</style>
