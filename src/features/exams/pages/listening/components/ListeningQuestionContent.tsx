@@ -40,11 +40,13 @@ const ListeningQuestionContent = ({ part, form, testId }: Props) => {
           rightContent={
             <div className="h-full overflow-y-auto overflow-x-hidden p-6 space-y-8 text-sm">
               {part.questions ? (
-                <ReadingQuestionRenderer
-                  htmlString={part.questions}
-                  form={form}
-                  storageKey={questionsStorageKey}
-                />
+                <>
+                  <ReadingQuestionRenderer
+                    htmlString={part.questions}
+                    form={form}
+                    storageKey={questionsStorageKey}
+                  />
+                </>
               ) : (
                 <div>No questions available</div>
               )}
@@ -67,6 +69,7 @@ const ListeningQuestionContent = ({ part, form, testId }: Props) => {
               ) : (
                 <div>No questions available</div>
               )}
+              {/* {JSON.stringify(part.questions)} */}
             </div>
           </ResizablePanel>
         </ResizablePanelGroup>
