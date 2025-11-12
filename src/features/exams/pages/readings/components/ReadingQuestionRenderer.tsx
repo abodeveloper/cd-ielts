@@ -29,6 +29,17 @@ interface ReadingQuestionRendererProps {
   enabledHighlight?: boolean;
   storageKey?: string; // Optional: unique key for persistence
 }
+
+type TableOption = {
+  value: string;
+  label: string;
+};
+
+type TableQuestion = {
+  question_number: number | string;
+  question_text: string;
+};
+
 const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
   htmlString,
   form,
@@ -47,6 +58,10 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
     useState<HTMLElement | null>(null);
   const lastMouseUpTimeRef = useRef<number>(0);
   const selectionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const answers = useWatch({
+    control: form.control,
+    name: "answers",
+  });
 
   // Use localStorage for highlights (separate from form values)
   const [currentHtml, setCurrentHtml] = useState<string>(htmlString);
@@ -653,9 +668,8 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
         // TABLE-TEGS - Form bilan sinxronlashtirilgan versiya
         if (domNode.name === "table-tegs") {
           const { attribs } = domNode;
-          let options: { value: string; label: string }[] = [];
-          let questions: { question_number: number; question_text: string }[] =
-            [];
+          let options: TableOption[] = [];
+          let questions: TableQuestion[] = [];
           const table_name = attribs["table_name"] || "";
           try {
             options = JSON.parse(attribs["data-options"] || "[]");
@@ -676,51 +690,56 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {questions.map((question, index) => {
-                    const questionIndex = question.question_number - 1;
-
-                    // useWatch yordamida joriy savol javobini kuzatamiz - har bir cell uchun alohida
-                    const TableTegsRow = () => {
-                      const currentValue = useWatch({
-                        control: form.control,
-                        name: `answers.${questionIndex}.answer`,
-                      });
-                      return (
-                        <TableRow key={index}>
-                          <TableCell className="question-text-cell">
-                            {question?.question_number}.{" "}
-                            {question?.question_text}
-                          </TableCell>
-                          {options?.map((option) => (
-                            <TableCell key={option.value}>
-                              <FormField
-                                control={form.control}
-                                name={`answers.${questionIndex}.answer`}
-                                render={({ field }) => {
-                                  const handleRadioClick = (
-                                    e: React.MouseEvent
-                                  ) => {
-                                    e.stopPropagation();
-                                    field.onChange(option.value);
-                                  };
-                                  return (
-                                    <FormItem className="flex items-center space-x-2">
-                                      <FormControl>
-                                        <input
-                                          type="radio"
-                                          onClick={handleRadioClick}
-                                          onChange={(e) => {
-                                            if (e.target.checked) {
-                                              field.onChange(option.value);
-                                            }
-                                          }}
-                                          checked={
-                                            currentValue === option.value
+                  {questions.map((question) => {
+                    const parsedQuestionNumber = parseInt(
+                      String(question.question_number),
+                      10
+                    );
+                    if (
+                      Number.isNaN(parsedQuestionNumber) ||
+                      parsedQuestionNumber <= 0
+                    ) {
+                      console.warn(
+                        "Invalid question number in table-tegs:",
+                        question.question_number
+                      );
+                      return null;
+                    }
+                    const questionIndex = parsedQuestionNumber - 1;
+                    const currentValue = answers?.[questionIndex]?.answer ?? "";
+                    return (
+                      <TableRow key={`table-tegs-${question.question_number}`}>
+                        <TableCell className="question-text-cell">
+                          {question?.question_number}. {question?.question_text}
+                        </TableCell>
+                        {options?.map((option) => (
+                          <TableCell key={option.value}>
+                            <FormField
+                              control={form.control}
+                              name={`answers.${questionIndex}.answer`}
+                              render={({ field }) => {
+                                const handleRadioClick = (
+                                  e: React.MouseEvent
+                                ) => {
+                                  e.stopPropagation();
+                                  field.onChange(option.value);
+                                };
+                                return (
+                                  <FormItem className="flex items-center space-x-2">
+                                    <FormControl>
+                                      <input
+                                        type="radio"
+                                        onClick={handleRadioClick}
+                                        onChange={(e) => {
+                                          if (e.target.checked) {
+                                            field.onChange(option.value);
                                           }
-                                          name={`table_tegs_question_${question.question_number}`}
-                                          value={option.value}
-                                          id={`${question.question_number}_${option.value}_table`}
-                                          className="h-4 w-4 rounded-full border border-primary appearance-none
+                                        }}
+                                        checked={currentValue === option.value}
+                                        name={`table_tegs_question_${question.question_number}`}
+                                        value={option.value}
+                                        id={`${question.question_number}_${option.value}_table`}
+                                        className="h-4 w-4 rounded-full border border-primary appearance-none
                                             checked:bg-white
                                             relative
                                             checked:after:content-['']
@@ -730,18 +749,16 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
                                             checked:after:bg-primary
                                             checked:after:mx-auto checked:after:my-auto
                                             checked:after:absolute checked:after:inset-0"
-                                        />
-                                      </FormControl>
-                                    </FormItem>
-                                  );
-                                }}
-                              />
-                            </TableCell>
-                          ))}
-                        </TableRow>
-                      );
-                    };
-                    return <TableTegsRow key={index} />;
+                                      />
+                                    </FormControl>
+                                  </FormItem>
+                                );
+                              }}
+                            />
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    );
                   })}
                 </TableBody>
               </Table>
@@ -752,8 +769,8 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {options?.map((option, index) => (
-                    <TableRow key={index}>
+                  {options?.map((option) => (
+                    <TableRow key={option.value}>
                       <TableCell className="w-[50px]">{option.value}</TableCell>
                       <TableCell>{option.label}</TableCell>
                     </TableRow>
@@ -766,9 +783,8 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
         // TABLE-TEGS-INPUT - Form bilan sinxronlashtirilgan versiya
         if (domNode.name === "table-tegs-input") {
           const { attribs } = domNode;
-          let options: { value: string; label: string }[] = [];
-          let questions: { question_number: number; question_text: string }[] =
-            [];
+          let options: TableOption[] = [];
+          let questions: TableQuestion[] = [];
           try {
             options = JSON.parse(attribs["data-options"] || "[]");
             questions = JSON.parse(attribs["data-questions"] || "[]");
@@ -779,102 +795,27 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
             );
           }
           const repeatAnswer = attribs["repeat_answer"] !== "False"; // Default true if not specified
-          // TableTegsRow komponenti - har bir qatorni alohida komponent qilib ajratamiz
-          const TableTegsRow = ({
-            question,
-            index,
-          }: {
-            question: any;
-            index: number;
-          }) => {
-            const questionIndex = question.question_number - 1;
 
-            // useWatch yordamida joriy savol javobini kuzatamiz
-            const currentValue = useWatch({
-              control: form.control,
-              name: `answers.${questionIndex}.answer`,
-            });
-            // Barcha savollarning javoblarini kuzatamiz (repeat_answer false bo'lsa kerak)
-            const allAnswers = useWatch({
-              control: form.control,
-              name: "answers",
-            });
-            // Agar repeat_answer false bo'lsa, boshqa savollarda ishlatilgan optionlarni topish
-            const usedOptions = !repeatAnswer
-              ? questions
-                  .filter(
-                    (q: any) => q.question_number !== question.question_number
-                  )
-                  .map((q: any) => {
-                    const qIndex = q.question_number - 1;
-                    return allAnswers?.[qIndex]?.answer;
-                  })
-                  .filter((val: any) => val && String(val).trim() !== "")
-              : [];
-            return (
-              <TableRow key={index}>
-                <TableCell className="question-text-cell">
-                  {question?.question_number}. {question?.question_text}
-                </TableCell>
-                {options?.map((option: any) => {
-                  const isUsed =
-                    !repeatAnswer && usedOptions.includes(option.value);
-                  const isCurrentOption = currentValue === option.value;
+          const answerByQuestionNumber = new Map<string, string | undefined>(
+            questions.map((question) => {
+              const parsedQuestionNumber = parseInt(
+                String(question.question_number),
+                10
+              );
+              if (
+                Number.isNaN(parsedQuestionNumber) ||
+                parsedQuestionNumber <= 0
+              ) {
+                return [String(question.question_number), undefined];
+              }
+              const questionIndex = parsedQuestionNumber - 1;
+              return [
+                String(question.question_number),
+                answers?.[questionIndex]?.answer ?? "",
+              ];
+            })
+          );
 
-                  // Agar option ishlatilgan bo'lsa va bu joriy savolning javobi bo'lmasa, disabled qilish
-                  const isDisabled = isUsed && !isCurrentOption;
-                  return (
-                    <TableCell key={option.value}>
-                      <FormField
-                        control={form.control}
-                        name={`answers.${questionIndex}.answer`}
-                        render={({ field }) => {
-                          const handleRadioClick = (e: React.MouseEvent) => {
-                            e.stopPropagation();
-                            if (!isDisabled) {
-                              field.onChange(option.value);
-                            }
-                          };
-                          return (
-                            <FormItem className="flex items-center space-x-2">
-                              <FormControl>
-                                <input
-                                  type="radio"
-                                  onClick={handleRadioClick}
-                                  onChange={(e) => {
-                                    if (e.target.checked && !isDisabled) {
-                                      field.onChange(option.value);
-                                    }
-                                  }}
-                                  checked={currentValue === option.value}
-                                  name={`table_tegs_input_question_${question.question_number}`}
-                                  value={option.value}
-                                  id={`${question.question_number}_${option.value}_input`}
-                                  disabled={isDisabled}
-                                  className="h-4 w-4 rounded-full border border-primary appearance-none
-                          checked:bg-white
-                          relative
-                          checked:after:content-['']
-                          checked:after:block
-                          checked:after:w-2.5 checked:after:h-2.5
-                          checked:after:rounded-full
-                          checked:after:bg-primary
-                          checked:after:mx-auto checked:after:my-auto
-                          checked:after:absolute checked:after:inset-0
-                          disabled:cursor-not-allowed disabled:opacity-50"
-                                />
-                              </FormControl>
-                              <FormLabel></FormLabel>
-                            </FormItem>
-                          );
-                        }}
-                      />
-                    </TableCell>
-                  );
-                })}
-              </TableRow>
-            );
-          };
           return (
             <div className="space-y-8 my-8">
               <Table className="selectable-table">
@@ -887,13 +828,103 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {questions.map((question, index) => (
-                    <TableTegsRow
-                      key={question.question_number}
-                      question={question}
-                      index={index}
-                    />
-                  ))}
+                  {questions.map((question) => {
+                    const parsedQuestionNumber = parseInt(
+                      String(question.question_number),
+                      10
+                    );
+                    if (
+                      Number.isNaN(parsedQuestionNumber) ||
+                      parsedQuestionNumber <= 0
+                    ) {
+                      console.warn(
+                        "Invalid question number in table-tegs-input:",
+                        question.question_number
+                      );
+                      return null;
+                    }
+                    const questionIndex = parsedQuestionNumber - 1;
+                    const questionKey = String(question.question_number);
+                    const currentValue =
+                      answerByQuestionNumber.get(questionKey) ?? "";
+                    return (
+                      <TableRow
+                        key={`table-tegs-input-${question.question_number}`}
+                      >
+                        <TableCell className="question-text-cell">
+                          {question?.question_number}. {question?.question_text}
+                        </TableCell>
+                        {options?.map((option) => {
+                          const optionValue = option.value;
+                          const isCurrentOption = currentValue === optionValue;
+                          const isUsedElsewhere =
+                            !repeatAnswer &&
+                            Array.from(answerByQuestionNumber.entries()).some(
+                              ([key, value]) =>
+                                key !== questionKey &&
+                                value &&
+                                String(value).trim() !== "" &&
+                                value === optionValue
+                            );
+                          const isDisabled =
+                            isUsedElsewhere && !isCurrentOption;
+                          return (
+                            <TableCell key={option.value}>
+                              <FormField
+                                control={form.control}
+                                name={`answers.${questionIndex}.answer`}
+                                render={({ field }) => {
+                                  const handleRadioClick = (
+                                    e: React.MouseEvent
+                                  ) => {
+                                    e.stopPropagation();
+                                    if (!isDisabled) {
+                                      field.onChange(optionValue);
+                                    }
+                                  };
+                                  return (
+                                    <FormItem className="flex items-center space-x-2">
+                                      <FormControl>
+                                        <input
+                                          type="radio"
+                                          onClick={handleRadioClick}
+                                          onChange={(e) => {
+                                            if (
+                                              e.target.checked &&
+                                              !isDisabled
+                                            ) {
+                                              field.onChange(optionValue);
+                                            }
+                                          }}
+                                          checked={isCurrentOption}
+                                          name={`table_tegs_input_question_${question.question_number}`}
+                                          value={optionValue}
+                                          id={`${question.question_number}_${optionValue}_input`}
+                                          disabled={isDisabled}
+                                          className="h-4 w-4 rounded-full border border-primary appearance-none
+                          checked:bg-white
+                          relative
+                          checked:after:content-['']
+                          checked:after:block
+                          checked:after:w-2.5 checked:after:h-2.5
+                          checked:after:rounded-full
+                          checked:after:bg-primary
+                          checked:after:mx-auto checked:after:my-auto
+                          checked:after:absolute checked:after:inset-0
+                          disabled:cursor-not-allowed disabled:opacity-50"
+                                        />
+                                      </FormControl>
+                                      <FormLabel></FormLabel>
+                                    </FormItem>
+                                  );
+                                }}
+                              />
+                            </TableCell>
+                          );
+                        })}
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>
