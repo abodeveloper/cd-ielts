@@ -3,6 +3,7 @@ import { useRef, useEffect, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { RiEraserLine, RiMarkPenLine } from "@remixicon/react";
 import { processHtmlWithLineBreaks } from "@/shared/utils/text-processor";
+import ImageDrawer from "@/shared/components/atoms/image-drawer/ImageDrawer";
 
 interface HTMLRendererProps {
   htmlString: string;
@@ -408,6 +409,7 @@ const HTMLRendererWithHighlight = ({
 
   const parsedHtml = parse(processedHtmlString, {
     replace: (domNode) => {
+      // Handle highlight spans
       if (
         domNode.type === "tag" &&
         domNode.name === "span" &&
@@ -426,6 +428,38 @@ const HTMLRendererWithHighlight = ({
           </span>
         );
       }
+      
+      // Handle images - replace with ImageDrawer component
+      if (
+        domNode.type === "tag" &&
+        domNode.name === "img" &&
+        domNode.attribs
+      ) {
+        const { src, alt, style, className } = domNode.attribs;
+        
+        // Parse inline styles if present
+        let parsedStyle: React.CSSProperties = {};
+        if (style) {
+          style.split(";").forEach((rule: string) => {
+            const [property, value] = rule.split(":").map((s) => s.trim());
+            if (property && value) {
+              const camelProperty = property.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
+              parsedStyle[camelProperty as keyof React.CSSProperties] = value;
+            }
+          });
+        }
+        
+        return (
+          <ImageDrawer
+            key={src || Math.random().toString()}
+            src={src || ""}
+            alt={alt || ""}
+            style={parsedStyle}
+            className={className || ""}
+          />
+        );
+      }
+      
       return undefined;
     },
   });

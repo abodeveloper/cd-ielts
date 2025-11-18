@@ -8,6 +8,7 @@ import { ReadingQuestionType } from "@/shared/enums/reading-question-type.enum";
 import { UseFormReturn, useWatch } from "react-hook-form";
 import DragDropTags from "./DragDropTags";
 import ReadingQuestionInput from "./ReadingQuestionInput";
+import ImageDrawer from "@/shared/components/atoms/image-drawer/ImageDrawer";
 import {
   Table,
   TableBody,
@@ -514,6 +515,33 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
   const parsedHtml = parse(safeHtml, {
     replace: (domNode) => {
       if (domNode instanceof Element) {
+        // Handle images - replace with ImageDrawer component
+        if (domNode.name === "img" && domNode.attribs) {
+          const { src, alt, style, className } = domNode.attribs;
+          
+          // Parse inline styles if present
+          let parsedStyle: React.CSSProperties = {};
+          if (style) {
+            style.split(";").forEach((rule: string) => {
+              const [property, value] = rule.split(":").map((s) => s.trim());
+              if (property && value) {
+                const camelProperty = property.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
+                parsedStyle[camelProperty as keyof React.CSSProperties] = value;
+              }
+            });
+          }
+          
+          return (
+            <ImageDrawer
+              key={src || Math.random().toString()}
+              src={src || ""}
+              alt={alt || ""}
+              style={parsedStyle}
+              className={className || ""}
+            />
+          );
+        }
+        
         if (
           domNode.name === "span" &&
           domNode.attribs?.class?.includes("highlight")
