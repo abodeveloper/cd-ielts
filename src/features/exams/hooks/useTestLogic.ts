@@ -1,5 +1,5 @@
 import { toastService } from "@/lib/toastService";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AllTestParts } from "../types";
 
 const useTestLogic = <T extends AllTestParts>(
@@ -11,50 +11,57 @@ const useTestLogic = <T extends AllTestParts>(
   const [timeLeft, setTimeLeft] = useState<number | null>(initialTime);
   const [isTestFinished, setIsTestFinished] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("");
+  const endTimeRef = useRef<number | null>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const clearTimer = () => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+  };
 
   // initialTime o‘zgarganda timeLeft ni yangilash
   useEffect(() => {
     if (initialTime !== null) {
+      endTimeRef.current = Date.now() + initialTime * 1000;
       setTimeLeft(initialTime);
+    } else {
+      endTimeRef.current = null;
+      setTimeLeft(null);
     }
   }, [initialTime]);
 
   // Taymer logikasi
   useEffect(() => {
     // startTimer false bo‘lsa yoki initialTime null bo‘lsa, taymer ishlamaydi
-    if (
-      !startTimer ||
-      initialTime === null ||
-      timeLeft === null ||
-      isTestFinished
-    ) {
+    if (!startTimer || initialTime === null || isTestFinished) {
       return;
     }
 
-    // Vaqt tugaganda
-    if (timeLeft <= 0) {
-      if (!isTestFinished) {
+    const tick = () => {
+      if (endTimeRef.current === null) return;
+
+      const secondsLeft = Math.max(
+        0,
+        Math.round((endTimeRef.current - Date.now()) / 1000)
+      );
+      setTimeLeft(secondsLeft);
+
+      if (secondsLeft <= 0 && !isTestFinished) {
+        clearTimer();
         toastService.error("The time limit has expired.");
-        setTimeout(() => {
-          onSubmit();
-          setIsTestFinished(true);
-        }, 2000);
+        setIsTestFinished(true);
+        onSubmit();
       }
-      return;
-    }
+    };
 
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev === null || prev <= 1) {
-          clearInterval(timer);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
+    tick();
+    timerRef.current = setInterval(tick, 1000);
 
-    return () => clearInterval(timer);
-  }, [initialTime, timeLeft, isTestFinished, onSubmit, startTimer]);
+    return () => {
+      clearTimer();
+    };
+  }, [initialTime, isTestFinished, onSubmit, startTimer]);
 
   // Tabni boshlash
   useEffect(() => {
@@ -81,6 +88,7 @@ const useTestLogic = <T extends AllTestParts>(
   // Testni yakunlash
   const finishTest = () => {
     if (initialTime !== null && !isTestFinished) {
+      clearTimer();
       onSubmit();
       setIsTestFinished(true);
     }
