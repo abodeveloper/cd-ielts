@@ -31,7 +31,7 @@ const ListeningTestStep = ({ onNext }: StepProps) => {
   const parts: ListeningPart[] = get(query, "data.listening_parts", []);
   const answer_time = get(query, "data.answer_time", null);
 
-  const [startTimer, setStartTimer] = useState(false);
+  const [startTimer, setStartTimer] = useState(false); // Audio tugagach taymerni boshlash uchun
   const [showTestSoundStep, setShowTestSoundStep] = useState(true);
   const [currentAudioIndex, setCurrentAudioIndex] = useState(0); // Hozir ijro etilayotgan audio indexi
 
@@ -81,7 +81,7 @@ const ListeningTestStep = ({ onNext }: StepProps) => {
     answer_time,
     parts,
     form.handleSubmit(onSubmit),
-    startTimer
+    startTimer // Audio tugagach taymerni boshlash
   );
 
   usePreventPageLeave(!isTestFinished); // Aktivlashtirilgan
@@ -184,7 +184,7 @@ const ListeningTestStep = ({ onNext }: StepProps) => {
         }
         setCurrentAudioIndex((prev) => prev + 1);
       } else {
-        // Barcha audio fayllar tugagach taymerni boshlash
+        // Barcha audio fayllar tugagach taymerni boshlash (boshlangandan keyin to'xtamasligi uchun)
         setStartTimer(true);
         if (currentAudio) {
           currentAudio.pause();
