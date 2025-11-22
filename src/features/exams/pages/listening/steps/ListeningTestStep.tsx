@@ -23,7 +23,7 @@ interface StepProps {
 // Asosiy ListeningTestStep komponenti
 const ListeningTestStep = ({ onNext }: StepProps) => {
   const { id } = useParams();
-  const { form, onSubmit, query, listeningMutation } = useListeningForm(
+  const { form, onSubmit, query, listeningMutation, finish } = useListeningForm(
     id,
     onNext
   );
@@ -81,7 +81,8 @@ const ListeningTestStep = ({ onNext }: StepProps) => {
     answer_time,
     parts,
     form.handleSubmit(onSubmit),
-    startTimer // Audio tugagach taymerni boshlash
+    startTimer, // Audio tugagach taymerni boshlash
+    finish // Vaqt tugaganda keyingi testga o'tkazish uchun
   );
 
   usePreventPageLeave(!isTestFinished); // Aktivlashtirilgan

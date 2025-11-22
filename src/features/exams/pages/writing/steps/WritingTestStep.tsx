@@ -16,7 +16,7 @@ import { useParams } from "react-router-dom";
 
 const WritingTestStep = () => {
   const { id } = useParams();
-  const { form, onSubmit, query, writingMutation } = useWritingForm(id);
+  const { form, onSubmit, query, writingMutation, finish } = useWritingForm(id);
 
   const parts: WritingPart[] = get(query, "data.writing_parts", []);
   const answer_time = get(query, "data.answer_time", null);
@@ -33,7 +33,9 @@ const WritingTestStep = () => {
   } = useTestLogic<WritingPart>(
     answer_time,
     parts,
-    form.handleSubmit(onSubmit)
+    form.handleSubmit(onSubmit),
+    true, // startTimer
+    finish // Vaqt tugaganda keyingi testga o'tkazish uchun
   );
 
   // Prevent page leave when test is not finished

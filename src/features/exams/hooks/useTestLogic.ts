@@ -6,7 +6,8 @@ const useTestLogic = <T extends AllTestParts>(
   initialTime: number | null, // null bo'lsa vaqt yo'q degani
   data: T[],
   onSubmit: () => void,
-  startTimer: boolean = true // Listening testda audio tugagach boshlash uchun
+  startTimer: boolean = true, // Listening testda audio tugagach boshlash uchun
+  onFinish?: () => void // Vaqt tugaganda yoki test tugaganda keyingi testga o'tkazish uchun
 ) => {
   const [timeLeft, setTimeLeft] = useState<number | null>(initialTime);
   const [isTestFinished, setIsTestFinished] = useState(false);
@@ -67,6 +68,15 @@ const useTestLogic = <T extends AllTestParts>(
         toastService.error("The time limit has expired.");
         // Avtomatik submit qilish
         onSubmit();
+        // Submit qilingandan keyin finish funksiyasini chaqirish (keyingi testga o'tkazish uchun)
+        // Bu mutation onSuccess callback'ida ham chaqiriladi, lekin bu yerda ham chaqirish kerak
+        // chunki mutation asinxron bo'lishi mumkin
+        if (onFinish) {
+          // Kichik kechikish bilan finish ni chaqirish (mutation muvaffaqiyatli bo'lishi uchun)
+          setTimeout(() => {
+            onFinish();
+          }, 100);
+        }
       }
     };
 

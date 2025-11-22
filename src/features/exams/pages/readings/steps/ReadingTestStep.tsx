@@ -20,7 +20,7 @@ interface StepProps {
 
 const ReadingTestStep = ({ onNext }: StepProps) => {
   const { id } = useParams();
-  const { form, onSubmit, query, readingMutation } = useReadingForm(id, onNext);
+  const { form, onSubmit, query, readingMutation, finish } = useReadingForm(id, onNext);
 
   const parts: ReadingPart[] = get(query, "data.reading_parts", []);
   const answer_time = get(query, "data.answer_time", null);
@@ -37,7 +37,9 @@ const ReadingTestStep = ({ onNext }: StepProps) => {
   } = useTestLogic<ReadingPart>(
     answer_time,
     parts,
-    form.handleSubmit(onSubmit)
+    form.handleSubmit(onSubmit),
+    true, // startTimer
+    finish // Vaqt tugaganda keyingi testga o'tkazish uchun
   );
 
   // Prevent page leave when test is not finished

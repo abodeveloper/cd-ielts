@@ -32,6 +32,8 @@ export const useWritingForm = (id: string | undefined) => {
 
         if (next_test === "listening" && next_test_id) {
           navigate(`/listenings/${next_test_id}`);
+        } else if (next_test === "reading" && next_test_id) {
+          navigate(`/readings/${next_test_id}`);
         } else if (next_test === "speaking" && next_test_id) {
           navigate(`/speakings/${next_test_id}`);
         } else if (next_test === "writing" && next_test_id) {
@@ -100,5 +102,6 @@ export const useWritingForm = (id: string | undefined) => {
     onSubmit,
     answersFields,
     query,
+    finish, // finish funksiyasini qaytarish
   };
 };
