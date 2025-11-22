@@ -1,8 +1,18 @@
 import { Button } from "@/components/ui/button";
 import { RiDownloadLine, RiLoader4Line } from "@remixicon/react";
 import { useQuery } from "@tanstack/react-query";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
+import {
+  Document,
+  Packer,
+  Paragraph,
+  Table,
+  TableCell,
+  TableRow,
+  TextRun,
+  WidthType,
+  AlignmentType,
+  PageOrientation,
+} from "docx";
 import React, { useMemo, useState } from "react";
 import { getAllThematicMaterialResults } from "../api/test-material";
 
@@ -74,23 +84,8 @@ const ThematicFullResultsPdf: React.FC<PDFGeneratorProps> = ({
         return;
       }
 
-      const doc = new jsPDF();
-
       // Group name
       const groupName = fetchedData[0]?.group_name || "Group Result";
-
-      // Test information
-      let currentY = 10;
-      if (testData) {
-        doc.setFontSize(8);
-        doc.text(`Test Title: ${testData.title}`, 10, currentY);
-        currentY += 5;
-        doc.text(`Test Type: ${testData.test_type}`, 10, currentY);
-        currentY += 10;
-      }
-      doc.setFontSize(12);
-      doc.text(`Group: ${groupName}`, 10, currentY);
-      currentY += 10;
 
       // Define headers based on type
       const baseHeaders = ["No", "Student Name", "Test Performed"];
@@ -155,54 +150,217 @@ const ThematicFullResultsPdf: React.FC<PDFGeneratorProps> = ({
         return { ...baseData, ...typeSpecificData };
       });
 
-      // Table data array
-      const tableData = processedData.map((item) => {
-        const row = [item.no, item.name, item.created_at];
+      // Calculate column widths for A4 format
+      // A4 width: 210mm = 11906 twips
+      // With 1 inch (1440 twips) margins on each side: usable width = 11906 - 2880 = 9026 twips
+      // Use maximum available width for table
+      const columnCount = headers.length;
+      const totalTableWidth = 9026; // twips (maximum usable width on A4 with 1" margins)
+      
+      // Calculate proportional widths for columns
+      // No column: 0.5x, Name column: 1.8x, others: 1x
+      const widthMultipliers = [
+        0.5,  // No column - smaller
+        1.8,  // Name column - larger
+        ...Array(columnCount - 2).fill(1.0), // Other columns - standard
+      ];
+      const totalMultiplier = widthMultipliers.reduce((sum, m) => sum + m, 0);
+      const baseWidth = Math.floor(totalTableWidth / totalMultiplier);
+      
+      // Calculate actual column widths
+      const columnWidths = widthMultipliers.map((multiplier) =>
+        Math.floor(baseWidth * multiplier)
+      );
+      
+      // Adjust to ensure total equals totalTableWidth (distribute remainder)
+      const currentTotal = columnWidths.reduce((sum, w) => sum + w, 0);
+      const remainder = totalTableWidth - currentTotal;
+      if (remainder > 0) {
+        // Add remainder to the largest column (Name column)
+        columnWidths[1] += remainder;
+      }
+      
+      const getColumnWidth = (index: number) => columnWidths[index];
+
+      // Create header row
+      const headerRow = new TableRow({
+        children: headers.map(
+          (header, index) =>
+            new TableCell({
+              children: [
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: header,
+                      bold: true,
+                    }),
+                  ],
+                  alignment: AlignmentType.CENTER,
+                }),
+              ],
+              shading: {
+                fill: "D3D3D3",
+              },
+              width: {
+                size: getColumnWidth(index),
+                type: WidthType.DXA, // DXA = twips (twentieths of a point)
+              },
+            })
+        ),
+      });
+
+      // Create data rows
+      const dataRows = processedData.map((item) => {
+        const rowData: (string | number)[] = [item.no, item.name, item.created_at];
         if (type === "reading" || type === "listening") {
-          row.push(
+          rowData.push(
             item.total_questions,
             item.correct_answers,
             item.incorrect_answers,
             item.score_percentage
           );
         } else if (type === "writing") {
-          row.push(
+          rowData.push(
             item.writing_task1_score,
             item.writing_task2_score,
             item.total_score
           );
         } else if (type === "speaking") {
-          row.push(item.feedback, item.score);
+          rowData.push(item.feedback, item.score);
         }
-        return row;
+
+        return new TableRow({
+          children: rowData.map(
+            (cellValue, index) =>
+              new TableCell({
+                children: [
+                  new Paragraph({
+                    children: [
+                      new TextRun({
+                        text: String(cellValue),
+                      }),
+                    ],
+                    alignment: AlignmentType.LEFT,
+                  }),
+                ],
+                width: {
+                  size: getColumnWidth(index),
+                  type: WidthType.DXA,
+                },
+              })
+          ),
+        });
       });
 
-      // Generate table
-      autoTable(doc, {
-        head: [headers],
-        body: tableData,
-        startY: currentY,
-        theme: "grid",
-        styles: { fontSize: 8, cellPadding: 2, overflow: "linebreak" },
-        headStyles: { fillColor: [200, 200, 200], fontSize: 8 },
-        columnStyles: {
-          1: { cellWidth: 35 }, // Name column width
+      // Create table with maximum width for A4
+      const table = new Table({
+        rows: [headerRow, ...dataRows],
+        width: {
+          size: totalTableWidth,
+          type: WidthType.DXA, // Use twips for precise A4 width
         },
-        margin: { top: 10, left: 10, right: 10 },
+        columnWidths: headers.map((_, index) => getColumnWidth(index)),
       });
+
+      // Create document children
+      const children: (Paragraph | Table)[] = [];
+
+      // Test information
+      if (testData) {
+        children.push(
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: `Test Title: ${testData.title}`,
+                size: 20,
+              }),
+            ],
+          })
+        );
+        children.push(
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: `Test Type: ${testData.test_type}`,
+                size: 20,
+              }),
+            ],
+          })
+        );
+      }
+
+      children.push(
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: `Group: ${groupName}`,
+              size: 24,
+              bold: true,
+            }),
+          ],
+        })
+      );
+
+      children.push(new Paragraph({ text: "" })); // Empty line
+
+      // Add table
+      children.push(table);
 
       // Footer
-      const footerY = (doc as any).lastAutoTable.finalY + 10;
-      doc.setFontSize(8);
       const currentDate = new Date().toLocaleString("en-US", {
         timeZone: "Asia/Tashkent",
       });
-      doc.text(`Generated on: ${currentDate}`, 10, footerY);
+      children.push(new Paragraph({ text: "" })); // Empty line
+      children.push(
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: `Generated on: ${currentDate}`,
+              size: 20,
+            }),
+          ],
+        })
+      );
 
-      // Save PDF
-      doc.save(`${groupName} - Thematic ${type} Results - ${currentDate}`);
+      // Create document with A4 page size and margins
+      // A4 dimensions: 210mm x 297mm = 11906 twips x 16838 twips
+      const doc = new Document({
+        sections: [
+          {
+            properties: {
+              page: {
+                size: {
+                  orientation: PageOrientation.PORTRAIT,
+                  width: 11906, // A4 width in twips (210mm)
+                  height: 16838, // A4 height in twips (297mm)
+                },
+                margin: {
+                  top: 1440, // 1 inch = 1440 twips
+                  right: 1440,
+                  bottom: 1440,
+                  left: 1440,
+                },
+              },
+            },
+            children: children,
+          },
+        ],
+      });
+
+      // Generate and download Word document
+      const blob = await Packer.toBlob(doc);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      // Format date for filename (remove invalid characters)
+      const fileNameDate = currentDate.replace(/[/:]/g, "-").replace(/,/g, "");
+      link.download = `${groupName} - Thematic ${type} Results - ${fileNameDate}.docx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error("Error generating PDF:", error);
+      console.error("Error generating Word document:", error);
     } finally {
       setIsFetching(false);
     }
