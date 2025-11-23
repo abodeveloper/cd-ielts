@@ -1,8 +1,18 @@
 import { Button } from "@/components/ui/button";
 import { RiDownloadLine, RiLoader4Line } from "@remixicon/react";
 import { useQuery } from "@tanstack/react-query";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
+import {
+  Document,
+  Packer,
+  Paragraph,
+  Table,
+  TableCell,
+  TableRow,
+  TextRun,
+  WidthType,
+  AlignmentType,
+  PageOrientation,
+} from "docx";
 import React, { useMemo, useState } from "react";
 import { getAllMockMaterialResults } from "../api/test-material";
 
@@ -92,35 +102,8 @@ const MockFullResultsPdf: React.FC<PDFGeneratorProps> = ({
         return;
       }
 
-      const doc = new jsPDF();
-
       // Group name
       const groupName = fetchedData[0]?.group_name || "Group Result";
-
-      // Test information
-      let currentY = 10;
-      if (testData) {
-        doc.setFontSize(8);
-        doc.text(`Test Title: ${testData.test_info.test_title}`, 10, currentY);
-        currentY += 5;
-        doc.text(`Test Type: ${testData.test_type}`, 10, currentY);
-        currentY += 5;
-        doc.text(`Material Title: ${testData.title}`, 10, currentY);
-        currentY += 5;
-        doc.text("Materials:", 10, currentY);
-        currentY += 5;
-        testData.materials.forEach((mat, index) => {
-          doc.text(
-            `${index + 1}. ${mat.type.toLocaleUpperCase()}: ${mat.title}`,
-            15,
-            currentY + index * 5
-          );
-        });
-        currentY += testData.materials.length * 5 + 5;
-      }
-      doc.setFontSize(12);
-      doc.text(`Group: ${groupName}`, 10, currentY);
-      currentY += 10;
 
       // Process data
       const processedData = fetchedData.map((student, index) => {
@@ -159,23 +142,10 @@ const MockFullResultsPdf: React.FC<PDFGeneratorProps> = ({
           t1,
           t2,
           writing: writingTotal,
-          total,
+          total: total.toFixed(1),
           result,
         };
       });
-
-      // Table data
-      const tableData = processedData.map((item) => [
-        item.no,
-        item.name,
-        item.l,
-        item.r,
-        item.t1,
-        item.t2,
-        item.writing,
-        item.total,
-        item.result,
-      ]);
 
       const headers = [
         "No",
@@ -189,67 +159,290 @@ const MockFullResultsPdf: React.FC<PDFGeneratorProps> = ({
         "Result",
       ];
 
-      // Generate table
-      autoTable(doc, {
-        head: [headers],
-        body: tableData,
-        startY: currentY,
-        theme: "grid",
-        styles: { fontSize: 8, cellPadding: 2, overflow: "linebreak" },
-        headStyles: { fillColor: [200, 200, 200], fontSize: 8 },
-        columnStyles: {
-          1: { cellWidth: 35 },
-        },
-        willDrawCell: (data) => {
-          if (data.column.index === 8 && data.row.section === "body") {
-            const result = data.cell.raw as string;
-            if (result === "Qualified") {
-              doc.setFillColor(255, 255, 0); // Yellow
-            } else if (result === "Saved Chance") {
-              doc.setFillColor(144, 238, 144); // Green
-            } else if (result === "Failed") {
-              doc.setFillColor(255, 99, 71); // Red
-            } else if (result === "D") {
-              doc.setFillColor(128, 128, 128); // Gray
-            }
-            doc.rect(
-              data.cell.x,
-              data.cell.y,
-              data.cell.width,
-              data.cell.height,
-              "F"
-            );
-          }
-        },
-        margin: { top: 10, left: 10, right: 10 },
+      // Calculate column widths for A4 format
+      // A4 width: 210mm = 11906 twips
+      // With 1 inch (1440 twips) margins on each side: usable width = 11906 - 2880 = 9026 twips
+      const columnCount = headers.length;
+      const totalTableWidth = 9026; // twips (maximum usable width on A4 with 1" margins)
+      
+      // Calculate proportional widths for columns
+      // No column: 0.4x, Name column: 2.0x, others: 0.8x
+      const widthMultipliers = [
+        0.4,  // No column - smaller
+        2.0,  // Name column - larger
+        0.8,  // L
+        0.8,  // R
+        0.8,  // T1
+        0.8,  // T2
+        0.8,  // Writing total
+        0.8,  // Total score
+        0.8,  // Result
+      ];
+      const totalMultiplier = widthMultipliers.reduce((sum, m) => sum + m, 0);
+      const baseWidth = Math.floor(totalTableWidth / totalMultiplier);
+      
+      // Calculate actual column widths
+      const columnWidths = widthMultipliers.map((multiplier) =>
+        Math.floor(baseWidth * multiplier)
+      );
+      
+      // Adjust to ensure total equals totalTableWidth (distribute remainder)
+      const currentTotal = columnWidths.reduce((sum, w) => sum + w, 0);
+      const remainder = totalTableWidth - currentTotal;
+      if (remainder > 0) {
+        // Add remainder to the largest column (Name column)
+        columnWidths[1] += remainder;
+      }
+      
+      const getColumnWidth = (index: number) => columnWidths[index];
+
+      // Helper function to get result cell shading color
+      const getResultShading = (result: string) => {
+        if (result === "Qualified") return "FFFF00"; // Yellow
+        else if (result === "Saved Chance") return "90EE90"; // Green
+        else if (result === "Failed") return "FF6347"; // Red
+        else if (result === "D") return "808080"; // Gray
+        return undefined;
+      };
+
+      // Create header row
+      const headerRow = new TableRow({
+        children: headers.map(
+          (header, index) =>
+            new TableCell({
+              children: [
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: header,
+                      bold: true,
+                    }),
+                  ],
+                  alignment: AlignmentType.CENTER,
+                }),
+              ],
+              shading: {
+                fill: "D3D3D3",
+              },
+              width: {
+                size: getColumnWidth(index),
+                type: WidthType.DXA, // DXA = twips (twentieths of a point)
+              },
+            })
+        ),
       });
 
+      // Create data rows
+      const dataRows = processedData.map((item) => {
+        const rowData: (string | number)[] = [
+          item.no,
+          item.name,
+          item.l,
+          item.r,
+          item.t1,
+          item.t2,
+          item.writing,
+          item.total,
+          item.result,
+        ];
+
+        return new TableRow({
+          children: rowData.map(
+            (cellValue, index) => {
+              const isResultColumn = index === 8;
+              const shading = isResultColumn
+                ? getResultShading(String(cellValue))
+                : undefined;
+
+              return new TableCell({
+                children: [
+                  new Paragraph({
+                    children: [
+                      new TextRun({
+                        text: String(cellValue),
+                      }),
+                    ],
+                    alignment:
+                      index === 0
+                        ? AlignmentType.CENTER
+                        : AlignmentType.LEFT,
+                  }),
+                ],
+                shading: shading
+                  ? {
+                      fill: shading,
+                    }
+                  : undefined,
+                width: {
+                  size: getColumnWidth(index),
+                  type: WidthType.DXA,
+                },
+              });
+            }
+          ),
+        });
+      });
+
+      // Create table with maximum width for A4
+      const table = new Table({
+        rows: [headerRow, ...dataRows],
+        width: {
+          size: totalTableWidth,
+          type: WidthType.DXA, // Use twips for precise A4 width
+        },
+        columnWidths: headers.map((_, index) => getColumnWidth(index)),
+      });
+
+      // Create document children
+      const children: (Paragraph | Table)[] = [];
+
+      // Test information
+      if (testData) {
+        children.push(
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: `Test Title: ${testData.test_info.test_title}`,
+                size: 20,
+              }),
+            ],
+          })
+        );
+        children.push(
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: `Test Type: ${testData.test_type}`,
+                size: 20,
+              }),
+            ],
+          })
+        );
+        children.push(
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: `Material Title: ${testData.title}`,
+                size: 20,
+              }),
+            ],
+          })
+        );
+        children.push(
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: "Materials:",
+                size: 20,
+              }),
+            ],
+          })
+        );
+        testData.materials.forEach((mat, index) => {
+          children.push(
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: `${index + 1}. ${mat.type.toUpperCase()}: ${mat.title}`,
+                  size: 20,
+                }),
+              ],
+            })
+          );
+        });
+        children.push(new Paragraph({ text: "" })); // Empty line
+      }
+
+      children.push(
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: `Group: ${groupName}`,
+              size: 24,
+              bold: true,
+            }),
+          ],
+        })
+      );
+
+      children.push(new Paragraph({ text: "" })); // Empty line
+
+      // Add table
+      children.push(table);
+
       // Footer
-      const footerY = (doc as any).lastAutoTable.finalY + 10;
-      doc.setFontSize(8);
+      const currentDate = new Date().toLocaleString("en-US", {
+        timeZone: "Asia/Tashkent",
+      });
+      children.push(new Paragraph({ text: "" })); // Empty line
       const footerText = [
         "* Qualified --> those who got at least overall 6",
         "** Saved chance --> those who nearly passed",
         "*** Writing total formula just in case: ((T2*2)+T1)/3",
         "**** D --> Disqualified due to the occurrence of cheating",
       ];
-      footerText.forEach((line, index) => {
-        doc.text(line, 10, footerY + index * 6);
+      footerText.forEach((line) => {
+        children.push(
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: line,
+                size: 20,
+              }),
+            ],
+          })
+        );
       });
-
-      // Generation date
-      const currentDate = new Date().toLocaleString("en-US", {
-        timeZone: "Asia/Tashkent",
-      });
-      doc.text(
-        `Generated on: ${currentDate}`,
-        10,
-        footerY + footerText.length * 6 + 5
+      children.push(
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: `Generated on: ${currentDate}`,
+              size: 20,
+            }),
+          ],
+        })
       );
 
-      doc.save(`${groupName} - ${currentDate}`);
+      // Create document with A4 page size and margins
+      // A4 dimensions: 210mm x 297mm = 11906 twips x 16838 twips
+      const doc = new Document({
+        sections: [
+          {
+            properties: {
+              page: {
+                size: {
+                  orientation: PageOrientation.PORTRAIT,
+                  width: 11906, // A4 width in twips (210mm)
+                  height: 16838, // A4 height in twips (297mm)
+                },
+                margin: {
+                  top: 1440, // 1 inch = 1440 twips
+                  right: 1440,
+                  bottom: 1440,
+                  left: 1440,
+                },
+              },
+            },
+            children: children,
+          },
+        ],
+      });
+
+      // Generate and download Word document
+      const blob = await Packer.toBlob(doc);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      // Format date for filename (remove invalid characters)
+      const fileNameDate = currentDate.replace(/[/:]/g, "-").replace(/,/g, "");
+      link.download = `${groupName} - Mock Results - ${fileNameDate}.docx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error("Error generating PDF:", error);
+      console.error("Error generating Word document:", error);
     } finally {
       setIsFetching(false);
     }
