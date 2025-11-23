@@ -8,5 +8,18 @@ export default defineConfig({
     alias: {
       "@": path.resolve(__dirname, "src"),
     },
+    dedupe: ["docx"],
+  },
+  optimizeDeps: {
+    include: ["docx"],
+    esbuildOptions: {
+      target: "esnext",
+    },
+  },
+  build: {
+    commonjsOptions: {
+      include: [/docx/, /node_modules/],
+      transformMixedEsModules: true,
+    },
   },
 });
