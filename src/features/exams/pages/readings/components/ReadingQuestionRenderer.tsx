@@ -606,6 +606,7 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
           }
           return (
             <span
+              id={`question-${number}`}
               style={{
                 display: "inline-block",
                 minWidth: 150,
@@ -742,7 +743,10 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
                     const questionIndex = parsedQuestionNumber - 1;
                     const currentValue = answers?.[questionIndex]?.answer ?? "";
                     return (
-                      <TableRow key={`table-tegs-${question.question_number}`}>
+                      <TableRow
+                        id={`question-${question.question_number}`}
+                        key={`table-tegs-${question.question_number}`}
+                      >
                         <TableCell className="question-text-cell">
                           {question?.question_number}. {question?.question_text}
                         </TableCell>
@@ -883,6 +887,7 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
                       answerByQuestionNumber.get(questionKey) ?? "";
                     return (
                       <TableRow
+                        id={`question-${question.question_number}`}
                         key={`table-tegs-input-${question.question_number}`}
                       >
                         <TableCell className="question-text-cell">

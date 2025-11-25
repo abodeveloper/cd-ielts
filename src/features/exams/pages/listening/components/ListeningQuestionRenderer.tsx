@@ -91,6 +91,7 @@ const ListeningQuestionRenderer: React.FC<QuestionRendererProps> = ({
               }
               return (
                 <span
+                  id={`question-${number}`}
                   style={{ display: "inline-block", minWidth: 150 }}
                   key={number}
                 >
@@ -169,7 +170,7 @@ const ListeningQuestionRenderer: React.FC<QuestionRendererProps> = ({
                   : [];
 
                 return (
-                  <TableRow key={index}>
+                  <TableRow id={`question-${question?.question_number}`} key={index}>
                     <TableCell className="question-text-cell">
                       {question?.question_number}. {question?.question_text}
                     </TableCell>
