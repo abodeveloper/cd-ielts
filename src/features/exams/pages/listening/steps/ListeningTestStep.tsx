@@ -11,10 +11,11 @@ import ErrorMessage from "@/shared/components/atoms/error-message/ErrorMessage";
 import LoadingSpinner from "@/shared/components/atoms/loading-spinner/LoadingSpinner";
 import { TestType } from "@/shared/enums/test-type.enum";
 import { get } from "lodash";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { FormProvider } from "react-hook-form";
 import { useParams } from "react-router-dom";
 import TestSoundStep from "./TestSoundsStep";
+import { sortListeningParts } from "@/features/exams/utils/sortListeningParts";
 
 interface StepProps {
   onNext?: (data: any) => void;
@@ -28,7 +29,15 @@ const ListeningTestStep = ({ onNext }: StepProps) => {
     onNext
   );
 
-  const parts: ListeningPart[] = get(query, "data.listening_parts", []);
+  const listeningParts = get(
+    query,
+    "data.listening_parts",
+    []
+  ) as ListeningPart[] | undefined;
+  const parts = useMemo(
+    () => sortListeningParts(Array.isArray(listeningParts) ? listeningParts : []),
+    [listeningParts]
+  );
   const answer_time = get(query, "data.answer_time", null);
 
   const [startTimer, setStartTimer] = useState(false); // Audio tugagach taymerni boshlash uchun

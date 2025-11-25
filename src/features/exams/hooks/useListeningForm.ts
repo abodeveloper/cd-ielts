@@ -14,6 +14,7 @@ import {
 } from "../schemas/listening-schema";
 import { useListening } from "./useListening";
 import { Role } from "@/shared/enums/role.enum";
+import { sortListeningParts } from "@/features/exams/utils/sortListeningParts";
 
 export const useListeningForm = (
   id: string | undefined,
@@ -94,16 +95,17 @@ export const useListeningForm = (
   useEffect(() => {
     const data = query.data;
 
-    if (
-      !Array.isArray(data?.listening_parts) ||
-      data.listening_parts.length === 0
-    ) {
+    const listeningParts = Array.isArray(data?.listening_parts)
+      ? sortListeningParts(data.listening_parts)
+      : [];
+
+    if (listeningParts.length === 0) {
       return;
     }
 
     // avval maksimal question_number topamiz
     const maxQuestionNumber = Math.max(
-      ...data.listening_parts.flatMap((part) =>
+      ...listeningParts.flatMap((part) =>
         part?.question_numbers?.map((q) => q.question_number)
       )
     );
@@ -116,7 +118,7 @@ export const useListeningForm = (
     }[] = Array(maxQuestionNumber).fill(null);
 
     // endi har bir question_number ni o'z joyiga qo'yamiz
-    data.listening_parts.forEach((part) => {
+    listeningParts.forEach((part) => {
       part?.question_numbers?.forEach((q) => {
         const index = q.question_number - 1; // 1-based bo'lsa
         allQuestions[index] = {
