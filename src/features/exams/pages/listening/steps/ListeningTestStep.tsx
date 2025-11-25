@@ -39,6 +39,11 @@ const ListeningTestStep = ({ onNext }: StepProps) => {
     [listeningParts]
   );
   const answer_time = get(query, "data.answer_time", null);
+  const materialTestType = (get(query, "data.material.test_type", "Mock") || "Mock")
+    .toString()
+    .toLowerCase();
+  const isMockTest = materialTestType === "mock";
+  const hasAnswerDuration = typeof answer_time === "number" && answer_time > 0;
 
   const [startTimer, setStartTimer] = useState(false); // Audio tugagach taymerni boshlash uchun
   const [showTestSoundStep, setShowTestSoundStep] = useState(true);
@@ -387,6 +392,14 @@ const ListeningTestStep = ({ onNext }: StepProps) => {
                 onSubmit={form.handleSubmit(onSubmit)}
                 isTestFinished={isTestFinished}
                 isLoading={listeningMutation.isPending}
+                disableSubmit={
+                  isMockTest && hasAnswerDuration && !isTestFinished
+                }
+                disableSubmitReason={
+                  isMockTest && hasAnswerDuration && !isTestFinished
+                    ? "Submission will be available after the answer time finishes."
+                    : undefined
+                }
               />
             </Tabs>
           </form>

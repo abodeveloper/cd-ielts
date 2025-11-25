@@ -22,6 +22,8 @@ interface TestNavigationProps<T extends AllTestParts> {
   onSubmit: () => void;
   isTestFinished: boolean;
   isLoading: boolean;
+  disableSubmit?: boolean;
+  disableSubmitReason?: string;
 }
 
 const TestNavigation = <T extends AllTestParts>({
@@ -36,6 +38,8 @@ const TestNavigation = <T extends AllTestParts>({
   onSubmit,
   isTestFinished,
   isLoading,
+  disableSubmit = false,
+  disableSubmitReason,
 }: TestNavigationProps<T>) => {
   const renderNumber = (part: AllTestParts) => {
     switch (testType) {
@@ -135,7 +139,7 @@ const TestNavigation = <T extends AllTestParts>({
             trigger={
               <Button
                 type="button"
-                disabled={isTestFinished}
+                disabled={isTestFinished || disableSubmit}
                 className="w-full md:w-auto"
               >
                 Submit
@@ -148,6 +152,11 @@ const TestNavigation = <T extends AllTestParts>({
             cancelText="No, Cancel"
             isLoading={isLoading}
           />
+          {disableSubmit && disableSubmitReason && (
+            <p className="text-xs text-muted-foreground max-w-[200px]">
+              {disableSubmitReason}
+            </p>
+          )}
         </div>
       </CardContent>
     </Card>
