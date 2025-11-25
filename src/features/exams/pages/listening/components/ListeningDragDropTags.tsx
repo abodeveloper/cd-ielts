@@ -79,12 +79,14 @@ const ListeningDragDropTags: React.FC<Props> = ({
   const [questions, setQuestions] = useState<Question[]>([]);
 
   // options va initialQuestions ni stabillashtirish
-  const stableOptions = useMemo(() => options, [options]);
-  const stableQuestions = useMemo(() => initialQuestions, [initialQuestions]);
+  const stableOptions = useMemo(() => options ?? [], [options]);
+  const stableQuestions = useMemo(
+    () => initialQuestions ?? [],
+    [initialQuestions]
+  );
 
-  // Boshlang‘ich holatni faqat bir marta o‘rnatish
+  // Boshlang‘ich holatni o'rnatish va props o'zgarganda yangilash
   useEffect(() => {
-    console.log("useEffect triggered with options:", stableOptions);
     if (!stableOptions?.length) {
       setError("Noto‘g‘ri yoki bo‘sh variantlar kiritilgan.");
       return;
@@ -94,19 +96,19 @@ const ListeningDragDropTags: React.FC<Props> = ({
       return;
     }
 
-    console.log("Initializing availableOptions:", stableOptions);
+    const normalizedQuestions = stableQuestions.map((q) => ({
+      ...q,
+      answer:
+        q.answer ||
+        form.getValues(`answers.${parseInt(q.question_number) - 1}.answer`) ||
+        undefined,
+    }));
+
+    setQuestions(normalizedQuestions);
+
     setAvailableOptions(stableOptions);
-    setQuestions(
-      stableQuestions.map((q) => ({
-        ...q,
-        answer:
-          q.answer ||
-          form.getValues(`answers.${parseInt(q.question_number) - 1}.answer`) ||
-          undefined,
-      }))
-    );
     setError(null);
-  }, []); // Bo‘sh bog‘liqliklar, faqat bir marta ishga tushadi
+  }, [stableOptions, stableQuestions, form, isRepeatAnswer]);
 
   const handleDragEnd = (event: any) => {
     const { over, active } = event;
@@ -121,49 +123,29 @@ const ListeningDragDropTags: React.FC<Props> = ({
     }
 
     const qIndex = parseInt(over.id) - 1;
-    const existingAnswer = questions.find(
-      (q) => q.question_number === over.id
-    )?.answer;
-
-    console.log("Setting answer for question", over.id, ":", draggedOption);
-
-    // Agar oldingi javob bo‘lsa va isRepeatAnswer false bo‘lsa, uni qaytarish
-    if (existingAnswer && !isRepeatAnswer) {
-      const oldOption = stableOptions.find(
-        (o) => String(o.value) === String(existingAnswer)
-      );
-      if (
-        oldOption &&
-        !availableOptions.some(
-          (o) => String(o.value) === String(oldOption.value)
-        )
-      ) {
-        console.log("Returning old option to available:", oldOption);
-        setAvailableOptions((prev) => [...prev, oldOption]);
-      }
-    }
-
     // Yangi javobni o‘rnatish
     form.setValue(`answers.${qIndex}.answer`, draggedOption.value);
     setQuestions((prev) =>
-      prev.map((q) =>
-        q.question_number === over.id
-          ? { ...q, answer: draggedOption.value }
-          : q
-      )
-    );
+      prev.map((q) => {
+        // Hedef savolga yangi javobni yozish
+        if (q.question_number === over.id) {
+          return { ...q, answer: draggedOption.value };
+        }
 
-    // Agar isRepeatAnswer false bo‘lsa, ishlatilgan variantni olib tashlash
-    if (!isRepeatAnswer) {
-      console.log("Before filtering availableOptions:", availableOptions);
-      setAvailableOptions((prev) => {
-        const newOptions = prev.filter(
-          (opt) => String(opt.value) !== String(draggedOption.value)
-        );
-        console.log("After filtering availableOptions:", newOptions);
-        return newOptions;
-      });
-    }
+        // Takrorlanmas javoblarda shu option boshqa savolda ishlatilgan bo'lsa, uni tozalash
+        if (
+          !isRepeatAnswer &&
+          q.question_number !== over.id &&
+          String(q.answer) === String(draggedOption.value)
+        ) {
+          const prevIndex = parseInt(q.question_number) - 1;
+          form.setValue(`answers.${prevIndex}.answer`, "");
+          return { ...q, answer: undefined };
+        }
+
+        return q;
+      })
+    );
   };
 
   const handleRemoveAnswer = (questionNumber: string) => {
@@ -173,7 +155,6 @@ const ListeningDragDropTags: React.FC<Props> = ({
     );
     if (!question?.answer) return;
 
-    console.log("Removing answer for question", questionNumber);
     form.setValue(`answers.${qIndex}.answer`, "");
 
     setQuestions((prev) =>
@@ -182,20 +163,6 @@ const ListeningDragDropTags: React.FC<Props> = ({
       )
     );
 
-    if (!isRepeatAnswer) {
-      const optionToReturn = stableOptions.find(
-        (opt) => String(opt.value) === String(question.answer)
-      );
-      if (
-        optionToReturn &&
-        !availableOptions.some(
-          (o) => String(o.value) === String(optionToReturn.value)
-        )
-      ) {
-        console.log("Returning option to available:", optionToReturn);
-        setAvailableOptions((prev) => [...prev, optionToReturn]);
-      }
-    }
   };
 
   if (error) {
