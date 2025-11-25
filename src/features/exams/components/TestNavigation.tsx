@@ -54,6 +54,22 @@ const TestNavigation = <T extends AllTestParts>({
     }
   };
 
+  const handleQuestionNumberClick = (questionNumber: number, partId: number) => {
+    // Switch to the correct tab first
+    setActiveTab(`tab-${partId}`);
+    
+    // Wait a bit for the tab to switch and content to render, then scroll
+    setTimeout(() => {
+      const questionElement = document.getElementById(`question-${questionNumber}`);
+      if (questionElement) {
+        questionElement.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'center' 
+        });
+      }
+    }, 100);
+  };
+
   return (
     <Card className="w-full shadow-md p-2 sticky bottom-0 z-50 rounded-none">
       <CardContent className="p-0 flex items-center justify-between gap-2 h-[80px]">
@@ -91,8 +107,11 @@ const TestNavigation = <T extends AllTestParts>({
                       return (
                         <Label
                           key={item.id}
-                          htmlFor={item?.question_number?.toString()}
-                          onClick={() => setActiveTab(`tab-${part.id}`)}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleQuestionNumberClick(item?.question_number, part.id);
+                          }}
                           className={cn(
                             "cursor-pointer rounded text-sm flex items-center justify-center",
                             testType === TestType.WRITING 

@@ -595,7 +595,11 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
             type === ReadingQuestionType.MULTIPLE_CHOICE
           ) {
             return (
-              <div style={{ margin: "8px 0" }} key={number}>
+              <div 
+                id={`question-${number}`}
+                style={{ margin: "8px 0" }} 
+                key={number}
+              >
                 {inputElement}
               </div>
             );

@@ -392,14 +392,6 @@ const ListeningTestStep = ({ onNext }: StepProps) => {
                 onSubmit={form.handleSubmit(onSubmit)}
                 isTestFinished={isTestFinished}
                 isLoading={listeningMutation.isPending}
-                disableSubmit={
-                  isMockTest && hasAnswerDuration && !isTestFinished
-                }
-                disableSubmitReason={
-                  isMockTest && hasAnswerDuration && !isTestFinished
-                    ? "Submission will be available after the answer time finishes."
-                    : undefined
-                }
               />
             </Tabs>
           </form>

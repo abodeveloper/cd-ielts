@@ -14,7 +14,7 @@ import {
   RiVolumeMuteLine,
   RiVolumeUpLine,
 } from "@remixicon/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 interface TestHeaderProps {
@@ -74,8 +74,58 @@ const TestHeader = ({
   const { user } = useAuthStore();
 
   const [volume, setVolume] = useState(0.5);
+  const [audioCurrentTime, setAudioCurrentTime] = useState(0);
+  const [audioDuration, setAudioDuration] = useState(0);
+  const audioElement = audioRef?.current;
 
-  // Slider qiymati o‘zgarganda
+  // Track audio current time for listening tests
+  useEffect(() => {
+    if (testType !== TestType.LISTENING || !audioElement) {
+      setAudioCurrentTime(0);
+      setAudioDuration(0);
+      return;
+    }
+
+    const updateTime = () => {
+      setAudioCurrentTime(audioElement.currentTime || 0);
+    };
+
+    const updateDuration = () => {
+      const duration = Number.isFinite(audioElement.duration)
+        ? audioElement.duration
+        : 0;
+      setAudioDuration(duration);
+    };
+
+    updateTime();
+    updateDuration();
+
+    audioElement.addEventListener("timeupdate", updateTime);
+    audioElement.addEventListener("loadedmetadata", updateDuration);
+    audioElement.addEventListener("durationchange", updateDuration);
+    audioElement.addEventListener("ended", updateTime);
+
+    return () => {
+      audioElement.removeEventListener("timeupdate", updateTime);
+      audioElement.removeEventListener("loadedmetadata", updateDuration);
+      audioElement.removeEventListener("durationchange", updateDuration);
+      audioElement.removeEventListener("ended", updateTime);
+    };
+  }, [testType, audioElement]);
+
+  // Format audio time as MM:SS
+  const formatAudioTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  };
+
+  const audioDisplaySeconds =
+    audioDuration > 0
+      ? Math.max(audioDuration - audioCurrentTime, 0)
+      : audioCurrentTime;
+
+  // Slider qiymati o'zgarganda
   const onVolumeChange = (value: number[]) => {
     const newVolume = value[0]; // Slider massiv sifatida qiymat qaytaradi
     setVolume(newVolume);
@@ -92,15 +142,26 @@ const TestHeader = ({
           <b>Candidate:</b> {user?.full_name || user?.username}
         </div>
         <div className="text-sm font-semibold font-mono flex items-center gap-2 justify-center">
-          <RiTimerLine className="w-5 h-5" />
-          Time Left:{" "}
-          <span
-            className={cn("text-red-400", timeLeft < 600 && "text-red-700")}
-          >
-            {formatTime(timeLeft)}
-          </span>
+          {testType === TestType.LISTENING && audioRef ? (
+            <>
+              <RiTimerLine className="w-5 h-5" />
+              {formatAudioTime(audioDisplaySeconds)}
+            </>
+          ) : (
+            <span className="text-muted-foreground">-</span>
+          )}
         </div>
         <div className="flex items-center gap-8 justify-end">
+          {/* Timer moved to right side */}
+          <div className="text-sm font-semibold font-mono flex items-center gap-2 whitespace-nowrap">
+            <RiTimerLine className="w-5 h-5" />
+            <span className="whitespace-nowrap">Time Left:</span>
+            <span
+              className={cn("text-red-400", timeLeft < 600 && "text-red-700")}
+            >
+              {formatTime(timeLeft)}
+            </span>
+          </div>
           {testType === TestType.LISTENING &&
             audioRef &&
             handleVolumeChange && (

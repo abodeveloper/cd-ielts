@@ -80,7 +80,11 @@ const ListeningQuestionRenderer: React.FC<QuestionRendererProps> = ({
 
               if (type === ListeningQuestionType.MULTIPLE_CHOICE) {
                 return (
-                  <div style={{ margin: "8px 0" }} key={number}>
+                  <div 
+                    id={`question-${number}`}
+                    style={{ margin: "8px 0" }} 
+                    key={number}
+                  >
                     {inputElement}
                   </div>
                 );
