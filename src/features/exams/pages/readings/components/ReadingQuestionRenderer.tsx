@@ -1,5 +1,6 @@
+import type React from "react";
 import parse, { Element, domToReact } from "html-react-parser";
-import { useRef, useEffect, useState, useCallback } from "react";
+import { useRef, useEffect, useState, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { RiCloseLine, RiEraserLine, RiMarkPenLine } from "@remixicon/react";
 import { ReadingFormValues } from "@/features/exams/schemas/reading-schema";
@@ -512,6 +513,7 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
     typeof currentHtml === "string" && currentHtml.trim().length > 0
       ? currentHtml
       : htmlString;
+  let dragDropBlockIndex = -1;
   const parsedHtml = parse(safeHtml, {
     replace: (domNode) => {
       if (domNode instanceof Element) {
@@ -960,185 +962,15 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
         }
         // DRAG-DROP-MATCHING-SENTENCE-ENDINGS - Form bilan sinxronlashtirilgan versiya
         if (domNode.name === "drag-drop-matching-sentence-endings") {
-          const { attribs } = domNode;
-          let options: { value: string; label: string }[] = [];
-          try {
-            options = JSON.parse(attribs["data-options"] || "[]");
-          } catch (error) {
-            console.error("Invalid data-options JSON:", error);
+          dragDropBlockIndex += 1;
             return (
-              <span className="text-destructive">
-                Invalid drag drop options
-              </span>
-            );
-          }
-          if (!options.length) {
-            console.warn(
-              "No options provided for drag-drop-matching-sentence-endings:",
-              attribs
-            );
-            return (
-              <span className="text-destructive">No drag drop options</span>
-            );
-          }
-          const isRepeat = attribs["data-repeat"] === "True";
-          const [droppedValues, setDroppedValues] = useState<{
-            [key: string]: string;
-          }>({});
-          const [usedOptions, setUsedOptions] = useState<Set<string>>(
-            new Set()
-          );
-          // Form qiymatlaridan droppedValues va usedOptions ni sinxronlash
-          useEffect(() => {
-            const answers = form.getValues("answers") || [];
-            const newDroppedValues: { [key: string]: string } = {};
-            const newUsedOptions = new Set<string>();
-            answers.forEach((answer: any, index: number) => {
-              if (answer?.answer) {
-                newDroppedValues[(index + 1).toString()] = answer.answer;
-                if (!isRepeat) {
-                  newUsedOptions.add(answer.answer);
-                }
-              }
-            });
-            setDroppedValues(newDroppedValues);
-            setUsedOptions(newUsedOptions);
-          }, [htmlString, form, isRepeat]);
-          const handleDragStart = (
-            e: React.DragEvent<HTMLDivElement>,
-            value: string
-          ) => {
-            e.dataTransfer.setData("text/plain", value);
-            e.currentTarget.style.opacity = "0.5";
-            handlePreventSelection(e);
-          };
-          const handleDragEnd = (e: React.DragEvent<HTMLDivElement>) => {
-            e.currentTarget.style.opacity = "1";
-          };
-          const handleDrop = (
-            e: React.DragEvent<HTMLDivElement>,
-            questionNumber: string
-          ) => {
-            e.preventDefault();
-            const value = e.dataTransfer.getData("text/plain");
-            if (value) {
-              const oldValue = droppedValues[questionNumber];
-              if (oldValue && !isRepeat) {
-                setUsedOptions((prev) => {
-                  const newSet = new Set(prev);
-                  newSet.delete(oldValue);
-                  return newSet;
-                });
-              }
-              setDroppedValues((prev) => ({
-                ...prev,
-                [questionNumber]: value,
-              }));
-              if (!isRepeat) {
-                setUsedOptions((prev) => new Set([...prev, value]));
-              }
-              const answerIndex = parseInt(questionNumber) - 1;
-              form.setValue(`answers.${answerIndex}.answer`, value);
-              e.currentTarget.style.backgroundColor = "";
-            }
-          };
-          const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-            e.preventDefault();
-            e.currentTarget.style.backgroundColor = "#e0f7fa";
-          };
-          const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
-            e.currentTarget.style.backgroundColor = "";
-          };
-          const handleClear = (questionNumber: string) => {
-            const value = droppedValues[questionNumber];
-            setDroppedValues((prev) => {
-              const newValues = { ...prev };
-              delete newValues[questionNumber];
-              return newValues;
-            });
-            if (!isRepeat && value) {
-              setUsedOptions((prev) => {
-                const newSet = new Set(prev);
-                newSet.delete(value);
-                return newSet;
-              });
-            }
-            const answerIndex = parseInt(questionNumber) - 1;
-            form.setValue(`answers.${answerIndex}.answer`, "");
-          };
-          return (
-            <div className="my-6">
-              {domToReact(domNode.children, {
-                replace: (innerNode) => {
-                  if (
-                    innerNode instanceof Element &&
-                    innerNode.name === "drag-drop-sentence-input"
-                  ) {
-                    const innerAttribs = innerNode.attribs;
-                    const number = innerAttribs["data-question-number"] ?? "";
-                    const type = innerAttribs["data-question-type"] ?? "";
-                    if (
-                      !number ||
-                      (type !== "matching_sentence_endings" &&
-                        type !== "matching_headings")
-                    ) {
-                      return (
-                        <span className="text-destructive">
-                          Invalid drag-drop input
-                        </span>
-                      );
-                    }
-                    return (
-                      <span
-                        key={number}
-                        onDrop={(e) => handleDrop(e, number)}
-                        onDragOver={handleDragOver}
-                        onDragLeave={handleDragLeave}
-                        className="inline-block min-w-[150px] border-2 border-gray-400 border-dashed p-1 my-1 mx-2 rounded-md text-center"
-                      >
-                        {droppedValues[number] ? (
-                          <div className="flex items-center justify-between">
-                            <span className="font-semibold">
-                              {options.find(
-                                (opt) => opt.value === droppedValues[number]
-                              )?.label || droppedValues[number]}
-                            </span>
-                            <button
-                              onClick={() => handleClear(number)}
-                              onMouseDown={handlePreventSelection}
-                              className="text-destructive hover:text-destructive/70 ml-2"
-                            >
-                              <RiCloseLine size={20} />
-                            </button>
-                          </div>
-                        ) : (
-                          <span className="text-muted-foreground">
-                            {number}
-                          </span>
-                        )}
-                      </span>
-                    );
-                  }
-                  return undefined;
-                },
-              })}
-              <div className="flex flex-wrap gap-3 mt-6">
-                {options.map(
-                  (option) =>
-                    (!usedOptions.has(option.value) || isRepeat) && (
-                      <div
-                        key={option.value}
-                        draggable
-                        onDragStart={(e) => handleDragStart(e, option.value)}
-                        onDragEnd={handleDragEnd}
-                        className="p-2 bg-primary text-primary-foreground rounded-lg cursor-move hover:bg-muted-foreground transition-colors min-w-[150px] text-center"
-                      >
-                        {option.label}
-                      </div>
-                    )
-                )}
-              </div>
-            </div>
+            <DragDropMatchingBlock
+              key={`drag-drop-${dragDropBlockIndex}`}
+              blockKey={`drag-drop-${dragDropBlockIndex}`}
+              element={domNode}
+              form={form}
+              onPreventSelection={handlePreventSelection}
+            />
           );
         }
       }
@@ -1215,3 +1047,267 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
   );
 };
 export default ReadingQuestionRenderer;
+
+interface DragDropMatchingBlockProps {
+  element: Element;
+  form: UseFormReturn<ReadingFormValues>;
+  blockKey: string;
+  onPreventSelection?: (event: React.MouseEvent | React.DragEvent) => void;
+}
+
+const collectQuestionNumbers = (
+  children: Element["children"] | undefined
+): string[] => {
+  const numbers: string[] = [];
+  const traverse = (nodes: any[]) => {
+    nodes?.forEach((node) => {
+      if (node instanceof Element) {
+        if (node.name === "drag-drop-sentence-input") {
+          const num = node.attribs["data-question-number"];
+          if (num) {
+            numbers.push(num);
+          }
+        }
+        if (node.children && node.children.length) {
+          traverse(node.children);
+        }
+      }
+    });
+  };
+  traverse(children || []);
+  return numbers;
+};
+
+const DragDropMatchingBlock: React.FC<DragDropMatchingBlockProps> = ({
+  element,
+  form,
+  blockKey,
+  onPreventSelection,
+}) => {
+  const options = useMemo<{ value: string; label: string }[]>(() => {
+    try {
+      return JSON.parse(element.attribs["data-options"] || "[]");
+    } catch (error) {
+      console.error("Invalid data-options JSON:", error);
+      return [];
+    }
+  }, [element]);
+
+  if (!options.length) {
+    return (
+      <span className="text-destructive block my-4">
+        No drag drop options
+      </span>
+    );
+  }
+
+  const isRepeat = element.attribs["data-repeat"] === "True";
+  const questionNumbers = useMemo(
+    () => collectQuestionNumbers(element.children),
+    [element.children]
+  );
+
+  const [droppedValues, setDroppedValues] = useState<Record<string, string>>(
+    {}
+  );
+
+  useEffect(() => {
+    const answers = form.getValues("answers") || [];
+    const nextValues: Record<string, string> = {};
+    questionNumbers.forEach((number) => {
+      const index = parseInt(number, 10) - 1;
+      const answerValue = answers?.[index]?.answer;
+      if (answerValue) {
+        nextValues[number] = answerValue;
+      }
+    });
+
+    setDroppedValues((prev) => {
+      const prevSerialized = JSON.stringify(prev);
+      const nextSerialized = JSON.stringify(nextValues);
+      return prevSerialized === nextSerialized ? prev : nextValues;
+    });
+  }, [form, questionNumbers]);
+
+  const usedOptions = useMemo(() => {
+    if (isRepeat) return new Set<string>();
+    return new Set(
+      Object.values(droppedValues).filter((value) =>
+        value ? String(value).trim().length > 0 : false
+      )
+    );
+  }, [droppedValues, isRepeat]);
+
+  const handleAssign = useCallback(
+    (questionNumber: string, value: string) => {
+      setDroppedValues((prev) => {
+        const updated = { ...prev };
+
+        if (!isRepeat) {
+          Object.entries(updated).forEach(([key, val]) => {
+            if (key !== questionNumber && val === value) {
+              updated[key] = "";
+              const otherIndex = parseInt(key, 10) - 1;
+              form.setValue(`answers.${otherIndex}.answer`, "");
+            }
+          });
+        }
+
+        updated[questionNumber] = value;
+        return updated;
+      });
+
+      const answerIndex = parseInt(questionNumber, 10) - 1;
+      form.setValue(`answers.${answerIndex}.answer`, value);
+    },
+    [form, isRepeat]
+  );
+
+  const handleClear = useCallback(
+    (questionNumber: string) => {
+      setDroppedValues((prev) => {
+        if (!prev[questionNumber]) return prev;
+        const updated = { ...prev };
+        updated[questionNumber] = "";
+        return updated;
+      });
+      const answerIndex = parseInt(questionNumber, 10) - 1;
+      form.setValue(`answers.${answerIndex}.answer`, "");
+    },
+    [form]
+  );
+
+  const handleDragStart = useCallback(
+    (e: React.DragEvent<HTMLDivElement>, value: string) => {
+      e.dataTransfer.setData("text/plain", value);
+      e.currentTarget.style.opacity = "0.5";
+      onPreventSelection?.(e);
+    },
+    [onPreventSelection]
+  );
+
+  const handleDragEnd = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.currentTarget.style.opacity = "1";
+  }, []);
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent<HTMLSpanElement>, questionNumber: string) => {
+      e.preventDefault();
+      const value = e.dataTransfer.getData("text/plain");
+      if (!value) return;
+      handleAssign(questionNumber, value);
+      e.currentTarget.style.backgroundColor = "";
+    },
+    [handleAssign]
+  );
+
+  const handleDragOver = useCallback((e: React.DragEvent<HTMLSpanElement>) => {
+    e.preventDefault();
+    e.currentTarget.style.backgroundColor = "#e0f7fa";
+  }, []);
+
+  const handleDragLeave = useCallback(
+    (e: React.DragEvent<HTMLSpanElement>) => {
+      e.currentTarget.style.backgroundColor = "";
+    },
+    []
+  );
+
+  const renderedInputs = useMemo(
+    () =>
+      domToReact(element.children, {
+        replace: (innerNode) => {
+          if (
+            innerNode instanceof Element &&
+            innerNode.name === "drag-drop-sentence-input"
+          ) {
+            const innerAttribs = innerNode.attribs;
+            const number = innerAttribs["data-question-number"] ?? "";
+            const type = innerAttribs["data-question-type"] ?? "";
+            if (
+              !number ||
+              (type !== "matching_sentence_endings" &&
+                type !== "matching_headings")
+            ) {
+              return (
+                <span className="text-destructive" key={`${blockKey}-invalid`}>
+                  Invalid drag-drop input
+                </span>
+              );
+            }
+
+            const value = droppedValues[number];
+            const label =
+              options.find((opt) => opt.value === value)?.label || value;
+
+            return (
+              <span
+                key={`${blockKey}-${number}`}
+                onDrop={(e) => handleDrop(e, number)}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                className="inline-block min-w-[150px] border-2 border-gray-400 border-dashed p-1 my-1 mx-2 rounded-md text-center align-middle"
+                data-question-number={number}
+              >
+                {value ? (
+                  <span className="inline-flex items-center justify-between gap-2 w-full">
+                    <span className="font-semibold">{label}</span>
+                    <button
+                      type="button"
+                      onClick={() => handleClear(number)}
+                      onMouseDown={onPreventSelection}
+                      className="text-destructive hover:text-destructive/70"
+                    >
+                      <RiCloseLine size={16} />
+                    </button>
+                  </span>
+                ) : (
+                  <span className="text-muted-foreground">{number}</span>
+                )}
+              </span>
+            );
+          }
+          return innerNode;
+        },
+      }),
+    [
+      element.children,
+      droppedValues,
+      handleDrop,
+      handleDragLeave,
+      handleDragOver,
+      handleClear,
+      onPreventSelection,
+      blockKey,
+      options,
+    ]
+  );
+
+  return (
+    <span className="block my-6">
+      {renderedInputs}
+      <span className="block mt-6">
+        <div className="flex flex-wrap gap-3">
+          {options.map((option) => {
+            const isUsed = !isRepeat && usedOptions.has(option.value);
+            return (
+              <div
+                key={`${blockKey}-${option.value}`}
+                draggable
+                onDragStart={(e) => handleDragStart(e, option.value)}
+                onDragEnd={handleDragEnd}
+                className={`p-2 rounded-lg min-w-[150px] text-center cursor-move transition-colors ${
+                  isUsed
+                    ? "bg-muted text-muted-foreground opacity-70"
+                    : "bg-primary text-primary-foreground hover:bg-muted-foreground"
+                }`}
+              >
+                {option.label}
+              </div>
+            );
+          })}
+        </div>
+      </span>
+    </span>
+  );
+};
