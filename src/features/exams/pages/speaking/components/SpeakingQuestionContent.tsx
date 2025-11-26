@@ -353,11 +353,18 @@ const SpeakingQuestionContent = ({
         mediaRecorderRef.current &&
         mediaRecorderRef.current.state === "paused"
       ) {
+        // Request data before resuming to capture any remaining data from paused state
+        try {
+          mediaRecorderRef.current.requestData();
+        } catch (e) {
+          console.warn("Could not request data before resume:", e);
+        }
         mediaRecorderRef.current.resume();
         setIsRecording(true);
         if (analyzerNodeRef.current) {
           setAnalyzerData(analyzerNodeRef.current);
         }
+        console.log("Recording resumed. Total chunks:", allAudioChunks.current.length);
         return;
       }
 
@@ -437,36 +444,58 @@ const SpeakingQuestionContent = ({
       mediaRecorderRef.current = recorder;
 
       recorder.ondataavailable = (e) => {
-        if (e.data.size > 0) {
+        if (e.data && e.data.size > 0) {
+          console.log("Audio chunk received:", e.data.size, "bytes");
           allAudioChunks.current.push(e.data);
         }
       };
 
+      // Ensure we get all data when recording stops
+      recorder.onerror = (e) => {
+        console.error("MediaRecorder error:", e);
+      };
+
       recorder.onstop = () => {
+        // Request final data chunk before stopping
+        if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+          try {
+            mediaRecorderRef.current.requestData();
+          } catch (e) {
+            console.warn("Could not request final data:", e);
+          }
+        }
+        
         setIsRecording(false);
         setAnalyzerData(null);
         analyzerNodeRef.current = null;
-        mediaRecorderRef.current = null;
-        if (mediaStreamRef.current) {
-          mediaStreamRef.current.getTracks().forEach((track) => track.stop());
-          mediaStreamRef.current = null;
-        }
-        if (audioContextRef.current) {
-          audioContextRef.current.close();
-          audioContextRef.current = null;
-        }
-        if (stopPromiseRef.current) {
-          stopPromiseRef.current();
-          stopPromiseRef.current = null;
-        }
+        console.log("Recording stopped. Total chunks:", allAudioChunks.current.length);
+        
+        // Cleanup after a small delay to ensure all data is received
+        setTimeout(() => {
+          mediaRecorderRef.current = null;
+          if (mediaStreamRef.current) {
+            mediaStreamRef.current.getTracks().forEach((track) => track.stop());
+            mediaStreamRef.current = null;
+          }
+          if (audioContextRef.current) {
+            audioContextRef.current.close();
+            audioContextRef.current = null;
+          }
+          if (stopPromiseRef.current) {
+            stopPromiseRef.current();
+            stopPromiseRef.current = null;
+          }
+        }, 100);
       };
 
       // timeslice beramiz, shunda MediaRecorder har bir intervalda (masalan, 1 soniyada)
       // chunklarni yuboradi va ular darhol allAudioChunks ga qo'shiladi.
       // Bu eski bo'limlardagi yozuvlarning faqat oxirgi qismini emas,
       // butun davomiyligini saqlashga yordam beradi.
+      // 1000ms = 1 soniya - bu recording davomida har sekundda chunk olish uchun
       recorder.start(1000);
       setIsRecording(true);
+      console.log("Recording started with timeslice 1000ms");
     } catch (error) {
       console.error("Microphone permission denied:", error);
       setPhase("paused");
@@ -479,9 +508,12 @@ const SpeakingQuestionContent = ({
       mediaRecorderRef.current &&
       mediaRecorderRef.current.state === "recording"
     ) {
+      // Request final data before pausing to ensure we capture everything
+      mediaRecorderRef.current.requestData();
       mediaRecorderRef.current.pause();
       setIsRecording(false);
       setAnalyzerData(null);
+      console.log("Recording paused. Total chunks:", allAudioChunks.current.length);
     }
   };
 
@@ -492,7 +524,19 @@ const SpeakingQuestionContent = ({
         mediaRecorderRef.current &&
         mediaRecorderRef.current.state !== "inactive"
       ) {
-        stopPromiseRef.current = () => resolve();
+        // Request final data before stopping to ensure we capture everything
+        try {
+          if (mediaRecorderRef.current.state === "recording") {
+            mediaRecorderRef.current.requestData();
+          }
+        } catch (e) {
+          console.warn("Could not request final data before stop:", e);
+        }
+        
+        stopPromiseRef.current = () => {
+          console.log("Recording fully stopped. Final chunk count:", allAudioChunks.current.length);
+          resolve();
+        };
         mediaRecorderRef.current.stop();
       } else {
         resolve();
@@ -504,10 +548,14 @@ const SpeakingQuestionContent = ({
   const handleContinue = async (e: React.MouseEvent) => {
     e.preventDefault();
     if (phase === "preparation") {
+      // Stop text-to-speech when starting to answer
+      handleStopSpeaking();
       setPhase("answering");
       setTimeLeft(part.answer_time);
       await handleStartRecording();
     } else if (phase === "answering" && isRecording) {
+      // Stop text-to-speech when stopping recording
+      handleStopSpeaking();
       handlePauseRecording();
       setPhase("paused");
       setTimeLeft(0);

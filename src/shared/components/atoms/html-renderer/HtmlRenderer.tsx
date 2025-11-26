@@ -179,11 +179,32 @@ const HTMLRendererWithHighlight = ({
             setSelectedRange(range);
           }
 
-        // Dropdownni tanlangan matnning yuqori qismida ko'rsatish
+        // Dropdownni tanlangan matnning YUQORI qismida ko'rsatish (har doim!)
+        // va ekran chegaralarini tekshirish
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+        const dropdownWidth = 200;
+        const dropdownHeight = 50;
+        
+        let xPos = rect.left + window.scrollX + rect.width / 2;
+        // X o'qi bo'yicha chegaralarni tekshirish
+        if (xPos + dropdownWidth / 2 > viewportWidth + window.scrollX) {
+          xPos = viewportWidth + window.scrollX - dropdownWidth / 2 - 10;
+        } else if (xPos - dropdownWidth / 2 < window.scrollX) {
+          xPos = window.scrollX + dropdownWidth / 2 + 10;
+        }
+        
+        // Y o'qi bo'yicha: HAR DOIM yuqori qismga qo'yish - matnning tepasidan kamida 35px masofada
+        let yPos = rect.top + window.scrollY - dropdownHeight - 35; // Tanlangan matnning yuqori qismidan kamida 35px yuqoriga
+        // Agar yuqori qism ekrandan chiqib ketsa, faqat o'sha holda pastki qismga qo'yish
+        if (yPos < window.scrollY) {
+          yPos = rect.bottom + window.scrollY + 35; // Pastki qismga fallback (35px masofada)
+        }
+        
         setDropdownPos({
-          x: rect.left + window.scrollX + rect.width / 2,
-          y: rect.top + window.scrollY - 50,
-          width: 0,
+          x: xPos,
+          y: yPos,
+          width: dropdownWidth,
         });
         } else {
           setSelectedRange(null);
@@ -242,11 +263,29 @@ const HTMLRendererWithHighlight = ({
     setSelectedRange(null);
 
     const rect = target.getBoundingClientRect();
-    // Mavjud highlight ustiga emas, biroz tepasiga chiqarish
+    const viewportWidth = window.innerWidth;
+    const dropdownWidth = 200;
+    const dropdownHeight = 50;
+    
+    // X o'qi bo'yicha pozitsiyani hisoblash
+    let xPos = rect.left + window.scrollX + rect.width / 2;
+    if (xPos + dropdownWidth / 2 > viewportWidth + window.scrollX) {
+      xPos = viewportWidth + window.scrollX - dropdownWidth / 2 - 10;
+    } else if (xPos - dropdownWidth / 2 < window.scrollX) {
+      xPos = window.scrollX + dropdownWidth / 2 + 10;
+    }
+    
+    // Y o'qi bo'yicha: HAR DOIM yuqori qismga qo'yish - matnning tepasidan kamida 35px masofada
+    let yPos = rect.top + window.scrollY - dropdownHeight - 35; // Tanlangan matnning yuqori qismidan kamida 35px yuqoriga
+    // Agar yuqori qism ekrandan chiqib ketsa, faqat o'sha holda pastki qismga qo'yish
+    if (yPos < window.scrollY) {
+      yPos = rect.bottom + window.scrollY + 35; // Pastki qismga fallback (35px masofada)
+    }
+    
     setDropdownPos({
-      x: rect.left + window.scrollX + rect.width / 2,
-      y: rect.top + window.scrollY - 50,
-      width: 0,
+      x: xPos,
+      y: yPos,
+      width: dropdownWidth,
     });
   };
 

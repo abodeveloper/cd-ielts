@@ -233,14 +233,23 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
           }
           const viewportWidth = window.innerWidth;
           const dropdownWidth = 200;
+          const dropdownHeight = 50;
+          
+          // X o'qi bo'yicha pozitsiyani hisoblash
           let xPos = rect.left + window.scrollX + rect.width / 2;
-          if (xPos + dropdownWidth / 2 > viewportWidth) {
-            xPos = viewportWidth - dropdownWidth / 2 - 10;
-          } else if (xPos - dropdownWidth / 2 < 0) {
-            xPos = dropdownWidth / 2 + 10;
+          if (xPos + dropdownWidth / 2 > viewportWidth + window.scrollX) {
+            xPos = viewportWidth + window.scrollX - dropdownWidth / 2 - 10;
+          } else if (xPos - dropdownWidth / 2 < window.scrollX) {
+            xPos = window.scrollX + dropdownWidth / 2 + 10;
           }
-          // Dropdownni matnning tepasida ko'rsatish
-          const yPos = rect.top + window.scrollY - 50; // biroz yuqoriga offset
+          
+          // Y o'qi bo'yicha: HAR DOIM yuqori qismga qo'yish - matnning tepasidan kamida 35px masofada
+          let yPos = rect.top + window.scrollY - dropdownHeight - 35; // Tanlangan matnning yuqori qismidan kamida 35px yuqoriga
+          // Agar yuqori qism ekrandan chiqib ketsa, faqat o'sha holda pastki qismga qo'yish
+          if (yPos < window.scrollY) {
+            yPos = rect.bottom + window.scrollY + 35; // Pastki qismga fallback (35px masofada)
+          }
+          
           setDropdownPos({
             x: xPos,
             y: yPos,
@@ -336,14 +345,23 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
     const rect = target.getBoundingClientRect();
     const viewportWidth = window.innerWidth;
     const dropdownWidth = 200;
+    const dropdownHeight = 50;
+    
+    // X o'qi bo'yicha pozitsiyani hisoblash
     let xPos = rect.left + window.scrollX + rect.width / 2;
-    if (xPos + dropdownWidth / 2 > viewportWidth) {
-      xPos = viewportWidth - dropdownWidth / 2 - 10;
-    } else if (xPos - dropdownWidth / 2 < 0) {
-      xPos = dropdownWidth / 2 + 10;
+    if (xPos + dropdownWidth / 2 > viewportWidth + window.scrollX) {
+      xPos = viewportWidth + window.scrollX - dropdownWidth / 2 - 10;
+    } else if (xPos - dropdownWidth / 2 < window.scrollX) {
+      xPos = window.scrollX + dropdownWidth / 2 + 10;
     }
-    // Mavjud highlight ustiga emas, biroz tepasiga chiqarish
-    const yPos = rect.top + window.scrollY - 50;
+    
+    // Y o'qi bo'yicha: HAR DOIM yuqori qismga qo'yish - matnning tepasidan kamida 35px masofada
+    let yPos = rect.top + window.scrollY - dropdownHeight - 35; // Tanlangan matnning yuqori qismidan kamida 35px yuqoriga
+    // Agar yuqori qism ekrandan chiqib ketsa, faqat o'sha holda pastki qismga qo'yish
+    if (yPos < window.scrollY) {
+      yPos = rect.bottom + window.scrollY + 35; // Pastki qismga fallback (35px masofada)
+    }
+    
     setDropdownPos({
       x: xPos,
       y: yPos,
