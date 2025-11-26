@@ -179,11 +179,12 @@ const HTMLRendererWithHighlight = ({
             setSelectedRange(range);
           }
 
-          setDropdownPos({
-            x: rect.left + window.scrollX + rect.width / 2,
-            y: rect.bottom + window.scrollY + 10,
-            width: 0,
-          });
+        // Dropdownni tanlangan matnning yuqori qismida ko'rsatish
+        setDropdownPos({
+          x: rect.left + window.scrollX + rect.width / 2,
+          y: rect.top + window.scrollY - 50,
+          width: 0,
+        });
         } else {
           setSelectedRange(null);
           setSelectedHighlightElement(null);
@@ -241,9 +242,10 @@ const HTMLRendererWithHighlight = ({
     setSelectedRange(null);
 
     const rect = target.getBoundingClientRect();
+    // Mavjud highlight ustiga emas, biroz tepasiga chiqarish
     setDropdownPos({
       x: rect.left + window.scrollX + rect.width / 2,
-      y: rect.bottom + window.scrollY + 10,
+      y: rect.top + window.scrollY - 50,
       width: 0,
     });
   };

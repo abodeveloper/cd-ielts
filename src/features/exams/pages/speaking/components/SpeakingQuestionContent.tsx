@@ -461,7 +461,11 @@ const SpeakingQuestionContent = ({
         }
       };
 
-      recorder.start();
+      // timeslice beramiz, shunda MediaRecorder har bir intervalda (masalan, 1 soniyada)
+      // chunklarni yuboradi va ular darhol allAudioChunks ga qo'shiladi.
+      // Bu eski bo'limlardagi yozuvlarning faqat oxirgi qismini emas,
+      // butun davomiyligini saqlashga yordam beradi.
+      recorder.start(1000);
       setIsRecording(true);
     } catch (error) {
       console.error("Microphone permission denied:", error);
