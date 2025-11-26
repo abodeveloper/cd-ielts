@@ -239,9 +239,11 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
           } else if (xPos - dropdownWidth / 2 < 0) {
             xPos = dropdownWidth / 2 + 10;
           }
+          // Dropdownni matnning tepasida ko'rsatish
+          const yPos = rect.top + window.scrollY - 50; // biroz yuqoriga offset
           setDropdownPos({
             x: xPos,
-            y: rect.bottom + window.scrollY + 10,
+            y: yPos,
             width: dropdownWidth,
           });
         } else {
@@ -340,9 +342,11 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
     } else if (xPos - dropdownWidth / 2 < 0) {
       xPos = dropdownWidth / 2 + 10;
     }
+    // Mavjud highlight ustiga emas, biroz tepasiga chiqarish
+    const yPos = rect.top + window.scrollY - 50;
     setDropdownPos({
       x: xPos,
-      y: rect.bottom + window.scrollY + 10,
+      y: yPos,
       width: dropdownWidth,
     });
   };

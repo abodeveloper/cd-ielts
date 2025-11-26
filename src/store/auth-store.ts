@@ -1,5 +1,6 @@
 import { getMe } from "@/features/auth/api/login";
 import { cookieService } from "@/lib/cookieService";
+import { queryClient } from "@/lib/react-query";
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { toastService } from "@/lib/toastService";
@@ -37,6 +38,16 @@ export const useAuthStore = create<AuthState>()(
       login: (token, userData) => {
         cookieService.setToken(token); // Tokenni cookie ga saqlash
         localStorage.setItem("accessToken", token); // Tokenni localStorage ga ham saqlash
+        // Faqat /api/tests bilan bog'liq cache ni tozalash (yangi user uchun yangidan olish)
+        queryClient.removeQueries({
+          predicate: (query) => {
+            const key = query.queryKey?.[0];
+            return (
+              typeof key === "string" &&
+              (key === "tests/mock" || key === "tests/thematic")
+            );
+          },
+        });
         set({
           isAuthenticated: true,
           accessToken: token,
@@ -49,6 +60,16 @@ export const useAuthStore = create<AuthState>()(
         cookieService.removeToken(); // Cookie dan tokenni o‘chirish
         localStorage.removeItem("accessToken"); // localStorage dan tokenni o‘chirish
         localStorage.removeItem("auth-storage"); // Persist storage ni tozalash
+        // Logout bo'lganda ham /api/tests cache ni tozalash
+        queryClient.removeQueries({
+          predicate: (query) => {
+            const key = query.queryKey?.[0];
+            return (
+              typeof key === "string" &&
+              (key === "tests/mock" || key === "tests/thematic")
+            );
+          },
+        });
         set({
           isAuthenticated: false,
           accessToken: null,

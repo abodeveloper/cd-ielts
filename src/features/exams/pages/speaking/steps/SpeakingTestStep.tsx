@@ -25,31 +25,37 @@ const SpeakingTestStep = () => {
 
   const parts: SpeakingPart[] = get(query, "data.speaking_parts", []);
 
-  const { activeTab, setActiveTab, currentTabIndex } =
-    useTestLogic<SpeakingPart>(null, parts, form.handleSubmit(onSubmit));
+  // Speaking uchun useTestLogic faqat tab navigatsiya uchun ishlatiladi (timer yo'q)
+  const { activeTab, setActiveTab, currentTabIndex } = useTestLogic(
+    null,
+    parts as any, // SpeakingPart AllTestParts ga moslashtirildi
+    () => {},
+    false
+  );
 
   // Oxirgi part ekanligini aniqlash
   const isLastPart = currentTabIndex === parts.length - 1;
 
   const activePart = parts.find((part) => `tab-${part.id}` === activeTab);
 
-  // Audio URL ni yangilash
+  // Audio URL ni yangilash (preview uchun)
   useEffect(() => {
-    // Oldingi URL ni tozalash
     if (combinedAudioUrl) {
       URL.revokeObjectURL(combinedAudioUrl);
     }
-    // Agar audio mavjud bo‘lsa, yangi URL yaratish
+
     if (allAudioChunks.current.length > 0) {
+      const firstChunk = allAudioChunks.current[0];
+      const mimeType = firstChunk.type || "audio/webm";
       const combinedBlob = new Blob(allAudioChunks.current, {
-        type: "audio/webm",
+        type: mimeType,
       });
       const url = URL.createObjectURL(combinedBlob);
       setCombinedAudioUrl(url);
     } else {
       setCombinedAudioUrl(null);
     }
-    // Komponent unmount bo‘lganda URL ni tozalash
+
     return () => {
       if (combinedAudioUrl) {
         URL.revokeObjectURL(combinedAudioUrl);
@@ -75,13 +81,18 @@ const SpeakingTestStep = () => {
     // FormData ob'ektini yaratish
     const formData = new FormData();
     if (allAudioChunks.current.length > 0) {
+      const firstChunk = allAudioChunks.current[0];
+      const mimeType = firstChunk.type || "audio/webm";
+      const isMp3 = mimeType.includes("mpeg") || mimeType.includes("mp3");
+      const extension = isMp3 ? "mp3" : "webm";
+
       const combinedBlob = new Blob(allAudioChunks.current, {
-        type: "audio/webm",
+        type: mimeType,
       });
       const combinedFile = new File(
         [combinedBlob],
-        `speaking-test-combined.webm`,
-        { type: "audio/webm" }
+        `speaking-test-combined.${extension}`,
+        { type: mimeType }
       );
       formData.append("record", combinedFile);
       formData.append("speaking", id || "");

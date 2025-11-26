@@ -9,6 +9,8 @@ import {
   RiSpeakLine,
   RiStopCircleLine,
   RiTimerFlashLine,
+  RiVolumeUpLine,
+  RiVolumeMuteLine,
 } from "@remixicon/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -32,7 +34,15 @@ const useSize = () => {
 };
 
 // animateBars function (from the article, modified for green color)
-function animateBars(analyser, canvas, canvasCtx, dataArray, bufferLength) {
+function animateBars(
+  analyser: AnalyserNode,
+  canvas: HTMLCanvasElement,
+  canvasCtx: CanvasRenderingContext2D,
+  // Relax type here to satisfy linter and match AnalyserNode.getByteFrequencyData
+  // which accepts Uint8Array with ArrayBufferLike internally.
+  dataArray: any,
+  bufferLength: number
+) {
   analyser.getByteFrequencyData(dataArray);
   canvasCtx.fillStyle = "#000";
   const HEIGHT = canvas.height / 2;
@@ -49,14 +59,27 @@ function animateBars(analyser, canvas, canvasCtx, dataArray, bufferLength) {
 }
 
 // WaveForm component (from the article)
-const WaveForm = ({ analyzerData }) => {
-  const canvasRef = useRef(null);
+const WaveForm = ({
+  analyzerData,
+}: {
+  analyzerData: {
+    analyzer: AnalyserNode;
+    bufferLength: number;
+    dataArray: Uint8Array;
+  };
+}) => {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const { dataArray, analyzer, bufferLength } = analyzerData;
 
-  const draw = (dataArray, analyzer, bufferLength) => {
+  const draw = (
+    dataArray: Uint8Array,
+    analyzer: AnalyserNode,
+    bufferLength: number
+  ) => {
     const canvas = canvasRef.current;
     if (!canvas || !analyzer) return;
     const canvasCtx = canvas.getContext("2d");
+    if (!canvasCtx) return;
 
     const animate = () => {
       if (!canvasRef.current || !analyzer) return;
@@ -112,11 +135,24 @@ const SpeakingQuestionContent = ({
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [hasFinished, setHasFinished] = useState(false);
-  const [analyzerData, setAnalyzerData] = useState(null);
+  const [analyzerData, setAnalyzerData] = useState<{
+    analyzer: AnalyserNode;
+    bufferLength: number;
+    dataArray: Uint8Array;
+  } | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const chunksRef = useRef<Blob[]>([]);
   const stopPromiseRef = useRef<((value?: unknown) => void) | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
+  const analyzerNodeRef = useRef<{
+    analyzer: AnalyserNode;
+    bufferLength: number;
+    dataArray: Uint8Array;
+  } | null>(null);
+
+  // Text-to-speech state
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
   const questions = part?.question_numbers || [];
   const currentQuestion = questions[currentIndex];
@@ -137,18 +173,101 @@ const SpeakingQuestionContent = ({
     }
   };
 
-  // Audio analysis function (adapted from article, no audio output)
-  const audioAnalyzer = (stream: MediaStream) => {
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    audioContextRef.current = audioCtx;
-    const analyzer = audioCtx.createAnalyser();
-    analyzer.fftSize = 2048;
-    const bufferLength = analyzer.frequencyBinCount;
-    const dataArray = new Uint8Array(bufferLength);
-    const source = audioCtx.createMediaStreamSource(stream);
-    source.connect(analyzer); // Connect only to analyzer, not destination
-    setAnalyzerData({ analyzer, bufferLength, dataArray });
+  const extractPlainText = (html: string): string => {
+    if (!html) return "";
+    const div = document.createElement("div");
+    div.innerHTML = html;
+    return div.textContent || div.innerText || "";
   };
+
+  const handleSpeakQuestion = () => {
+    if (!currentQuestion || !currentQuestion.question) return;
+    if (!("speechSynthesis" in window)) {
+      console.warn("Text-to-Speech is not supported in this browser.");
+      return;
+    }
+
+    const text = extractPlainText(currentQuestion.question).trim();
+    if (!text) return;
+
+    // Stop any ongoing speech
+    window.speechSynthesis.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "en-US";
+    utterance.rate = 0.95;
+    utterance.pitch = 1.0;
+
+    utterance.onstart = () => setIsSpeaking(true);
+    utterance.onend = () => {
+      setIsSpeaking(false);
+      utteranceRef.current = null;
+    };
+    utterance.onerror = () => {
+      setIsSpeaking(false);
+      utteranceRef.current = null;
+    };
+
+    utteranceRef.current = utterance;
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const handleStopSpeaking = () => {
+    if (!("speechSynthesis" in window)) return;
+    window.speechSynthesis.cancel();
+    setIsSpeaking(false);
+    utteranceRef.current = null;
+  };
+
+  // Auto TTS when question changes
+  useEffect(() => {
+    if (!currentQuestion || !currentQuestion.question) {
+      if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+      setIsSpeaking(false);
+      utteranceRef.current = null;
+      return;
+    }
+
+    if (!("speechSynthesis" in window)) {
+      return;
+    }
+
+    // Cancel any previous speech
+    window.speechSynthesis.cancel();
+    setIsSpeaking(false);
+
+    const text = extractPlainText(currentQuestion.question).trim();
+    if (!text) return;
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "en-US";
+    utterance.rate = 0.95;
+    utterance.pitch = 1.0;
+
+    utterance.onstart = () => setIsSpeaking(true);
+    utterance.onend = () => {
+      setIsSpeaking(false);
+      utteranceRef.current = null;
+    };
+    utterance.onerror = () => {
+      setIsSpeaking(false);
+      utteranceRef.current = null;
+    };
+
+    utteranceRef.current = utterance;
+    window.speechSynthesis.speak(utterance);
+
+    return () => {
+      if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+      setIsSpeaking(false);
+      utteranceRef.current = null;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentQuestion?.question_number]);
 
   // Start prep time
   useEffect(() => {
@@ -171,10 +290,9 @@ const SpeakingQuestionContent = ({
         setTimeLeft(part.answer_time);
         handleStartRecording();
       } else if (phase === "answering") {
-        handleStopRecording().then(() => {
-          setPhase("paused");
-          setTimeLeft(0);
-        });
+        handlePauseRecording();
+        setPhase("paused");
+        setTimeLeft(0);
       }
       return;
     }
@@ -208,8 +326,10 @@ const SpeakingQuestionContent = ({
         } else if (isLastPart && onFinish) {
           console.log("onFinish called");
           setHasFinished(true);
-          setPhase("finish");
-          onFinish();
+          handleStopRecording().finally(() => {
+            setPhase("finish");
+            onFinish();
+          });
         }
       }, 1000);
 
@@ -229,41 +349,116 @@ const SpeakingQuestionContent = ({
   // Start recording
   const handleStartRecording = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream);
-      mediaRecorderRef.current = recorder;
-      chunksRef.current = [];
+      if (
+        mediaRecorderRef.current &&
+        mediaRecorderRef.current.state === "paused"
+      ) {
+        mediaRecorderRef.current.resume();
+        setIsRecording(true);
+        if (analyzerNodeRef.current) {
+          setAnalyzerData(analyzerNodeRef.current);
+        }
+        return;
+      }
 
-      // Analyze audio for waveform
-      audioAnalyzer(stream);
+      if (mediaRecorderRef.current?.state === "recording") {
+        return;
+      }
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          channelCount: 1,
+          sampleRate: 44100,
+          sampleSize: 16,
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        },
+      });
+
+      mediaStreamRef.current = stream;
+
+      const audioCtx = new (window.AudioContext ||
+        (window as any).webkitAudioContext)();
+      audioContextRef.current = audioCtx;
+
+      const source = audioCtx.createMediaStreamSource(stream);
+
+      const highpass = audioCtx.createBiquadFilter();
+      highpass.type = "highpass";
+      highpass.frequency.value = 120;
+
+      const lowpass = audioCtx.createBiquadFilter();
+      lowpass.type = "lowpass";
+      lowpass.frequency.value = 8000;
+
+      const compressor = audioCtx.createDynamicsCompressor();
+      compressor.threshold.setValueAtTime(-30, audioCtx.currentTime);
+      compressor.knee.setValueAtTime(30, audioCtx.currentTime);
+      compressor.ratio.setValueAtTime(12, audioCtx.currentTime);
+      compressor.attack.setValueAtTime(0.003, audioCtx.currentTime);
+      compressor.release.setValueAtTime(0.25, audioCtx.currentTime);
+
+      const destination = audioCtx.createMediaStreamDestination();
+
+      source.connect(highpass);
+      highpass.connect(lowpass);
+      lowpass.connect(compressor);
+      compressor.connect(destination);
+
+      const analyzer = audioCtx.createAnalyser();
+      analyzer.fftSize = 2048;
+      const bufferLength = analyzer.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+      compressor.connect(analyzer);
+      analyzerNodeRef.current = { analyzer, bufferLength, dataArray };
+      setAnalyzerData(analyzerNodeRef.current);
+
+      const processedStream = destination.stream;
+
+      const preferredMimeTypes = [
+        "audio/mpeg", // mp3, agar brauzer qo'llab-quvvatlasa
+        "audio/webm;codecs=opus",
+        "audio/webm",
+      ];
+
+      const supportedMimeType = preferredMimeTypes.find((type) =>
+        MediaRecorder.isTypeSupported(type)
+      );
+
+      const recorderOptions: MediaRecorderOptions = supportedMimeType
+        ? {
+            mimeType: supportedMimeType,
+            audioBitsPerSecond: 128000,
+          }
+        : { audioBitsPerSecond: 128000 };
+
+      const recorder = new MediaRecorder(processedStream, recorderOptions);
+      mediaRecorderRef.current = recorder;
 
       recorder.ondataavailable = (e) => {
         if (e.data.size > 0) {
-          chunksRef.current.push(e.data);
+          allAudioChunks.current.push(e.data);
         }
       };
 
       recorder.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: "audio/webm" });
-        if (blob.size > 0) {
-          allAudioChunks.current.push(blob);
-          console.log("Audio Blob added:", {
-            partId: part.id,
-            questionIndex: currentIndex,
-            blobSize: blob.size,
-          });
+        setIsRecording(false);
+        setAnalyzerData(null);
+        analyzerNodeRef.current = null;
+        mediaRecorderRef.current = null;
+        if (mediaStreamRef.current) {
+          mediaStreamRef.current.getTracks().forEach((track) => track.stop());
+          mediaStreamRef.current = null;
+        }
+        if (audioContextRef.current) {
+          audioContextRef.current.close();
+          audioContextRef.current = null;
         }
         if (stopPromiseRef.current) {
           stopPromiseRef.current();
           stopPromiseRef.current = null;
         }
-        stream.getTracks().forEach((track) => track.stop());
-        mediaRecorderRef.current = null;
-        if (audioContextRef.current) {
-          audioContextRef.current.close();
-          audioContextRef.current = null;
-        }
-        setAnalyzerData(null); // Stop waveform
       };
 
       recorder.start();
@@ -275,16 +470,26 @@ const SpeakingQuestionContent = ({
     }
   };
 
+  const handlePauseRecording = () => {
+    if (
+      mediaRecorderRef.current &&
+      mediaRecorderRef.current.state === "recording"
+    ) {
+      mediaRecorderRef.current.pause();
+      setIsRecording(false);
+      setAnalyzerData(null);
+    }
+  };
+
   // Stop recording
   const handleStopRecording = () => {
     return new Promise<void>((resolve) => {
       if (
         mediaRecorderRef.current &&
-        mediaRecorderRef.current.state === "recording"
+        mediaRecorderRef.current.state !== "inactive"
       ) {
-        stopPromiseRef.current = resolve;
+        stopPromiseRef.current = () => resolve();
         mediaRecorderRef.current.stop();
-        setIsRecording(false);
       } else {
         resolve();
       }
@@ -297,9 +502,9 @@ const SpeakingQuestionContent = ({
     if (phase === "preparation") {
       setPhase("answering");
       setTimeLeft(part.answer_time);
-      handleStartRecording();
+      await handleStartRecording();
     } else if (phase === "answering" && isRecording) {
-      await handleStopRecording();
+      handlePauseRecording();
       setPhase("paused");
       setTimeLeft(0);
     }
@@ -343,12 +548,34 @@ const SpeakingQuestionContent = ({
           </div>
 
           {phase !== "finish" && (
-            <div className="text-2xl font-bold text-center">
-              {currentQuestion.question_number}.{" "}
-              <HTMLRendererWithHighlight
-                // className="h-full overflow-y-auto p-6 text-sm"
-                htmlString={currentQuestion.question}
-              />
+            <div className="flex flex-col items-center gap-4">
+              <div className="text-2xl font-bold text-center">
+                {currentQuestion.question_number}.{" "}
+                <HTMLRendererWithHighlight
+                  htmlString={currentQuestion.question}
+                />
+              </div>
+              <div className="flex items-center gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={isSpeaking ? handleStopSpeaking : handleSpeakQuestion}
+                  className="flex items-center gap-2"
+                >
+                  {isSpeaking ? (
+                    <>
+                      <RiVolumeMuteLine size={18} />
+                      <span>Stop Reading</span>
+                    </>
+                  ) : (
+                    <>
+                      <RiVolumeUpLine size={18} />
+                      <span>Read Question</span>
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           )}
         </div>

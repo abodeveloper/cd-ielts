@@ -44,6 +44,11 @@ export default function MocksPage() {
   const { data, isLoading, isFetching, isError } = useQuery({
     queryKey: ["tests/mock", page, debouncedSearch, "", extraFilterQuery],
     queryFn: () => getTestsData(page, debouncedSearch, "", extraFilterQuery),
+    // Faqat /api/tests uchun kuchli cache:
+    // - sahifalar o'zgarganda va qaytganda qayta request qilmaydi
+    // - faqat login/logout yoki sahifa refresh bo'lganda tozalanadi
+    staleTime: Infinity,
+    gcTime: 1000 * 60 * 60, // 1 soat cache (SPA sessiya davomida yetarli)
   });
 
   // Data and pagination info

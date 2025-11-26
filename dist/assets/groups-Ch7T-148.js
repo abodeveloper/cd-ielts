@@ -1,1 +1,0 @@
-import{d as t}from"./index-DTQCRHS5.js";const p=async(a,s,r)=>{let e=`/api/teacher/groups/?page=${a}`;return s&&(e+=`&search=${s}`),r&&(e+=`&${r}`),(await t.get(e)).data},c=async a=>(await t.get(`/api/teacher/groups/${a}/`)).data,g=async()=>(await t.get("/api/teacher/all_groups/")).data;export{c as a,g as b,p as g};

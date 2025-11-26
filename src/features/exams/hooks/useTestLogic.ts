@@ -48,6 +48,14 @@ const useTestLogic = <T extends AllTestParts>(
       return;
     }
 
+    // Agar taymer hali boshlanmagan bo'lsa va endTimeRef avvalroq hisoblangan bo'lsa,
+    // ayniqsa Listening testlarda audio tugaguncha kutganda,
+    // bu yerda endTimeRef ni hozirgi vaqtdan boshlab initialTime ga qayta o'rnatamiz.
+    if (!timerStartedRef.current && initialTime !== null) {
+      endTimeRef.current = Date.now() + initialTime * 1000;
+      setTimeLeft(initialTime);
+    }
+
     // Taymer boshlangan deb belgilash (boshlangandan keyin to'xtamasligi uchun)
     timerStartedRef.current = true;
 

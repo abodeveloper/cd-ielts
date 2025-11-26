@@ -42,6 +42,9 @@ export default function ThematicsPage() {
   const { data, isLoading, isFetching, isError } = useQuery({
     queryKey: ["tests/thematic", page, debouncedSearch, "", extraFilterQuery],
     queryFn: () => getTestsData(page, debouncedSearch, "", extraFilterQuery),
+    // Faqat /api/tests uchun kuchli cache
+    staleTime: Infinity,
+    gcTime: 1000 * 60 * 60, // 1 soat
   });
 
   // Data and pagination info
