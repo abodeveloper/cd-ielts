@@ -82,7 +82,8 @@ const ListeningQuestionRenderer: React.FC<QuestionRendererProps> = ({
                 return (
                   <div 
                     id={`question-${number}`}
-                    style={{ margin: "8px 0" }} 
+                    style={{ margin: "8px 0", userSelect: "text" }} 
+                    className="select-text"
                     key={number}
                   >
                     {inputElement}

@@ -77,20 +77,45 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
       if (["input", "button", "textarea", "select"].includes(tagName)) {
         return true;
       }
-      // Check if it's directly inside FormControl or FormItem (radio button area)
-      const closestFormControl = node.closest(".FormControl, .FormItem");
+      // Allow highlighting in labels - they contain the option text
+      if (tagName === "label" || node.closest("label")) {
+        return false;
+      }
+      // Check if it's directly inside FormControl (the actual input wrapper)
+      // But allow FormItem and FormLabel for highlighting option text
+      const closestFormControl = node.closest(".FormControl");
       if (closestFormControl) {
+        // Allow highlighting if it's in a label or FormLabel
+        if (node.closest("label, .FormLabel, [role='label']")) {
+          return false;
+        }
         return true;
+      }
+      // Allow highlighting in FormItem and FormLabel (option text areas)
+      if (node.closest(".FormItem, .FormLabel")) {
+        return false;
       }
     }
     // For text nodes, check if parent is a form control
     if (node.nodeType === Node.TEXT_NODE && node.parentElement) {
       const parent = node.parentElement;
-      // Don't highlight text inside form controls
-      if (parent.closest(".FormControl, .FormItem")) {
+      // Allow highlighting text in labels and FormLabel
+      if (parent.tagName.toLowerCase() === "label" || 
+          parent.closest("label, .FormLabel, [role='label']")) {
+        return false;
+      }
+      // Don't highlight text directly inside FormControl (the input wrapper)
+      if (parent.closest(".FormControl")) {
+        // But allow if it's in a label
+        if (parent.closest("label, .FormLabel")) {
+          return false;
+        }
         return true;
       }
-      // Allow highlighting question text in table cells
+      // Allow highlighting question text in table cells and FormItem
+      if (parent.closest(".FormItem")) {
+        return false;
+      }
       return false;
     }
     return false;
@@ -273,14 +298,46 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
       const target = e.target as HTMLElement;
       if (target) {
         const tagName = target.tagName?.toLowerCase();
-        // Check if clicked on form elements
+        // Check if clicked on form elements (actual inputs)
         if (
-          ["input", "button", "textarea", "select", "label"].includes(tagName)
+          ["input", "button", "textarea", "select"].includes(tagName)
         ) {
           return;
         }
-        // Check if clicked inside form control (radio button area)
-        if (target.closest(".FormControl, .FormItem")) {
+        // Allow highlighting in labels and FormLabel (option text)
+        if (tagName === "label" || target.closest("label, .FormLabel")) {
+          // Allow selection in labels - they contain option text
+          const currentTime = Date.now();
+          if (currentTime - lastMouseUpTimeRef.current < 300) {
+            return;
+          }
+          lastMouseUpTimeRef.current = currentTime;
+          processSelection();
+          return;
+        }
+        // Check if clicked directly on FormControl (the input wrapper)
+        // But allow if it's in a label area
+        if (target.closest(".FormControl")) {
+          // Allow if it's in a label
+          if (target.closest("label, .FormLabel")) {
+            const currentTime = Date.now();
+            if (currentTime - lastMouseUpTimeRef.current < 300) {
+              return;
+            }
+            lastMouseUpTimeRef.current = currentTime;
+            processSelection();
+            return;
+          }
+          return;
+        }
+        // Allow highlighting in FormItem (contains labels and option text)
+        if (target.closest(".FormItem")) {
+          const currentTime = Date.now();
+          if (currentTime - lastMouseUpTimeRef.current < 300) {
+            return;
+          }
+          lastMouseUpTimeRef.current = currentTime;
+          processSelection();
           return;
         }
       }
@@ -299,14 +356,29 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
       const target = e.target as HTMLElement;
       if (target) {
         const tagName = target.tagName?.toLowerCase();
-        // Check if clicked on form elements
+        // Check if clicked on form elements (actual inputs)
         if (
-          ["input", "button", "textarea", "select", "label"].includes(tagName)
+          ["input", "button", "textarea", "select"].includes(tagName)
         ) {
           return;
         }
-        // Check if clicked inside form control (radio button area)
-        if (target.closest(".FormControl, .FormItem")) {
+        // Allow highlighting in labels and FormLabel (option text)
+        if (tagName === "label" || target.closest("label, .FormLabel")) {
+          processSelection();
+          return;
+        }
+        // Check if clicked directly on FormControl (the input wrapper)
+        if (target.closest(".FormControl")) {
+          // Allow if it's in a label
+          if (target.closest("label, .FormLabel")) {
+            processSelection();
+            return;
+          }
+          return;
+        }
+        // Allow highlighting in FormItem (contains labels and option text)
+        if (target.closest(".FormItem")) {
+          processSelection();
           return;
         }
       }
@@ -619,7 +691,8 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
             return (
               <div 
                 id={`question-${number}`}
-                style={{ margin: "8px 0" }} 
+                style={{ margin: "8px 0", userSelect: "text" }} 
+                className="select-text"
                 key={number}
               >
                 {inputElement}
@@ -1037,6 +1110,38 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
         }
         .selectable-table td, .selectable-table th {
           user-select: text;
+        }
+        /* Ensure all text elements are selectable for highlighting */
+        p, div, span, h1, h2, h3, h4, h5, h6, li, td, th {
+          user-select: text;
+          -webkit-user-select: text;
+          -moz-user-select: text;
+          -ms-user-select: text;
+        }
+        /* Ensure labels and option text are selectable */
+        label, .FormLabel, [role="label"] {
+          user-select: text !important;
+          -webkit-user-select: text !important;
+          -moz-user-select: text !important;
+          -ms-user-select: text !important;
+          cursor: text;
+        }
+        /* Ensure FormItem allows text selection (contains option labels) */
+        .FormItem {
+          user-select: text;
+          -webkit-user-select: text;
+        }
+        /* But keep inputs non-selectable */
+        .FormItem input[type="radio"],
+        .FormItem input[type="checkbox"],
+        .FormControl input {
+          user-select: none !important;
+          -webkit-user-select: none !important;
+        }
+        /* Ensure question containers are highlightable */
+        [id^="question-"] {
+          user-select: text !important;
+          -webkit-user-select: text !important;
         }
       `}</style>
       <div

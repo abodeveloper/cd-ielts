@@ -48,7 +48,14 @@ const MyQuestionRadio = <TFieldValues extends FieldValues>({
               />
             </FormControl>
             <div className="space-y-1 leading-none cursor-pointer" onClick={handleClick}>
-              {label && <FormLabel className="cursor-pointer">{label}</FormLabel>}
+              {label && (
+                <FormLabel 
+                  className="cursor-pointer select-text" 
+                  style={{ userSelect: "text", WebkitUserSelect: "text" }}
+                >
+                  {label}
+                </FormLabel>
+              )}
               {helperText && <FormDescription>{helperText}</FormDescription>}
             </div>
           </FormItem>
