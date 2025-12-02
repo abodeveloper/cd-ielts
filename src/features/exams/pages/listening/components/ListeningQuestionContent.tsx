@@ -7,6 +7,8 @@ import HTMLRendererWithHighlight from "@/shared/components/atoms/html-renderer/H
 import { UseFormReturn } from "react-hook-form";
 import ReadingQuestionRenderer from "../../readings/components/ReadingQuestionRenderer";
 import { useAuthStore } from "@/store/auth-store";
+import { useTestDisplayStore } from "@/store/test-display-store";
+import { getTestDisplayClasses } from "@/shared/utils/test-display-utils";
 
 interface Props {
   part: ListeningPart;
@@ -16,6 +18,7 @@ interface Props {
 
 const ListeningQuestionContent = ({ part, form, testId }: Props) => {
   const { user } = useAuthStore();
+  const { contrast, textSize } = useTestDisplayStore();
   const userId = user?.id || 'guest';
   
   // Create storage keys for persistence (per user)
@@ -26,25 +29,28 @@ const ListeningQuestionContent = ({ part, form, testId }: Props) => {
     ? `listening-${userId}-${testId}-${part.id}-questions` 
     : undefined;
 
+  const displayClasses = getTestDisplayClasses(contrast, textSize);
+
   return (
-    <div className="h-[calc(100vh-232px)]">
+    <div className={cn("h-[calc(100vh-232px)]", displayClasses)}>
       {part.is_script ? (
         <ResizableContent
           leftContent={
             <HTMLRendererWithHighlight
-              className="h-full overflow-y-auto p-6 text-sm"
+              className={cn("h-full overflow-y-auto p-6", displayClasses)}
               htmlString={part.audioscript}
               storageKey={scriptStorageKey}
             />
           }
           rightContent={
-            <div className="h-full overflow-y-auto overflow-x-hidden p-6 space-y-8 text-sm">
+            <div className={cn("h-full overflow-y-auto overflow-x-hidden p-6 space-y-8", displayClasses)}>
               {part.questions ? (
                 <>
                   <ReadingQuestionRenderer
                     htmlString={part.questions}
                     form={form}
                     storageKey={questionsStorageKey}
+                    className={displayClasses}
                   />
                 </>
               ) : (
@@ -59,12 +65,13 @@ const ListeningQuestionContent = ({ part, form, testId }: Props) => {
           className={cn("w-full border rounded-none")}
         >
           <ResizablePanel defaultSize={100}>
-            <div className="h-full overflow-y-auto overflow-x-hidden p-6 space-y-8 text-sm">
+            <div className={cn("h-full overflow-y-auto overflow-x-hidden p-6 space-y-8", displayClasses)}>
               {part.questions ? (
                 <ReadingQuestionRenderer
                   htmlString={part.questions}
                   form={form}
                   storageKey={questionsStorageKey}
+                  className={displayClasses}
                 />
               ) : (
                 <div>No questions available</div>

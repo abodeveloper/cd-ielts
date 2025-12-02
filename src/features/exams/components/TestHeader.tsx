@@ -1,10 +1,24 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider"; // Shadcn Slider import qilindi
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { Role } from "@/shared/enums/role.enum";
 import { TestType } from "@/shared/enums/test-type.enum";
 import { useAuthStore } from "@/store/auth-store";
+import { useTestDisplayStore } from "@/store/test-display-store";
 import {
   RiArrowLeftLine,
   RiPauseLine,
@@ -13,6 +27,7 @@ import {
   RiTimerLine,
   RiVolumeMuteLine,
   RiVolumeUpLine,
+  RiSettings3Line,
 } from "@remixicon/react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -72,6 +87,7 @@ const TestHeader = ({
   };
 
   const { user } = useAuthStore();
+  const { contrast, textSize, setContrast, setTextSize } = useTestDisplayStore();
 
   const [volume, setVolume] = useState(0.5);
   const [audioCurrentTime, setAudioCurrentTime] = useState(0);
@@ -216,6 +232,73 @@ const TestHeader = ({
                 </div>
               </div>
             )}
+
+          {/* Options button for Listening and Reading tests */}
+          {(testType === TestType.LISTENING || testType === TestType.READING) && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  type="button"
+                  className="flex items-center gap-2 h-7"
+                >
+                  <RiSettings3Line className="w-4 h-4" />
+                  Options
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>Options</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>
+                    <span>Contrast</span>
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent>
+                    <DropdownMenuRadioGroup
+                      value={contrast}
+                      onValueChange={(value) =>
+                        setContrast(value as "black-on-white" | "white-on-black" | "yellow-on-black")
+                      }
+                    >
+                      <DropdownMenuRadioItem value="black-on-white">
+                        Black on white
+                      </DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="white-on-black">
+                        White on Black
+                      </DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="yellow-on-black">
+                        Yellow on black
+                      </DropdownMenuRadioItem>
+                    </DropdownMenuRadioGroup>
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>
+                    <span>Text size</span>
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent>
+                    <DropdownMenuRadioGroup
+                      value={textSize}
+                      onValueChange={(value) =>
+                        setTextSize(value as "regular" | "large" | "extra-large")
+                      }
+                    >
+                      <DropdownMenuRadioItem value="regular">
+                        Regular
+                      </DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="large">
+                        Large
+                      </DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="extra-large">
+                        Extra large
+                      </DropdownMenuRadioItem>
+                    </DropdownMenuRadioGroup>
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
 
           {(user?.role === Role.TEACHER ||
             (user?.role === Role.STUDENT && type === "Thematic")) && (
