@@ -918,6 +918,7 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
           const { attribs } = domNode;
           let options: TableOption[] = [];
           let questions: TableQuestion[] = [];
+          const table_name = attribs["table_name"] || "";
           try {
             options = JSON.parse(attribs["data-options"] || "[]");
             questions = JSON.parse(attribs["data-questions"] || "[]");
@@ -1061,6 +1062,31 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
                   })}
                 </TableBody>
               </Table>
+
+              {/* Options legend table (e.g. A = Peter Fleming)
+                  table_name = "List" bo'lsa, faqat oddiy list deb qabul qilamiz
+                  va alohida jadval ko'rsatmaymiz */}
+              {options?.length > 0 && table_name && table_name !== "List" && (
+                <Table className="selectable-table">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead colSpan={2}>
+                        {table_name || "Options"}
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {options.map((option) => (
+                      <TableRow key={option.value}>
+                        <TableCell className="w-[50px]">
+                          {option.value}
+                        </TableCell>
+                        <TableCell>{option.label}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
             </div>
           );
         }
