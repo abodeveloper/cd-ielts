@@ -3,7 +3,8 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { ListeningFormValues } from "@/features/exams/schemas/listening-schema";
-import parse, { Element } from "html-react-parser";
+import parse, { Element, domToReact } from "html-react-parser";
+import { Card } from "@/components/ui/card";
 import { RiCloseLine } from "@remixicon/react";
 
 interface Option {
@@ -158,12 +159,31 @@ const ListeningDragDropSentenceMatching: React.FC<
                 className="inline-block min-w-[150px] border-2 border-gray-400 border-dashed p-1 my-1 mx-2 rounded-md text-center"
               >
                 {droppedValues[number] ? (
-                  <div className="flex items-center justify-between">
-                    <span className="font-semibold">
-                      {options.find(
-                        (opt) => opt.value === droppedValues[number]
-                      )?.label || droppedValues[number]}
-                    </span>
+                  <div className="flex items-center justify-between gap-2">
+                    <Card className="p-2 bg-gray-300 text-white [&_button]:text-white [&_button]:!bg-gray-500 [&_button]:!border-gray-500 [&_button]:border [&_button]:rounded [&_button]:px-2 [&_button]:py-1">
+                      {(() => {
+                        const droppedLabel = options.find(
+                          (opt) => opt.value === droppedValues[number]
+                        )?.label || droppedValues[number];
+                        return typeof droppedLabel === 'string' ? parse(droppedLabel, {
+                          replace: (domNode) => {
+                            if (domNode instanceof Element && domNode.name === 'button') {
+                              return (
+                                <button
+                                  key={domNode.attribs?.key || droppedValues[number]}
+                                  {...domNode.attribs}
+                                  className="text-white bg-gray-500 border-gray-500 border rounded px-2 py-1"
+                                  style={{ color: 'white', backgroundColor: 'rgb(107 114 128)', borderColor: 'rgb(107 114 128)' }}
+                                >
+                                  {domNode.children && domToReact(domNode.children)}
+                                </button>
+                              );
+                            }
+                            return domNode;
+                          }
+                        }) : droppedLabel;
+                      })()}
+                    </Card>
                     <button
                       onClick={() => handleClear(number)}
                       className="text-destructive hover:text-destructive/70 ml-2"
@@ -187,20 +207,49 @@ const ListeningDragDropSentenceMatching: React.FC<
     <div className="my-6">
       {processedHtml}
       <div className="flex flex-wrap gap-3 mt-6">
-        {options.map(
-          (option) =>
-            (!usedOptions.has(option.value) || isRepeat) && (
-              <div
-                key={option.value}
-                draggable
-                onDragStart={(e) => handleDragStart(e, option.value)}
-                onDragEnd={handleDragEnd}
-                className="p-2 bg-primary text-primary-foreground rounded-lg cursor-move hover:bg-muted-foreground transition-colors min-w-[150px] text-center"
-              >
-                {option.label}
-              </div>
-            )
-        )}
+        {options.map((option) => {
+          const isUsed = !isRepeat && usedOptions.has(option.value);
+          return (
+            <div
+              key={option.value}
+              draggable={!isUsed}
+              onDragStart={!isUsed ? (e) => handleDragStart(e, option.value) : undefined}
+              onDragEnd={handleDragEnd}
+              className={`p-2 rounded-lg cursor-move transition-colors min-w-[150px] text-center ${
+                isUsed
+                  ? "bg-white text-gray-700 cursor-not-allowed border-2 border-gray-300 border-dashed"
+                  : "bg-primary text-black [&_button]:text-black [&_button]:bg-amber-50 [&_button]:border-amber-200 [&_button]:border [&_button]:rounded [&_button]:px-2 [&_button]:py-1"
+              }`}
+              style={isUsed ? { 
+                backgroundColor: 'white', 
+                color: 'rgb(55 65 81)',
+              } : { 
+                backgroundColor: 'rgb(23 23 23)', 
+                color: 'black',
+              }}
+            >
+              {(() => {
+                return typeof option.label === 'string' ? parse(option.label, {
+                  replace: (domNode) => {
+                    if (domNode instanceof Element && domNode.name === 'button') {
+                      return (
+                        <button
+                          key={domNode.attribs?.key || option.value}
+                          {...domNode.attribs}
+                          className="text-black bg-amber-50 border-amber-200 border rounded px-2 py-1"
+                          style={{ color: 'black', backgroundColor: '#fffbeb', borderColor: '#fde68a' }}
+                        >
+                          {domNode.children && domToReact(domNode.children)}
+                        </button>
+                      );
+                    }
+                    return domNode;
+                  }
+                }) : option.label;
+              })()}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

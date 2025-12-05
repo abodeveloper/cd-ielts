@@ -46,10 +46,14 @@ const DraggableOption: React.FC<DraggableOptionProps> = React.memo(
     return (
       <div
         ref={drag}
-        className={`p-2 border rounded cursor-grab bg-gray-100 min-w-[120px] text-center transition-opacity duration-200 ${
+        className={`p-2 border rounded cursor-grab min-w-[120px] text-center transition-opacity duration-200 ${
           isDragging ? "opacity-50" : ""
         }`}
-        style={{ opacity: isDragging ? 0.5 : 1 }}
+        style={{ 
+          opacity: isDragging ? 0.5 : 1,
+          backgroundColor: '#FFFBF0', // Cream Cream color
+          color: 'black'
+        }}
       >
         <strong>{option.value}</strong> {option.label}
       </div>
@@ -60,13 +64,14 @@ const DraggableOption: React.FC<DraggableOptionProps> = React.memo(
 interface DroppableSentenceInputProps {
   questionNumber: string;
   currentAnswer: string;
+  options: Option[];
   onDrop: (item: DragItem, questionNumber: string) => void;
   onRemoveAnswer: (questionNumber: string) => void;
 }
 
 // Droppable Sentence Input Component
 const DroppableSentenceInput: React.FC<DroppableSentenceInputProps> =
-  React.memo(({ questionNumber, currentAnswer, onDrop, onRemoveAnswer }) => {
+  React.memo(({ questionNumber, currentAnswer, options, onDrop, onRemoveAnswer }) => {
     const [{ isOver }, drop] = useDrop(() => ({
       accept: ItemTypes.OPTION,
       drop: (item: DragItem) => onDrop(item, questionNumber),
@@ -77,13 +82,29 @@ const DroppableSentenceInput: React.FC<DroppableSentenceInputProps> =
 
     const borderColor = isOver ? "border-green-500" : "border-gray-300";
 
+    // Find the option label for the dropped answer
+    const droppedOption = options.find(opt => opt.value === currentAnswer);
+    const displayText = droppedOption ? `${droppedOption.value} ${droppedOption.label}` : currentAnswer;
+
     return (
       <span
         ref={drop}
-        className={`inline-block min-w-[150px] h-8 border-b-2 text-center align-middle relative transition-colors duration-200 ${borderColor}`}
+        className={`inline-block min-w-[150px] border-b-2 text-center align-middle relative transition-colors duration-200 ${borderColor} ${
+          currentAnswer ? "pb-1" : "h-8"
+        }`}
         style={{ verticalAlign: "bottom", margin: "0 4px" }} // To align with surrounding text
       >
-        {currentAnswer}
+        {currentAnswer ? (
+          <span
+            className="inline-block px-2 py-1 rounded"
+            style={{
+              backgroundColor: '#FFFBF0', // Cream Cream color
+              color: 'black'
+            }}
+          >
+            {displayText}
+          </span>
+        ) : null}
         {currentAnswer && (
           <button
             type="button"
@@ -254,6 +275,7 @@ const DragDropSentenceMatchingSection: React.FC<
                 key={number}
                 questionNumber={number}
                 currentAnswer={currentAnswer}
+                options={options}
                 onDrop={handleDrop}
                 onRemoveAnswer={handleRemoveAnswer}
               />
@@ -264,7 +286,7 @@ const DragDropSentenceMatchingSection: React.FC<
         return domNode;
       },
     });
-  }, [processedHtmlForContent, droppedAnswers, handleDrop, handleRemoveAnswer]);
+  }, [processedHtmlForContent, droppedAnswers, options, handleDrop, handleRemoveAnswer]);
 
   return (
     <DndProvider backend={HTML5Backend}>

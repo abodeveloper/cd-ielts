@@ -1120,6 +1120,14 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
         .drag-drop-container {
           min-height: 40px;
         }
+        .drag-drop-option-used,
+        .drag-drop-option-used *,
+        .drag-drop-option-used span,
+        .drag-drop-option-used p,
+        .drag-drop-option-used div,
+        .drag-drop-option-used button {
+          color: black !important;
+        }
         input, button, [draggable] {
           pointer-events: auto;
           user-select: none;
@@ -1399,8 +1407,33 @@ const DragDropMatchingBlock: React.FC<DragDropMatchingBlockProps> = ({
             }
 
             const value = droppedValues[number];
-            const label =
+            const optionLabel =
               options.find((opt) => opt.value === value)?.label || value;
+            
+            // Parse label if it contains HTML, including buttons
+            const parsedLabel = typeof optionLabel === 'string' 
+              ? parse(optionLabel, {
+                  replace: (domNode) => {
+                    if (domNode instanceof Element && domNode.name === 'button') {
+                      return (
+                        <button
+                          key={domNode.attribs?.key || value}
+                          {...domNode.attribs}
+                          className="text-black bg-white border border-gray-300 rounded px-2 py-1"
+                          style={{ 
+                            color: 'black', 
+                            backgroundColor: '#FFFBF0', // Cream Cream color
+                            borderColor: '#d1d5db'
+                          }}
+                        >
+                          {domNode.children && domToReact(domNode.children)}
+                        </button>
+                      );
+                    }
+                    return domNode;
+                  }
+                })
+              : optionLabel;
 
             return (
               <span
@@ -1413,7 +1446,15 @@ const DragDropMatchingBlock: React.FC<DragDropMatchingBlockProps> = ({
               >
                 {value ? (
                   <span className="inline-flex items-center justify-between gap-2 w-full">
-                    <span className="font-semibold">{label}</span>
+                    <span 
+                      className="font-semibold px-2 py-1 rounded"
+                      style={{
+                        backgroundColor: '#FFFBF0', // Cream Cream color
+                        color: 'black'
+                      }}
+                    >
+                      {parsedLabel}
+                    </span>
                     <button
                       type="button"
                       onClick={() => handleClear(number)}
@@ -1452,19 +1493,60 @@ const DragDropMatchingBlock: React.FC<DragDropMatchingBlockProps> = ({
         <div className="flex flex-wrap gap-3">
           {options.map((option) => {
             const isUsed = !isRepeat && usedOptions.has(option.value);
+            
+            // Parse label if it contains HTML, including buttons
+            const parsedLabel = typeof option.label === 'string' 
+              ? parse(option.label, {
+                  replace: (domNode) => {
+                    if (domNode instanceof Element && domNode.name === 'button') {
+                      return (
+                        <button
+                          key={domNode.attribs?.key || option.value}
+                          {...domNode.attribs}
+                          className={`rounded px-2 py-1 border ${isUsed ? 'drag-drop-option-used' : ''}`}
+                          style={{ 
+                            color: isUsed ? 'black' : 'white', 
+                            backgroundColor: isUsed ? '#FFFBF0' : '#1a1a1a', // Cream when used, black when default
+                            borderColor: isUsed ? '#d1d5db' : '#404040'
+                          }}
+                        >
+                          <span style={{ color: isUsed ? 'black' : 'white' }}>
+                            {domNode.children && domToReact(domNode.children)}
+                          </span>
+                        </button>
+                      );
+                    }
+                    return domNode;
+                  }
+                })
+              : option.label;
+            
             return (
               <div
                 key={`${blockKey}-${option.value}`}
-                draggable
-                onDragStart={(e) => handleDragStart(e, option.value)}
+                draggable={!isUsed}
+                onDragStart={!isUsed ? (e) => handleDragStart(e, option.value) : undefined}
                 onDragEnd={handleDragEnd}
-                className={`p-2 rounded-lg min-w-[150px] text-center cursor-move transition-colors ${
+                className={`drag-drop-option p-2 rounded-lg min-w-[150px] text-center cursor-move transition-colors ${
                   isUsed
-                    ? "bg-muted text-muted-foreground opacity-70"
-                    : "bg-primary text-primary-foreground hover:bg-muted-foreground"
+                    ? "border-2 border-gray-300 border-dashed cursor-not-allowed drag-drop-option-used"
+                    : ""
                 }`}
+                style={isUsed ? { 
+                  backgroundColor: '#FFFBF0', // Cream Cream color when dropped
+                  color: 'black',
+                } : { 
+                  backgroundColor: '#1a1a1a', // Black dark background when default
+                  color: 'white',
+                }}
               >
-                {option.label}
+                <span 
+                  style={{ 
+                    color: isUsed ? 'black' : 'white',
+                  }}
+                >
+                  {parsedLabel}
+                </span>
               </div>
             );
           })}

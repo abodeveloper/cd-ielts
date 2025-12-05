@@ -127,3 +127,43 @@
   pointer-events: auto !important;
   z-index: 999 !important;
 }
+
+/* Drag-drop button styles - ensure buttons inside drag-drop cards have white text */
+.bg-primary button,
+[class*="bg-primary"] button,
+.bg-primary [class*="button"],
+[class*="bg-primary"] [class*="button"] {
+  color: white !important;
+  border-color: white !important;
+}
+
+/* Specifically target buttons inside drag-drop Card components */
+.bg-primary.text-white button,
+.bg-primary.text-white [class*="button"] {
+  color: white !important;
+  background-color: transparent !important;
+  border-color: white !important;
+}
+
+/* Drag-drop option styles - ensure all text inside drag-drop options is white */
+.drag-drop-option,
+.drag-drop-option *,
+.drag-drop-option span,
+.drag-drop-option div,
+.drag-drop-option p,
+.drag-drop-option button {
+  color: white !important;
+}
+
+.drag-drop-option button {
+  background-color: transparent !important;
+  border-color: white !important;
+  border: 1px solid white !important;
+}
+
+/* Used/hidden drag-drop options - white background with dashed border to show they are used */
+.bg-white.text-gray-700,
+.bg-white.text-gray-700 * {
+  color: rgb(55 65 81) !important;
+  background-color: white !important;
+}

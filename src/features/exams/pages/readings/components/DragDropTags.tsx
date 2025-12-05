@@ -6,6 +6,7 @@ import { DndContext, useDraggable, useDroppable } from "@dnd-kit/core";
 import { RiCloseLine } from "@remixicon/react";
 import React, { useEffect, useMemo, useState } from "react";
 import { UseFormReturn } from "react-hook-form";
+import parse, { Element, domToReact } from "html-react-parser";
 
 interface Option {
   label: string;
@@ -33,15 +34,34 @@ const Draggable = ({ label, value }: Option) => {
     ? { transform: `translate(${transform.x}px, ${transform.y}px)` }
     : undefined;
 
+  // Parse label as HTML and style buttons inside
+  const parsedLabel = typeof label === 'string' ? parse(label, {
+    replace: (domNode) => {
+      if (domNode instanceof Element && domNode.name === 'button') {
+        return (
+          <button
+            key={domNode.attribs?.key || value}
+            {...domNode.attribs}
+            className="text-black bg-amber-50 border-amber-200 border rounded px-2 py-1"
+            style={{ color: 'black', backgroundColor: '#fffbeb', borderColor: '#fde68a' }}
+          >
+            {domNode.children && domToReact(domNode.children)}
+          </button>
+        );
+      }
+      return domNode;
+    }
+  }) : label;
+
   return (
     <Card
       ref={setNodeRef}
       style={style}
       {...listeners}
       {...attributes}
-      className="p-2 cursor-grab select-none shadow inline-block w-fit"
+      className="p-2 cursor-grab select-none shadow inline-block w-fit bg-primary text-black [&_button]:text-black [&_button]:!bg-amber-50 [&_button]:!border-amber-200 [&_button]:border [&_button]:rounded [&_button]:px-2 [&_button]:py-1"
     >
-      {label}
+      {parsedLabel}
     </Card>
   );
 };
@@ -213,11 +233,30 @@ const DragDropTags: React.FC<DragDropTagsProps> = ({
               <Droppable id={q.question_number}>
                 {q.answer ? (
                   <div className="flex items-center gap-2">
-                    <span>
-                      {stableOptions.find(
-                        (opt) => String(opt.value) === String(q.answer)
-                      )?.label || "?"}
-                    </span>
+                    <Card className="p-2 bg-gray-300 text-white [&_button]:text-white [&_button]:!bg-gray-500 [&_button]:!border-gray-500 [&_button]:border [&_button]:rounded [&_button]:px-2 [&_button]:py-1">
+                      {(() => {
+                        const droppedLabel = stableOptions.find(
+                          (opt) => String(opt.value) === String(q.answer)
+                        )?.label || "?";
+                        return typeof droppedLabel === 'string' ? parse(droppedLabel, {
+                          replace: (domNode) => {
+                            if (domNode instanceof Element && domNode.name === 'button') {
+                              return (
+                                <button
+                                  key={domNode.attribs?.key || q.answer}
+                                  {...domNode.attribs}
+                                  className="text-white bg-gray-500 border-gray-500 border rounded px-2 py-1"
+                                  style={{ color: 'white', backgroundColor: 'rgb(107 114 128)', borderColor: 'rgb(107 114 128)' }}
+                                >
+                                  {domNode.children && domToReact(domNode.children)}
+                                </button>
+                              );
+                            }
+                            return domNode;
+                          }
+                        }) : droppedLabel;
+                      })()}
+                    </Card>
                     <button
                       onClick={() => handleRemoveAnswer(q.question_number)}
                       className="text-destructive hover:text-destructive/70"
