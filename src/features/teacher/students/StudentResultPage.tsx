@@ -40,27 +40,97 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useState } from "react";
 import { getStudentResultOne } from "./api/student";
 import { getListeningOne } from "@/features/exams/api/listening";
+import parse from "html-react-parser";
 
 const FeedbackCollapsible = ({ feedback }: { feedback: string }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
     <>
-      <Separator />
+      <Separator className="my-4" />
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-        <CollapsibleTrigger className="flex items-center justify-between w-full p-2 hover:bg-muted/50 rounded-lg transition-colors">
-          <div className="text-sm font-semibold text-muted-foreground">
-            Feedback
+        <CollapsibleTrigger className="flex items-center justify-between w-full p-3 hover:bg-primary/5 rounded-lg transition-all duration-200 border border-transparent hover:border-primary/20">
+          <div className="flex items-center gap-2">
+            <div className="text-base font-semibold text-foreground">
+              Feedback
+            </div>
+            <Badge variant="outline" className="text-xs">Click to expand</Badge>
           </div>
           {isOpen ? (
-            <RiArrowUpSLine className="h-4 w-4 text-muted-foreground" />
+            <RiArrowUpSLine className="h-5 w-5 text-primary" />
           ) : (
-            <RiArrowDownSLine className="h-4 w-4 text-muted-foreground" />
+            <RiArrowDownSLine className="h-5 w-5 text-primary" />
           )}
         </CollapsibleTrigger>
-        <CollapsibleContent className="mt-2">
-          <div className="p-4 bg-muted/50 rounded-lg border">
-            <p className="text-sm whitespace-pre-wrap">{feedback}</p>
+        <CollapsibleContent className="mt-3">
+          <div className="p-6 bg-gradient-to-br from-blue-50/50 to-indigo-50/30 dark:from-blue-950/20 dark:to-indigo-950/10 rounded-xl border border-blue-200/50 dark:border-blue-800/30 shadow-sm">
+            <style>{`
+              .feedback-content {
+                color: inherit;
+              }
+              .feedback-content h1 { 
+                font-size: 1.75rem; 
+                font-weight: 700; 
+                margin: 1.5rem 0 1rem 0; 
+                color: #1e40af;
+                line-height: 1.3;
+              }
+              .feedback-content h1:first-child {
+                margin-top: 0;
+              }
+              .feedback-content h2 { 
+                font-size: 1.5rem; 
+                font-weight: 600; 
+                margin: 1.25rem 0 0.75rem 0; 
+                color: #2563eb;
+                line-height: 1.4;
+              }
+              .feedback-content h3 { 
+                font-size: 1.25rem; 
+                font-weight: 600; 
+                margin: 1rem 0 0.5rem 0; 
+                color: #3b82f6;
+                line-height: 1.4;
+              }
+              .feedback-content p { 
+                margin: 0.75rem 0; 
+                line-height: 1.7; 
+                color: #374151;
+                font-size: 0.95rem;
+              }
+              .feedback-content ul { 
+                margin: 0.75rem 0; 
+                padding-left: 1.75rem; 
+                list-style-type: disc;
+              }
+              .feedback-content li { 
+                margin: 0.5rem 0; 
+                line-height: 1.6;
+                color: #4b5563;
+              }
+              .feedback-content li p {
+                margin: 0.25rem 0;
+              }
+              .feedback-content hr { 
+                margin: 1.5rem 0; 
+                border: none; 
+                border-top: 2px solid #e5e7eb; 
+                opacity: 0.5;
+              }
+              .feedback-content strong { 
+                font-weight: 600; 
+                color: #1f2937;
+              }
+              .feedback-content em { 
+                font-style: italic; 
+                color: #6b7280;
+              }
+              .feedback-content br {
+                display: block;
+                margin: 0.5rem 0;
+              }
+            `}</style>
+            <div className="feedback-content text-base leading-relaxed">{parse(feedback || "")}</div>
           </div>
         </CollapsibleContent>
       </Collapsible>
@@ -386,15 +456,15 @@ const StudentResultPage = () => {
             </div>
             <div className="space-y-3">
               <h2 className="text-md font-semibold">Answer Review</h2>
-              <div className="">
-                <Table className="w-full">
+              <div className="overflow-x-auto">
+                <Table className="w-full min-w-[1000px]">
                   <TableHeader>
                     <TableRow>
                       <TableHead>Task</TableHead>
                       <TableHead>Your Answer</TableHead>
                       <TableHead>Word count</TableHead>
                       <TableHead>Score</TableHead>
-                      <TableHead>Feedback</TableHead>
+                      <TableHead className="min-w-[600px]">Feedback</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -412,8 +482,81 @@ const StudentResultPage = () => {
                         <TableCell>
                           <Badge variant={"default"}>{answer.score}</Badge>
                         </TableCell>
-
-                        <TableCell>{answer.feedback}</TableCell>
+                        <TableCell className="min-w-[600px] max-w-none">
+                          {answer.feedback ? (
+                            <div className="p-4 bg-gradient-to-br from-blue-50/50 to-indigo-50/30 dark:from-blue-950/20 dark:to-indigo-950/10 rounded-lg border border-blue-200/50 dark:border-blue-800/30 w-full">
+                              <style>{`
+                                .feedback-content {
+                                  color: inherit;
+                                }
+                                .feedback-content h1 { 
+                                  font-size: 1.5rem; 
+                                  font-weight: 700; 
+                                  margin: 1.25rem 0 0.75rem 0; 
+                                  color: #1e40af;
+                                  line-height: 1.3;
+                                }
+                                .feedback-content h1:first-child {
+                                  margin-top: 0;
+                                }
+                                .feedback-content h2 { 
+                                  font-size: 1.25rem; 
+                                  font-weight: 600; 
+                                  margin: 1rem 0 0.5rem 0; 
+                                  color: #2563eb;
+                                  line-height: 1.4;
+                                }
+                                .feedback-content h3 { 
+                                  font-size: 1.125rem; 
+                                  font-weight: 600; 
+                                  margin: 0.875rem 0 0.5rem 0; 
+                                  color: #3b82f6;
+                                  line-height: 1.4;
+                                }
+                                .feedback-content p { 
+                                  margin: 0.625rem 0; 
+                                  line-height: 1.65; 
+                                  color: #374151;
+                                  font-size: 0.9rem;
+                                }
+                                .feedback-content ul { 
+                                  margin: 0.625rem 0; 
+                                  padding-left: 1.5rem; 
+                                  list-style-type: disc;
+                                }
+                                .feedback-content li { 
+                                  margin: 0.375rem 0; 
+                                  line-height: 1.6;
+                                  color: #4b5563;
+                                }
+                                .feedback-content li p {
+                                  margin: 0.25rem 0;
+                                }
+                                .feedback-content hr { 
+                                  margin: 1.25rem 0; 
+                                  border: none; 
+                                  border-top: 2px solid #e5e7eb; 
+                                  opacity: 0.5;
+                                }
+                                .feedback-content strong { 
+                                  font-weight: 600; 
+                                  color: #1f2937;
+                                }
+                                .feedback-content em { 
+                                  font-style: italic; 
+                                  color: #6b7280;
+                                }
+                                .feedback-content br {
+                                  display: block;
+                                  margin: 0.375rem 0;
+                                }
+                              `}</style>
+                              <div className="feedback-content text-sm leading-relaxed">{parse(answer.feedback || "")}</div>
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -465,12 +608,81 @@ const StudentResultPage = () => {
             
             {/* Feedback Field */}
             {get(data, "feedback") && (
-              <div className="space-y-3">
-                <div className="text-sm font-semibold text-muted-foreground">
-                  Feedback
+              <div className="space-y-4 w-full">
+                <div className="flex items-center gap-3">
+                  <div className="text-lg font-bold text-foreground">
+                    Feedback
+                  </div>
+                  <div className="h-px flex-1 bg-gradient-to-r from-primary/20 to-transparent"></div>
                 </div>
-                <div className="p-4 bg-muted/50 rounded-lg border">
-                  <p className="text-sm whitespace-pre-wrap">{get(data, "feedback")}</p>
+                <div className="p-6 bg-gradient-to-br from-blue-50/50 to-indigo-50/30 dark:from-blue-950/20 dark:to-indigo-950/10 rounded-xl border border-blue-200/50 dark:border-blue-800/30 shadow-sm w-full">
+                  <style>{`
+                    .feedback-content {
+                      color: inherit;
+                    }
+                    .feedback-content h1 { 
+                      font-size: 1.75rem; 
+                      font-weight: 700; 
+                      margin: 1.5rem 0 1rem 0; 
+                      color: #1e40af;
+                      line-height: 1.3;
+                    }
+                    .feedback-content h1:first-child {
+                      margin-top: 0;
+                    }
+                    .feedback-content h2 { 
+                      font-size: 1.5rem; 
+                      font-weight: 600; 
+                      margin: 1.25rem 0 0.75rem 0; 
+                      color: #2563eb;
+                      line-height: 1.4;
+                    }
+                    .feedback-content h3 { 
+                      font-size: 1.25rem; 
+                      font-weight: 600; 
+                      margin: 1rem 0 0.5rem 0; 
+                      color: #3b82f6;
+                      line-height: 1.4;
+                    }
+                    .feedback-content p { 
+                      margin: 0.75rem 0; 
+                      line-height: 1.7; 
+                      color: #374151;
+                      font-size: 0.95rem;
+                    }
+                    .feedback-content ul { 
+                      margin: 0.75rem 0; 
+                      padding-left: 1.75rem; 
+                      list-style-type: disc;
+                    }
+                    .feedback-content li { 
+                      margin: 0.5rem 0; 
+                      line-height: 1.6;
+                      color: #4b5563;
+                    }
+                    .feedback-content li p {
+                      margin: 0.25rem 0;
+                    }
+                    .feedback-content hr { 
+                      margin: 1.5rem 0; 
+                      border: none; 
+                      border-top: 2px solid #e5e7eb; 
+                      opacity: 0.5;
+                    }
+                    .feedback-content strong { 
+                      font-weight: 600; 
+                      color: #1f2937;
+                    }
+                    .feedback-content em { 
+                      font-style: italic; 
+                      color: #6b7280;
+                    }
+                    .feedback-content br {
+                      display: block;
+                      margin: 0.5rem 0;
+                    }
+                  `}</style>
+                  <div className="feedback-content text-base leading-relaxed">{parse(get(data, "feedback") || "")}</div>
                 </div>
               </div>
             )}

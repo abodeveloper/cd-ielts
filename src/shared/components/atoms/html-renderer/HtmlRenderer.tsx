@@ -239,17 +239,37 @@ const HTMLRendererWithHighlight = ({
     document.addEventListener("dblclick", handleDoubleClick);
 
     const handleBodyClick = (e: MouseEvent) => {
-      if (!contentRef.current?.contains(e.target as Node)) {
+      const target = e.target as HTMLElement;
+      // Don't clear highlights when clicking on images or image containers
+      if (target.closest('img') || target.closest('.image-drawer-container') || target.tagName === 'IMG') {
+        return;
+      }
+      if (!contentRef.current?.contains(target)) {
         setSelectedHighlightElement(null);
         setDropdownPos(null);
       }
     };
+
+    // Preserve browser selection on scroll
+    const handleScroll = (e: Event) => {
+      // Browser automatically preserves selection on scroll, just prevent our handlers from interfering
+      const selection = window.getSelection();
+      if (selection && selection.toString().trim().length > 0) {
+        // Selection is preserved automatically by browser
+        e.stopPropagation();
+      }
+    };
+
     document.body.addEventListener("click", handleBodyClick);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    document.addEventListener("scroll", handleScroll, { passive: true });
 
     return () => {
       document.removeEventListener("mouseup", handleMouseUp);
       document.removeEventListener("dblclick", handleDoubleClick);
       document.body.removeEventListener("click", handleBodyClick);
+      window.removeEventListener("scroll", handleScroll);
+      document.removeEventListener("scroll", handleScroll);
       if (selectionTimeoutRef.current) {
         clearTimeout(selectionTimeoutRef.current);
       }

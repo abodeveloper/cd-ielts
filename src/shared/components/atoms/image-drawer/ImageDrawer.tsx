@@ -126,6 +126,12 @@ const ImageDrawer: React.FC<ImageDrawerProps> = ({ src, alt, style, className })
   };
 
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    // Only prevent default if actually drawing, not if there's a text selection
+    const selection = window.getSelection();
+    if (selection && selection.toString().trim().length > 0) {
+      // If there's a text selection, don't start drawing and preserve selection
+      return;
+    }
     e.preventDefault();
     setIsHovering(true); // Enable drawing when user starts drawing
     
@@ -141,6 +147,13 @@ const ImageDrawer: React.FC<ImageDrawerProps> = ({ src, alt, style, className })
 
   const draw = (e: React.MouseEvent<HTMLCanvasElement> | MouseEvent | React.TouchEvent<HTMLCanvasElement>) => {
     if (!isDrawing) return;
+    // Only prevent default if actually drawing, preserve browser selection
+    const selection = window.getSelection();
+    if (selection && selection.toString().trim().length > 0) {
+      // If there's a text selection, stop drawing and preserve selection
+      setIsDrawing(false);
+      return;
+    }
     e.preventDefault();
 
     const canvas = canvasRef.current;
@@ -175,14 +188,67 @@ const ImageDrawer: React.FC<ImageDrawerProps> = ({ src, alt, style, className })
   
   const currentCursor = isEraseMode ? eraserCursor : pencilCursor;
 
+  // Preserve browser selection on scroll
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleScroll = (e: Event) => {
+      // Preserve browser selection when scrolling
+      const selection = window.getSelection();
+      if (selection && selection.rangeCount > 0) {
+        // Selection is preserved automatically by browser
+        e.stopPropagation();
+      }
+    };
+
+    const handleWheel = (e: WheelEvent) => {
+      // Preserve browser selection when scrolling with wheel
+      const selection = window.getSelection();
+      if (selection && selection.toString().trim().length > 0) {
+        // Don't interfere with selection when scrolling
+        e.stopPropagation();
+      }
+    };
+
+    container.addEventListener('scroll', handleScroll, { passive: true });
+    container.addEventListener('wheel', handleWheel, { passive: true });
+
+    return () => {
+      container.removeEventListener('scroll', handleScroll);
+      container.removeEventListener('wheel', handleWheel);
+    };
+  }, []);
+
   return (
-    <div className="relative inline-block">
+    <div className="relative inline-block image-drawer-container">
       <div
         ref={containerRef}
-        className="relative inline-block group"
+        className="relative inline-block group image-drawer-container"
         style={{ cursor: isHovering ? currentCursor : "default" }}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
+        onMouseEnter={(e) => {
+          // Don't clear browser selection on mouse enter
+          e.stopPropagation();
+          handleMouseEnter();
+        }}
+        onMouseLeave={(e) => {
+          // Don't clear browser selection on mouse leave
+          e.stopPropagation();
+          handleMouseLeave();
+        }}
+        onClick={(e) => {
+          // Prevent highlight clearing when clicking on image, but preserve browser selection
+          const selection = window.getSelection();
+          if (selection && selection.toString().trim().length > 0) {
+            // If there's a selection, don't stop propagation to preserve it
+            return;
+          }
+          e.stopPropagation();
+        }}
+        onScroll={(e) => {
+          // Preserve browser selection when scrolling
+          e.stopPropagation();
+        }}
       >
         <img
           ref={imageRef}
