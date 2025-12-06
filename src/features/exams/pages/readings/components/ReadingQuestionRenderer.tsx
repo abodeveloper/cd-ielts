@@ -707,7 +707,8 @@ const ReadingQuestionRenderer: React.FC<ReadingQuestionRendererProps> = ({
           if (
             type === ReadingQuestionType.TRUE_FALSE_NOT_GIVEN ||
             type === ReadingQuestionType.YES_NO_NOT_GIVEN ||
-            type === ReadingQuestionType.MULTIPLE_CHOICE
+            type === ReadingQuestionType.MULTIPLE_CHOICE ||
+            type === "multiple_choice_with_multiple_answer"
           ) {
             return (
               <div 

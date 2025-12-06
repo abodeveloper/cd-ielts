@@ -153,7 +153,10 @@ const ReadingQuestionInput: React.FC<Props> = ({
     );
   }
 
-  if (type === ReadingQuestionType.MULTIPLE_CHOICE) {
+  if (
+    type === ReadingQuestionType.MULTIPLE_CHOICE ||
+    type === "multiple_choice_with_multiple_answer"
+  ) {
     return (
       <FormField
         control={form.control}
