@@ -1,8 +1,10 @@
 // useGroupColumns.ts
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { ColumnDef } from "@tanstack/react-table";
 import { get } from "lodash";
 import { NavLink } from "react-router-dom";
+import { RiMessageLine, RiPhoneLine } from "@remixicon/react";
 
 interface Result {
   full_name: string;
@@ -144,6 +146,40 @@ export function useMockWritingResultsColumns(): ColumnDef<Result>[] {
               View
             </NavLink>
           </>
+        );
+      },
+    },
+    {
+      accessorKey: "actions",
+      header: "Actions",
+      cell: ({ row }) => {
+        const is_call = get(row.original, "is_call", false);
+        const is_sms = get(row.original, "is_sms", false);
+        const phone = get(row.original, "phone", "");
+
+        return (
+          <div className="flex items-center gap-2">
+            {is_call && (
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => window.open(`tel:${phone}`, "_self")}
+                className="h-8 w-8"
+              >
+                <RiPhoneLine className="h-4 w-4" />
+              </Button>
+            )}
+            {is_sms && (
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => window.open(`sms:${phone}`, "_self")}
+                className="h-8 w-8"
+              >
+                <RiMessageLine className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
         );
       },
     },
