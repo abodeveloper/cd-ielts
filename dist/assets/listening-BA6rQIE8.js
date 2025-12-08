@@ -1,0 +1,1 @@
+import{d as e}from"./index-DiCEM7pO.js";const i=async s=>(await e.get(`/api/listening/by-material/${s}/`)).data,r=async(s,n)=>(await e.post(`/api/listening-answers/${s}/`,n)).data;export{i as g,r as p};

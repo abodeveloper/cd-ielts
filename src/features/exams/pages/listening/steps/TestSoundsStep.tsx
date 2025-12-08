@@ -43,7 +43,11 @@ export default function TestSoundStep({ onNext }: StepProps) {
             sample sound.
           </p>
           <div className="flex justify-center">
-            <Button variant="outline" onClick={toggleSound}>
+            <Button 
+              variant="default" 
+              onClick={toggleSound}
+              className="bg-black hover:bg-gray-800 border-black text-white"
+            >
               {isPlaying ? "Stop sound" : "Play sound"}
             </Button>
           </div>

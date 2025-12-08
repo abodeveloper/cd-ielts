@@ -22,4 +22,8 @@ export default defineConfig({
       transformMixedEsModules: true,
     },
   },
+  define: {
+    'import.meta.env.VITE_API_URL': '"https://admin.ieltswonder.uz"',
+  },
+  envDir: false, // Disable .env file loading to avoid permission issues
 });

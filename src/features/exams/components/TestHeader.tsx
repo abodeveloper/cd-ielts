@@ -186,10 +186,10 @@ const TestHeader = ({
                 {type === "Thematic" && handlePauseToggle && (
                   <Button
                     onClick={handlePauseToggle}
-                    variant="outline"
+                    variant="default"
                     size="sm"
                     type="button"
-                    className="flex items-center gap-1 h-8 w-8 p-0"
+                    className="flex items-center gap-1 h-8 w-8 p-0 bg-black hover:bg-gray-800 border-black text-white"
                     disabled={
                       user?.role === Role.STUDENT && 
                       studentHasStarted && 
@@ -206,9 +206,9 @@ const TestHeader = ({
                     }
                   >
                     {!userHasStarted || isPaused ? (
-                      <RiPlayLine className="w-4 h-4" />
+                      <RiPlayLine className="w-4 h-4 text-white" />
                     ) : (
-                      <RiPauseLine className="w-4 h-4" />
+                      <RiPauseLine className="w-4 h-4 text-white" />
                     )}
                   </Button>
                 )}
