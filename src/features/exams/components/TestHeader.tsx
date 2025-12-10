@@ -264,7 +264,7 @@ const TestHeader = ({
                   variant="outline"
                   size="sm"
                   type="button"
-                  className="flex items-center gap-2 h-7"
+                  className="flex items-center gap-2 h-7 bg-black text-white border-black hover:bg-gray-800"
                 >
                   <RiSettings3Line className="w-4 h-4" />
                   Options
