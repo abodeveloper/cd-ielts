@@ -154,39 +154,46 @@ export const usePreventPageLeave = (
       }
       if (blockPage && event.key === "F11") {
         event.preventDefault();
-        alert("Test tugamaguncha fullscreen rejimidan chiqish taqiqlangan!");
+        if (confirm("Test tugamaguncha fullscreen rejimidan chiqish taqiqlangan!\n\nFullscreen rejimiga qaytishni xohlaysizmi?")) {
+          enterFullscreen();
+        }
       }
       
       // Block Escape key during audio/timer
       if (blockPage && event.key === "Escape") {
         event.preventDefault();
-        alert("Test tugamaguncha Escape tugmasi ishlamaydi!");
+        if (confirm("Test tugamaguncha Escape tugmasi ishlamaydi!\n\nFullscreen rejimiga qaytishni xohlaysizmi?")) {
+          enterFullscreen();
+        }
       }
       
       // Block Alt+Tab, Ctrl+Tab during audio/timer
       if (blockPage && ((event.altKey && event.key === "Tab") || (event.ctrlKey && event.key === "Tab"))) {
         event.preventDefault();
-        alert("Test tugamaguncha boshqa oynaga o'tish taqiqlangan!");
+        if (confirm("Test tugamaguncha boshqa oynaga o'tish taqiqlangan!\n\nFullscreen rejimiga qaytishni xohlaysizmi?")) {
+          enterFullscreen();
+        }
       }
     };
 
     const handleFullscreenChange = () => {
       const blockPage = shouldBlockPage();
       if (blockPage && !document.fullscreenElement) {
-        enterFullscreen();
         const audioPlaying = checkAudioPlaying();
         const timerRunning = checkTimerRunning();
         
-        let message = "Test tugamaguncha fullscreen rejimida qolishingiz kerak!";
+        let message = "Test tugamaguncha fullscreen rejimida qolishingiz kerak!\n\nFullscreen rejimiga qaytishni xohlaysizmi?";
         if (audioPlaying && timerRunning) {
-          message = "Audio ijro etilmoqda va vaqt tugamagan! Fullscreen rejimida qolishingiz kerak!";
+          message = "Audio ijro etilmoqda va vaqt tugamagan! Fullscreen rejimida qolishingiz kerak!\n\nFullscreen rejimiga qaytishni xohlaysizmi?";
         } else if (audioPlaying) {
-          message = "Audio hali ijro etilmoqda! Fullscreen rejimida qolishingiz kerak!";
+          message = "Audio hali ijro etilmoqda! Fullscreen rejimida qolishingiz kerak!\n\nFullscreen rejimiga qaytishni xohlaysizmi?";
         } else if (timerRunning) {
-          message = "Test vaqti hali tugamagan! Fullscreen rejimida qolishingiz kerak!";
+          message = "Test vaqti hali tugamagan! Fullscreen rejimida qolishingiz kerak!\n\nFullscreen rejimiga qaytishni xohlaysizmi?";
         }
         
-        alert(message);
+        if (confirm(message)) {
+          enterFullscreen();
+        }
       }
     };
 
@@ -195,7 +202,9 @@ export const usePreventPageLeave = (
       const blockPage = shouldBlockPage();
       if (blockPage) {
         event.preventDefault();
-        alert("Test tugamaguncha o'ng tugma menyusi ishlamaydi!");
+        if (confirm("Test tugamaguncha o'ng tugma menyusi ishlamaydi!\n\nFullscreen rejimiga qaytishni xohlaysizmi?")) {
+          enterFullscreen();
+        }
       }
     };
 
@@ -210,7 +219,9 @@ export const usePreventPageLeave = (
           (event.ctrlKey && event.key === "u")
         ) {
           event.preventDefault();
-          alert("Test tugamaguncha developer tools ishlamaydi!");
+          if (confirm("Test tugamaguncha developer tools ishlamaydi!\n\nFullscreen rejimiga qaytishni xohlaysizmi?")) {
+            enterFullscreen();
+          }
         }
       }
     };
@@ -228,7 +239,9 @@ export const usePreventPageLeave = (
       if (blockPage && checkAudioPlaying()) {
         setTimeout(() => {
           window.focus();
-          alert("Audio ijro etilmoqda! Boshqa oynaga o'tish taqiqlangan!");
+          if (confirm("Audio ijro etilmoqda! Boshqa oynaga o'tish taqiqlangan!\n\nFullscreen rejimiga qaytishni xohlaysizmi?")) {
+            enterFullscreen();
+          }
         }, 100);
       }
     };
@@ -241,7 +254,9 @@ export const usePreventPageLeave = (
       if (blockPage) {
         event.preventDefault();
         history.pushState(null, '', location.pathname);
-        alert("Test tugamaguncha browser navigation tugmalari ishlamaydi!");
+        if (confirm("Test tugamaguncha browser navigation tugmalari ishlamaydi!\n\nFullscreen rejimiga qaytishni xohlaysizmi?")) {
+          enterFullscreen();
+        }
       }
     };
 
