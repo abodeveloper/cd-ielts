@@ -67,6 +67,8 @@ const ListeningTestStep = ({ onNext }: StepProps) => {
   const [studentHasStarted, setStudentHasStarted] = useState(false);
   // Track if user has manually started the audio
   const [userHasStarted, setUserHasStarted] = useState(false);
+  // Track if any audio is currently playing for page leave prevention
+  const [isAnyAudioPlaying, setIsAnyAudioPlaying] = useState(false);
 
   // Update pause state when query data is available
   useEffect(() => {
@@ -99,7 +101,14 @@ const ListeningTestStep = ({ onNext }: StepProps) => {
     finish // Vaqt tugaganda keyingi testga o'tkazish uchun
   );
 
-  usePreventPageLeave(!isTestFinished); // Aktivlashtirilgan
+  // Enhanced page leave prevention with audio and timer checks
+  usePreventPageLeave({
+    shouldBlock: !isTestFinished,
+    audioRef: activeAudioRef,
+    timeLeft: timeLeft,
+    isAudioPlaying: isAnyAudioPlaying,
+    customMessage: "Listening test tugamaguncha va audio yakunlanmaguncha sahifadan chiqish taqiqlangan!"
+  });
 
   // Audio fayllarni oldindan yuklash
   useEffect(() => {
@@ -120,6 +129,19 @@ const ListeningTestStep = ({ onNext }: StepProps) => {
             setAudioPreloaded(true);
             audioRefs.current = newAudioElements;
           }
+        };
+
+        // Track audio play/pause state for page leave prevention
+        audio.onplay = () => {
+          setIsAnyAudioPlaying(true);
+        };
+        
+        audio.onpause = () => {
+          setIsAnyAudioPlaying(false);
+        };
+        
+        audio.onended = () => {
+          setIsAnyAudioPlaying(false);
         };
 
         audio.onerror = (e) => {
@@ -365,6 +387,7 @@ const ListeningTestStep = ({ onNext }: StepProps) => {
                 isPaused={isPaused}
                 studentHasStarted={studentHasStarted}
                 userHasStarted={userHasStarted}
+                isAudioPlaying={isAnyAudioPlaying}
               />
               <PartInfo activePart={activePart} testType={TestType.LISTENING} />
             </div>

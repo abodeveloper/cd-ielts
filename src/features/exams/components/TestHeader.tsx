@@ -43,6 +43,7 @@ interface TestHeaderProps {
   isPaused?: boolean; // New prop to track pause state
   studentHasStarted?: boolean; // New prop to track if student has started audio
   userHasStarted?: boolean; // New prop to track if user has manually started audio
+  isAudioPlaying?: boolean; // Track if audio is currently playing
 }
 
 const TestHeader = ({
@@ -56,6 +57,7 @@ const TestHeader = ({
   studentHasStarted = false,
   userHasStarted = false,
   type,
+  isAudioPlaying = false,
 }: TestHeaderProps) => {
   const navigate = useNavigate();
 
@@ -70,6 +72,27 @@ const TestHeader = ({
   };
 
   const handleBack = () => {
+    // For listening tests, check if audio is playing or timer is running
+    if (testType === TestType.LISTENING && user?.role === Role.STUDENT) {
+      const audioPlaying = audioRef?.current && !audioRef.current.paused && !audioRef.current.ended;
+      const timerRunning = timeLeft > 0;
+      
+      if (audioPlaying || timerRunning) {
+        let message = "Test tugamadi! Chiqishni xohlaysizmi?";
+        if (audioPlaying && timerRunning) {
+          message = "Audio ijro etilmoqda va vaqt tugamagan! Testdan chiqishni xohlaysizmi?";
+        } else if (audioPlaying) {
+          message = "Audio hali ijro etilmoqda! Testdan chiqishni xohlaysizmi?";
+        } else if (timerRunning) {
+          message = "Test vaqti hali tugamagan! Testdan chiqishni xohlaysizmi?";
+        }
+        
+        if (!window.confirm(message)) {
+          return; // Don't navigate if user cancels
+        }
+      }
+    }
+
     if (user?.role === Role.TEACHER) {
       if (type === "Thematic") {
         navigate("/teacher/tests/thematic");
