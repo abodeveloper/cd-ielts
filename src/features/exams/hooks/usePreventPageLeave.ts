@@ -78,15 +78,44 @@ export const usePreventPageLeave = (
     return "Test hali tugamadi! Chiqishni xohlaysizmi?";
   };
 
-  // Fullscreen rejimini yoqish
+  // Detect OS (Mac vs Windows)
+  const isMac = useCallback(() => {
+    return navigator.platform.toUpperCase().indexOf('MAC') >= 0 || 
+           navigator.userAgent.toUpperCase().indexOf('MAC') >= 0;
+  }, []);
+
+  // Fullscreen rejimini yoqish (OS-specific)
   const enterFullscreen = useCallback(() => {
     const element = document.documentElement;
-    if (element.requestFullscreen) {
-      element.requestFullscreen().catch((err) => {
-        console.error("Fullscreen rejimini yoqishda xato:", err);
-      });
+    const mac = isMac();
+    
+    if (mac) {
+      // Mac: Use webkitRequestFullscreen for Safari/Chrome on Mac
+      if ((element as any).webkitRequestFullscreen) {
+        (element as any).webkitRequestFullscreen();
+      } else if (element.requestFullscreen) {
+        element.requestFullscreen().catch((err) => {
+          console.error("Fullscreen error:", err);
+        });
+      }
+    } else {
+      // Windows/Linux: Use standard requestFullscreen
+      if (element.requestFullscreen) {
+        element.requestFullscreen().catch((err) => {
+          console.error("Fullscreen error:", err);
+        });
+      } else if ((element as any).msRequestFullscreen) {
+        // IE/Edge support
+        (element as any).msRequestFullscreen();
+      } else if ((element as any).mozRequestFullScreen) {
+        // Firefox support
+        (element as any).mozRequestFullScreen();
+      } else if ((element as any).webkitRequestFullscreen) {
+        // Fallback for older browsers
+        (element as any).webkitRequestFullscreen();
+      }
     }
-  }, []);
+  }, [isMac]);
 
   // Fullscreen rejimidan chiqish
   const exitFullscreen = useCallback(() => {
@@ -97,18 +126,23 @@ export const usePreventPageLeave = (
     }
   }, []);
 
-  // Navigatsiyani boshqarish
-  const handleNavigation = useCallback(() => {
+  // Navigatsiyani boshqarish (Back button)
+  const handleNavigation = useCallback((event?: PopStateEvent) => {
     const blockPage = shouldBlockPage();
     if (isStudent && blockPage) {
-      const message = getWarningMessage();
-      if (window.confirm(message)) {
-        exitFullscreen(); // Tasdiqlansa, fullscreen'dan chiqish
-      } else {
-        navigate(location.pathname, { replace: true }); // Sahifada qolish
+      // Prevent navigation
+      if (event) {
+        event.preventDefault();
       }
+      
+      // Push state to prevent back navigation
+      history.pushState(null, '', location.pathname);
+      
+      // English alert with only OK button
+      alert("You cannot leave the page during the test.");
+      enterFullscreen(); // Return to fullscreen after OK
     }
-  }, [isStudent, shouldBlock, audioRef, timeLeft, location.pathname, navigate, exitFullscreen]);
+  }, [isStudent, shouldBlock, audioRef, timeLeft, location.pathname, navigate, enterFullscreen]);
 
   useEffect(() => {
     // Student emas bo‘lsa, hook ishlamasin
@@ -116,53 +150,62 @@ export const usePreventPageLeave = (
 
     if (!shouldBlock) {
       exitFullscreen();
+      // Clear alert flag when test finishes
+      const alertKey = `fullscreen_alert_shown_${location.pathname}`;
+      sessionStorage.removeItem(alertKey);
       return;
     }
 
+    // Clear alert flag when entering new test (fresh start)
+    const alertKey = `fullscreen_alert_shown_${location.pathname}`;
+    sessionStorage.removeItem(alertKey);
+    
     enterFullscreen();
 
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
       const blockPage = shouldBlockPage();
-      if (blockPage) {
+      if (blockPage && isStudent) {
+        // Completely prevent reload for students during test
         event.preventDefault();
-        const message = customMessage || 
-          "Test hali tugamadi! Audio ijro etilmoqda yoki vaqt tugamagan. Chiqishni tasdiqlasangiz, natijalar saqlanmaydi!";
-        event.returnValue = message;
+        event.returnValue = "You cannot reload the page during the test.";
+        return "You cannot reload the page during the test.";
       }
     };
 
     const handleKeyDown = (event: KeyboardEvent) => {
       const blockPage = shouldBlockPage();
+      
+      // Refresh - Completely prevent reload for students during test
+      // Handle: F5, Ctrl+R, Ctrl+Shift+R (hard reload), Cmd+R (Mac), Cmd+Shift+R (Mac hard reload)
       if (
         blockPage &&
-        ((event.ctrlKey && event.key === "r") || event.key === "F5")
+        isStudent &&
+        (event.key === "F5" ||
+         (event.ctrlKey && !event.shiftKey && (event.key === "r" || event.key === "R")) ||
+         (event.ctrlKey && event.shiftKey && (event.key === "r" || event.key === "R")) ||
+         (event.metaKey && !event.shiftKey && (event.key === "r" || event.key === "R")) ||
+         (event.metaKey && event.shiftKey && (event.key === "r" || event.key === "R")))
       ) {
         event.preventDefault();
-        const audioPlaying = checkAudioPlaying();
-        const timerRunning = checkTimerRunning();
-        
-        let message = "Test tugamaguncha sahifani yangilash taqiqlangan!";
-        if (audioPlaying && timerRunning) {
-          message = "Audio ijro etilmoqda va vaqt tugamagan! Sahifani yangilash taqiqlangan!";
-        } else if (audioPlaying) {
-          message = "Audio hali ijro etilmoqda! Sahifani yangilash taqiqlangan!";
-        } else if (timerRunning) {
-          message = "Test vaqti hali tugamagan! Sahifani yangilash taqiqlangan!";
-        }
-        
-        alert(message);
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+        // Show alert and return to fullscreen
+        alert("You cannot reload the page during the test.");
+        enterFullscreen(); // Return to fullscreen after OK
+        return false;
       }
+      
+      // Escape key - English alert with only OK button
+      if (blockPage && event.key === "Escape") {
+        event.preventDefault();
+        event.stopPropagation();
+        alert("You cannot leave the page during the test.");
+        enterFullscreen(); // Return to fullscreen after OK
+      }
+      
       if (blockPage && event.key === "F11") {
         event.preventDefault();
         if (confirm("Test tugamaguncha fullscreen rejimidan chiqish taqiqlangan!\n\nFullscreen rejimiga qaytishni xohlaysizmi?")) {
-          enterFullscreen();
-        }
-      }
-      
-      // Block Escape key during audio/timer
-      if (blockPage && event.key === "Escape") {
-        event.preventDefault();
-        if (confirm("Test tugamaguncha Escape tugmasi ishlamaydi!\n\nFullscreen rejimiga qaytishni xohlaysizmi?")) {
           enterFullscreen();
         }
       }
@@ -179,20 +222,27 @@ export const usePreventPageLeave = (
     const handleFullscreenChange = () => {
       const blockPage = shouldBlockPage();
       if (blockPage && !document.fullscreenElement) {
-        const audioPlaying = checkAudioPlaying();
-        const timerRunning = checkTimerRunning();
+        // Check if alert has already been shown for this test session
+        const alertKey = `fullscreen_alert_shown_${location.pathname}`;
+        const alertShown = sessionStorage.getItem(alertKey);
         
-        let message = "Test tugamaguncha fullscreen rejimida qolishingiz kerak!\n\nFullscreen rejimiga qaytishni xohlaysizmi?";
-        if (audioPlaying && timerRunning) {
-          message = "Audio ijro etilmoqda va vaqt tugamagan! Fullscreen rejimida qolishingiz kerak!\n\nFullscreen rejimiga qaytishni xohlaysizmi?";
-        } else if (audioPlaying) {
-          message = "Audio hali ijro etilmoqda! Fullscreen rejimida qolishingiz kerak!\n\nFullscreen rejimiga qaytishni xohlaysizmi?";
-        } else if (timerRunning) {
-          message = "Test vaqti hali tugamagan! Fullscreen rejimida qolishingiz kerak!\n\nFullscreen rejimiga qaytishni xohlaysizmi?";
-        }
-        
-        if (confirm(message)) {
-          enterFullscreen();
+        if (!alertShown) {
+          // Mark alert as shown
+          sessionStorage.setItem(alertKey, 'true');
+          
+          // English alert with only OK button - show only once
+          alert("You cannot exit the test until the test time is up");
+          
+          // Always return to fullscreen after OK is pressed
+          // Use setTimeout to ensure alert is closed before entering fullscreen
+          setTimeout(() => {
+            enterFullscreen();
+          }, 100);
+        } else {
+          // Alert already shown, just return to fullscreen automatically
+          setTimeout(() => {
+            enterFullscreen();
+          }, 50);
         }
       }
     };
@@ -229,7 +279,10 @@ export const usePreventPageLeave = (
     window.addEventListener("beforeunload", handleBeforeUnload);
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("keydown", handleDevToolsBlock);
-    window.addEventListener("popstate", handleNavigation);
+    const handlePopState = (event: PopStateEvent) => {
+      handleNavigation(event);
+    };
+    window.addEventListener("popstate", handlePopState);
     document.addEventListener("fullscreenchange", handleFullscreenChange);
     document.addEventListener("contextmenu", handleContextMenu);
 
@@ -239,9 +292,8 @@ export const usePreventPageLeave = (
       if (blockPage && checkAudioPlaying()) {
         setTimeout(() => {
           window.focus();
-          if (confirm("Audio ijro etilmoqda! Boshqa oynaga o'tish taqiqlangan!\n\nFullscreen rejimiga qaytishni xohlaysizmi?")) {
-            enterFullscreen();
-          }
+          // No alert - just return to fullscreen automatically
+          enterFullscreen();
         }, 100);
       }
     };
@@ -271,7 +323,7 @@ export const usePreventPageLeave = (
       window.removeEventListener("beforeunload", handleBeforeUnload);
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keydown", handleDevToolsBlock);
-      window.removeEventListener("popstate", handleNavigation);
+      window.removeEventListener("popstate", handlePopState);
       document.removeEventListener("fullscreenchange", handleFullscreenChange);
       document.removeEventListener("contextmenu", handleContextMenu);
       window.removeEventListener("blur", handleWindowBlur);
@@ -285,5 +337,6 @@ export const usePreventPageLeave = (
     handleNavigation,
     enterFullscreen,
     exitFullscreen,
+    location.pathname,
   ]);
 };

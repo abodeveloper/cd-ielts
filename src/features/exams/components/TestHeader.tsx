@@ -72,41 +72,36 @@ const TestHeader = ({
   };
 
   const handleBack = () => {
-    // For listening tests, check if audio is playing or timer is running
-    if (testType === TestType.LISTENING && user?.role === Role.STUDENT) {
-      const audioPlaying = audioRef?.current && !audioRef.current.paused && !audioRef.current.ended;
-      const timerRunning = timeLeft > 0;
+    // STUDENT: English alert with only OK button, prevent navigation
+    if (user?.role === Role.STUDENT) {
+      // Show English alert
+      alert("You cannot leave the page during the test.");
       
-      if (audioPlaying || timerRunning) {
-        let message = "Test tugamadi! Chiqishni xohlaysizmi?";
-        if (audioPlaying && timerRunning) {
-          message = "Audio ijro etilmoqda va vaqt tugamagan! Testdan chiqishni xohlaysizmi?";
-        } else if (audioPlaying) {
-          message = "Audio hali ijro etilmoqda! Testdan chiqishni xohlaysizmi?";
-        } else if (timerRunning) {
-          message = "Test vaqti hali tugamagan! Testdan chiqishni xohlaysizmi?";
-        }
-        
-        if (!window.confirm(message)) {
-          return; // Don't navigate if user cancels
-        }
+      // Enter fullscreen
+      const element = document.documentElement;
+      if (element.requestFullscreen) {
+        element.requestFullscreen().catch((err) => {
+          console.error("Fullscreen error:", err);
+        });
+      } else if ((element as any).webkitRequestFullscreen) {
+        (element as any).webkitRequestFullscreen();
+      } else if ((element as any).msRequestFullscreen) {
+        (element as any).msRequestFullscreen();
       }
+      
+      // Don't navigate - stay on test page
+      return;
     }
 
+    // TEACHER: Normal navigation
     if (user?.role === Role.TEACHER) {
       if (type === "Thematic") {
         navigate("/teacher/tests/thematic");
       } else {
         navigate("/teacher/tests/mock");
       }
-    } else {
-      if (type === "Thematic") {
-        navigate("/student/tests/thematic");
-      } else {
-        navigate("/student/tests/mock");
-      }
+      exitFullscreen();
     }
-    exitFullscreen();
   };
 
   const { user } = useAuthStore();
