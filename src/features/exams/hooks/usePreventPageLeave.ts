@@ -1,7 +1,20 @@
 import { Role } from "@/shared/enums/role.enum";
 import { useAuthStore } from "@/store/auth-store";
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+
+// Try to import useBlocker - it's available in React Router v6.4+
+// We'll use dynamic import to check if it exists
+let useBlocker: any = null;
+try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const routerModule = require("react-router-dom");
+  if (typeof routerModule.useBlocker === "function") {
+    useBlocker = routerModule.useBlocker;
+  }
+} catch (e) {
+  // useBlocker not available, will use Link click interception instead
+}
 
 interface PreventPageLeaveOptions {
   shouldBlock: boolean;
@@ -46,15 +59,26 @@ export const usePreventPageLeave = (
     return timeLeft > 0;
   };
 
+  // Check if current location is a test page
+  const isTestPage = useCallback((pathname: string): boolean => {
+    return (
+      pathname.includes("/readings/") ||
+      pathname.includes("/listenings/") ||
+      pathname.includes("/writings/") ||
+      pathname.includes("/speakings/")
+    );
+  }, []);
+
   // Determine if page should be blocked
-  const shouldBlockPage = (): boolean => {
+  const shouldBlockPage = useCallback((): boolean => {
     if (!isStudent || !shouldBlock) return false;
     
-    // Once test has started (shouldBlock is true), ALWAYS block reload
-    // regardless of audio or timer state - this ensures complete prevention
-    // of page reload during test
-    return true;
-  };
+    // Check if timer is running - only block navigation when time is actively running
+    const timerRunning = checkTimerRunning();
+    
+    // Block if timer is running or if shouldBlock is true (test started)
+    return timerRunning || shouldBlock;
+  }, [isStudent, shouldBlock, timeLeft]);
 
   // Get appropriate warning message
   const getWarningMessage = (): string => {
@@ -139,6 +163,76 @@ export const usePreventPageLeave = (
       enterFullscreen(); // Return to fullscreen after OK
     }
   }, [isStudent, shouldBlock, audioRef, timeLeft, location.pathname, navigate, enterFullscreen]);
+
+  // React Router navigation blocking using useBlocker if available
+  // Block navigation when: student is on test page AND timer is running AND test is active
+  const blockNavigation = useCallback((): boolean => {
+    if (!isStudent) return false;
+    const currentIsTestPage = isTestPage(location.pathname);
+    const timerRunning = checkTimerRunning();
+    // Only block if on test page, timer is running, and test is active
+    return currentIsTestPage && timerRunning && shouldBlock;
+  }, [isStudent, location.pathname, timeLeft, shouldBlock, isTestPage, checkTimerRunning]);
+
+  // Use useBlocker if available (React Router v6.4+) to block programmatic navigation
+  const blocker = useBlocker ? useBlocker(blockNavigation) : null;
+
+  // Handle blocked navigation from useBlocker
+  useEffect(() => {
+    if (blocker && blocker.state === "blocked") {
+      // Show alert and reset blocker
+      alert("You cannot leave the page during the test. Please wait until the test time is up.");
+      blocker.reset();
+      enterFullscreen();
+    }
+  }, [blocker, enterFullscreen]);
+
+
+  // Intercept Link clicks and programmatic navigation
+  useEffect(() => {
+    if (!isStudent) return;
+    
+    const currentIsTestPage = isTestPage(location.pathname);
+    const timerRunning = checkTimerRunning();
+    const shouldBlockNav = currentIsTestPage && timerRunning && shouldBlock;
+    
+    if (!shouldBlockNav) return;
+
+    // Intercept all link clicks
+    const handleLinkClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const link = target.closest('a[href]') as HTMLAnchorElement;
+      
+      if (link && link.href) {
+        try {
+          const url = new URL(link.href);
+          const currentUrl = new URL(window.location.href);
+          
+          // If navigating to a different page (same origin but different pathname)
+          if (url.origin === currentUrl.origin && url.pathname !== currentUrl.pathname) {
+            // Check if leaving test page
+            if (currentIsTestPage && !isTestPage(url.pathname)) {
+              e.preventDefault();
+              e.stopPropagation();
+              e.stopImmediatePropagation();
+              alert("You cannot leave the page during the test. Please wait until the test time is up.");
+              enterFullscreen();
+              return false;
+            }
+          }
+        } catch (err) {
+          // Invalid URL, ignore
+        }
+      }
+    };
+
+    // Override navigate function by intercepting clicks on links
+    document.addEventListener("click", handleLinkClick, true);
+
+    return () => {
+      document.removeEventListener("click", handleLinkClick, true);
+    };
+  }, [isStudent, location.pathname, timeLeft, shouldBlock, isTestPage, checkTimerRunning, enterFullscreen]);
 
   useEffect(() => {
     // Student emas bo‘lsa, hook ishlamasin
@@ -342,5 +436,7 @@ export const usePreventPageLeave = (
     enterFullscreen,
     exitFullscreen,
     location.pathname,
+    shouldBlockPage,
+    checkTimerRunning,
   ]);
 };
