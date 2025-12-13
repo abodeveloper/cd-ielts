@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs } from "@/components/ui/tabs";
 import { useSpeakingForm } from "@/features/exams/hooks/useSpeakingForm";
+import { usePreventPageLeave } from "@/features/exams/hooks/usePreventPageLeave";
 import useTestLogic from "@/features/exams/hooks/useTestLogic";
 import { SpeakingPart } from "@/features/exams/types";
 import { cn } from "@/lib/utils";
@@ -32,6 +33,12 @@ const SpeakingTestStep = () => {
     () => {},
     false
   );
+
+  // Test boshlanganligini kuzatish (test ma'lumotlari yuklanganda)
+  const isTestStarted = query.isSuccess && parts.length > 0;
+
+  // Prevent page leave when test is started and not submitted
+  usePreventPageLeave(isTestStarted && !isSubmitting);
 
   // Oxirgi part ekanligini aniqlash
   const isLastPart = currentTabIndex === parts.length - 1;

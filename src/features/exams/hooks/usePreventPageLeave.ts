@@ -50,14 +50,10 @@ export const usePreventPageLeave = (
   const shouldBlockPage = (): boolean => {
     if (!isStudent || !shouldBlock) return false;
     
-    // Block if audio is playing
-    if (checkAudioPlaying()) return true;
-    
-    // Block if timer is still running
-    if (checkTimerRunning()) return true;
-    
-    // Block if explicitly requested
-    return shouldBlock;
+    // Once test has started (shouldBlock is true), ALWAYS block reload
+    // regardless of audio or timer state - this ensures complete prevention
+    // of page reload during test
+    return true;
   };
 
   // Get appropriate warning message
@@ -166,8 +162,11 @@ export const usePreventPageLeave = (
       const blockPage = shouldBlockPage();
       if (blockPage && isStudent) {
         // Completely prevent reload for students during test
+        // This is the most critical prevention - blocks browser reload/close
         event.preventDefault();
         event.returnValue = "You cannot reload the page during the test.";
+        // Also try to prevent navigation
+        history.pushState(null, '', location.pathname);
         return "You cannot reload the page during the test.";
       }
     };
@@ -177,12 +176,15 @@ export const usePreventPageLeave = (
       
       // Refresh - Completely prevent reload for students during test
       // Handle: F5, Ctrl+R, Ctrl+Shift+R (hard reload), Cmd+R (Mac), Cmd+Shift+R (Mac hard reload)
+      // Also prevent Ctrl+F5, Alt+F4 (close window), and other reload combinations
       if (
         blockPage &&
         isStudent &&
         (event.key === "F5" ||
+         (event.key === "F4" && event.altKey) || // Alt+F4 (close window)
          (event.ctrlKey && !event.shiftKey && (event.key === "r" || event.key === "R")) ||
          (event.ctrlKey && event.shiftKey && (event.key === "r" || event.key === "R")) ||
+         (event.ctrlKey && event.key === "F5") || // Ctrl+F5
          (event.metaKey && !event.shiftKey && (event.key === "r" || event.key === "R")) ||
          (event.metaKey && event.shiftKey && (event.key === "r" || event.key === "R")))
       ) {
@@ -192,6 +194,8 @@ export const usePreventPageLeave = (
         // Show alert and return to fullscreen
         alert("You cannot reload the page during the test.");
         enterFullscreen(); // Return to fullscreen after OK
+        // Push state to prevent navigation
+        history.pushState(null, '', location.pathname);
         return false;
       }
       
