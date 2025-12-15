@@ -121,43 +121,94 @@ const TestHeader = ({
     }
 
     const updateTime = () => {
-      setAudioCurrentTime(audioElement.currentTime || 0);
+      const currentTime = audioElement.currentTime;
+      if (Number.isFinite(currentTime) && currentTime >= 0) {
+        setAudioCurrentTime(currentTime);
+      }
     };
 
     const updateDuration = () => {
-      const duration = Number.isFinite(audioElement.duration)
-        ? audioElement.duration
-        : 0;
-      setAudioDuration(duration);
+      const duration = audioElement.duration;
+      if (Number.isFinite(duration) && duration > 0) {
+        setAudioDuration(duration);
+      }
     };
 
+    // Initial update
     updateTime();
     updateDuration();
 
+    // Use interval for more reliable time tracking
+    // Updates every 100ms when playing, every 500ms when paused
+    const timeInterval = setInterval(() => {
+      updateTime();
+    }, 100);
+
+    // Also listen to timeupdate for immediate updates
     audioElement.addEventListener("timeupdate", updateTime);
     audioElement.addEventListener("loadedmetadata", updateDuration);
     audioElement.addEventListener("durationchange", updateDuration);
-    audioElement.addEventListener("ended", updateTime);
+    audioElement.addEventListener("loadeddata", updateDuration);
+    audioElement.addEventListener("canplay", updateDuration);
+    const handlePlay = () => {
+      updateTime();
+      // Force immediate update when play starts
+      setTimeout(updateTime, 50);
+    };
+
+    const handlePause = () => {
+      updateTime();
+    };
+
+    const handleEnded = () => {
+      const duration = audioElement.duration;
+      if (Number.isFinite(duration) && duration > 0) {
+        setAudioCurrentTime(duration);
+      } else {
+        updateTime();
+      }
+    };
+
+    audioElement.addEventListener("play", handlePlay);
+    audioElement.addEventListener("pause", handlePause);
+    audioElement.addEventListener("ended", handleEnded);
 
     return () => {
+      clearInterval(timeInterval);
       audioElement.removeEventListener("timeupdate", updateTime);
       audioElement.removeEventListener("loadedmetadata", updateDuration);
       audioElement.removeEventListener("durationchange", updateDuration);
-      audioElement.removeEventListener("ended", updateTime);
+      audioElement.removeEventListener("loadeddata", updateDuration);
+      audioElement.removeEventListener("canplay", updateDuration);
+      audioElement.removeEventListener("play", handlePlay);
+      audioElement.removeEventListener("pause", handlePause);
+      audioElement.removeEventListener("ended", handleEnded);
     };
   }, [testType, audioElement]);
 
   // Format audio time as MM:SS
   const formatAudioTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
+    const validSeconds = Number.isFinite(seconds) && seconds >= 0 ? seconds : 0;
+    const mins = Math.floor(validSeconds / 60);
+    const secs = Math.floor(validSeconds % 60);
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
-  const audioDisplaySeconds =
-    audioDuration > 0
-      ? Math.max(audioDuration - audioCurrentTime, 0)
-      : audioCurrentTime;
+  // Calculate remaining time more reliably
+  const audioDisplaySeconds = (() => {
+    // Ensure both values are valid numbers
+    const duration = Number.isFinite(audioDuration) && audioDuration > 0 ? audioDuration : 0;
+    const currentTime = Number.isFinite(audioCurrentTime) && audioCurrentTime >= 0 ? audioCurrentTime : 0;
+    
+    if (duration > 0) {
+      // Show remaining time (countdown)
+      const remaining = Math.max(0, duration - currentTime);
+      return Math.ceil(remaining); // Round up to avoid showing 0 when there's still time left
+    } else {
+      // If duration not loaded yet, show current time
+      return Math.floor(currentTime);
+    }
+  })();
 
   // Slider qiymati o'zgarganda
   const onVolumeChange = (value: number[]) => {
