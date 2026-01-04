@@ -30,6 +30,17 @@ export const useAutoLogout = (options: AutoLogoutOptions = {}) => {
       return;
     }
 
+    // Teacher va Director rollari uchun auto-logout ni butunlay o'chirish
+    if (user?.role === Role.TEACHER || user?.role === Role.DIRECTOR) {
+      console.log("Auto logout disabled for Teacher/Director role");
+      return;
+    }
+
+    // Faqat Student lar uchun auto-logout ishlaydi
+    if (user?.role !== Role.STUDENT) {
+      return;
+    }
+
     // Test sahifalarda auto-logout ni bloklash
     if (excludeTestPages) {
       const isTestPage = location.pathname.includes('/exams/') || 
