@@ -213,7 +213,7 @@ const DragDropTags: React.FC<DragDropTagsProps> = ({
 
   return (
     <DndContext onDragEnd={handleDragEnd}>
-      <div className="space-y-6 mt-4 mb-6">
+      <div className="space-y-6 mt-16 mb-8">
         {/* Mavjud variantlar */}
         <div className="flex flex-wrap gap-2">
           {availableOptions.map((opt) => (

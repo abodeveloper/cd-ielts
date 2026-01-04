@@ -34,15 +34,20 @@ const ListeningQuestionContent = ({ part, form, testId }: Props) => {
 
   const displayClasses = getTestDisplayClasses(contrast, textSize);
 
-  // Extract image from questions HTML
-  const { imageElement, questionsWithoutImage } = useMemo(() => {
+  // Extract image from questions HTML and check for drag-drop
+  const { imageElement, questionsWithoutImage, hasDragDrop } = useMemo(() => {
     if (!part.questions) {
-      return { imageElement: null, questionsWithoutImage: part.questions };
+      return { imageElement: null, questionsWithoutImage: part.questions, hasDragDrop: false };
     }
 
     let foundImage: JSX.Element | null = null;
     let questionsHtml = part.questions;
     let imageHtml = "";
+    let hasDragDropMatching = false;
+
+    // Check if drag-drop-matching-sentence-endings exists
+    const dragDropRegex = /<drag-drop-matching-sentence-endings[^>]*>/i;
+    hasDragDropMatching = dragDropRegex.test(part.questions);
 
     // Find first image in HTML
     const imgRegex = /<img[^>]*>/i;
@@ -89,6 +94,7 @@ const ListeningQuestionContent = ({ part, form, testId }: Props) => {
     return {
       imageElement: foundImage,
       questionsWithoutImage: questionsHtml,
+      hasDragDrop: hasDragDropMatching,
     };
   }, [part.questions]);
 
@@ -175,26 +181,65 @@ const ListeningQuestionContent = ({ part, form, testId }: Props) => {
           }
         />
       ) : (
-        <ResizablePanelGroup
-          direction={"horizontal"}
-          className={cn("w-full border rounded-none")}
-        >
-          <ResizablePanel defaultSize={100}>
-            <div className={cn("h-full overflow-y-auto overflow-x-hidden p-6 space-y-8", displayClasses)}>
-              {part.questions ? (
-                <ReadingQuestionRenderer
-                  htmlString={part.questions}
-                  form={form}
-                  storageKey={questionsStorageKey}
-                  className={displayClasses}
-                />
-              ) : (
-                <div>No questions available</div>
-              )}
-              {/* {JSON.stringify(part.questions)} */}
-            </div>
-          </ResizablePanel>
-        </ResizablePanelGroup>
+        // Faqat image va drag-drop holatda: image chapda, drag-drop o'ngda
+        imageElement && hasDragDrop ? (
+          <ResizablePanelGroup
+            direction={"horizontal"}
+            className={cn("w-full border rounded-none")}
+          >
+            <ResizablePanel defaultSize={40}>
+              <div 
+                className={cn("h-full overflow-y-auto p-6", displayClasses)}
+                onScroll={(e) => {
+                  e.stopPropagation();
+                }}
+                onWheel={(e) => {
+                  const selection = window.getSelection();
+                  if (selection && selection.toString().trim().length > 0) {
+                    e.stopPropagation();
+                  }
+                }}
+              >
+                {imageElement}
+              </div>
+            </ResizablePanel>
+            <ResizablePanel defaultSize={60}>
+              <div className={cn("h-full overflow-y-auto overflow-x-hidden p-6 space-y-8", displayClasses)}>
+                {questionsWithoutImage ? (
+                  <ReadingQuestionRenderer
+                    htmlString={questionsWithoutImage}
+                    form={form}
+                    storageKey={questionsStorageKey}
+                    className={displayClasses}
+                  />
+                ) : (
+                  <div>No questions available</div>
+                )}
+              </div>
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        ) : (
+          <ResizablePanelGroup
+            direction={"horizontal"}
+            className={cn("w-full border rounded-none")}
+          >
+            <ResizablePanel defaultSize={100}>
+              <div className={cn("h-full overflow-y-auto overflow-x-hidden p-6 space-y-8", displayClasses)}>
+                {part.questions ? (
+                  <ReadingQuestionRenderer
+                    htmlString={part.questions}
+                    form={form}
+                    storageKey={questionsStorageKey}
+                    className={displayClasses}
+                  />
+                ) : (
+                  <div>No questions available</div>
+                )}
+                {/* {JSON.stringify(part.questions)} */}
+              </div>
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        )
       )}
     </div>
   );

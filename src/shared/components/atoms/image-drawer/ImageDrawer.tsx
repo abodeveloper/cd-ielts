@@ -273,8 +273,10 @@ const ImageDrawer: React.FC<ImageDrawerProps> = ({ src, alt, style, className })
           onTouchEnd={stopDrawing}
         />
       </div>
+      <br />
+      <br />
       {/* Color picker and erase mode toggle - rasm tashqarisida, o'ng yuqori burchakda */}
-      <div className="absolute top-0 right-0 -translate-y-full mb-2 flex items-center gap-2 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg p-2 border border-gray-200">
+      <div className="absolute top-16 right-0 -translate-y-full mb-2 flex items-center gap-2 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg p-2 border border-gray-200">
         {/* Color picker buttons */}
         {!isEraseMode && (
           <div className="flex items-center gap-1.5">

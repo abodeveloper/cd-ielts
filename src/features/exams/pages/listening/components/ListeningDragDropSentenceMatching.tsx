@@ -206,7 +206,7 @@ const ListeningDragDropSentenceMatching: React.FC<
   return (
     <div className="my-6">
       {processedHtml}
-      <div className="flex flex-wrap gap-3 mt-6">
+      <div className="flex flex-wrap gap-3 mt-16 mb-8">
         {options.map((option) => {
           const isUsed = !isRepeat && usedOptions.has(option.value);
           return (

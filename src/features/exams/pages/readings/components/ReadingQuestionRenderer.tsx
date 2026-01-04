@@ -1511,7 +1511,7 @@ const DragDropMatchingBlock: React.FC<DragDropMatchingBlockProps> = ({
   return (
     <span className="block my-6">
       {renderedInputs}
-      <span className="block mt-6">
+      <span className="block mt-16 mb-8">
         <div className="flex flex-wrap gap-3">
           {options.map((option) => {
             const isUsed = !isRepeat && usedOptions.has(option.value);
@@ -1549,16 +1549,16 @@ const DragDropMatchingBlock: React.FC<DragDropMatchingBlockProps> = ({
                 draggable={!isUsed}
                 onDragStart={!isUsed ? (e) => handleDragStart(e, option.value) : undefined}
                 onDragEnd={handleDragEnd}
-                className={`drag-drop-option p-2 rounded-lg min-w-[150px] text-center cursor-move transition-colors ${
+                className={`p-2 rounded-lg min-w-[150px] text-center cursor-move transition-colors ${
                   isUsed
                     ? "border-2 border-gray-300 border-dashed cursor-not-allowed drag-drop-option-used"
-                    : ""
+                    : "drag-drop-option"
                 }`}
                 style={isUsed ? { 
-                  backgroundColor: '#FFFBF0', // Cream Cream color when dropped
+                  backgroundColor: '#FFFBF0', 
                   color: 'black',
                 } : { 
-                  backgroundColor: '#1a1a1a', // Black dark background when default
+                  backgroundColor: '#1a1a1a',
                   color: 'white',
                 }}
               >
