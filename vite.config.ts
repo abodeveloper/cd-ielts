@@ -21,6 +21,10 @@ export default defineConfig({
       include: [/docx/, /node_modules/],
       transformMixedEsModules: true,
     },
+    rollupOptions: {
+      // Don't externalize docx - bundle it
+      // Vite will handle dynamic imports during build
+    },
   },
   envDir: false, // Disable .env file loading
   define: {

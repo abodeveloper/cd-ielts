@@ -65,6 +65,8 @@ const ThematicFullResultsPdf: React.FC<PDFGeneratorProps> = ({
     setIsFetching(true);
     try {
       // Dynamic import of docx to avoid build issues
+      // Using string literal to prevent Vite from resolving during build
+      const docxModule = await import(/* @vite-ignore */ "docx");
       const {
         Document,
         Packer,
@@ -76,7 +78,7 @@ const ThematicFullResultsPdf: React.FC<PDFGeneratorProps> = ({
         WidthType,
         AlignmentType,
         PageOrientation,
-      } = await import("docx");
+      } = docxModule;
 
       const result = await refetch(); // Trigger API call
       const fetchedData: StudentData[] = result.data?.results || [];
