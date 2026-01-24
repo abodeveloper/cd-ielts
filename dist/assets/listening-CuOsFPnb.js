@@ -1,0 +1,1 @@
+import{d as e}from"./index-x8u20K9c.js";const i=async s=>(await e.get(`/api/listening/by-material/${s}/`)).data,r=async(s,n)=>(await e.post(`/api/listening-answers/${s}/`,n)).data;export{i as g,r as p};

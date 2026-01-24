@@ -1,18 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { RiDownloadLine, RiLoader4Line } from "@remixicon/react";
 import { useQuery } from "@tanstack/react-query";
-import {
-  Document,
-  Packer,
-  Paragraph,
-  Table,
-  TableCell,
-  TableRow,
-  TextRun,
-  WidthType,
-  AlignmentType,
-  PageOrientation,
-} from "docx";
 import React, { useMemo, useState } from "react";
 import { getAllThematicMaterialResults } from "../api/test-material";
 
@@ -76,6 +64,20 @@ const ThematicFullResultsPdf: React.FC<PDFGeneratorProps> = ({
   const generatePDF = async () => {
     setIsFetching(true);
     try {
+      // Dynamic import of docx to avoid build issues
+      const {
+        Document,
+        Packer,
+        Paragraph,
+        Table,
+        TableCell,
+        TableRow,
+        TextRun,
+        WidthType,
+        AlignmentType,
+        PageOrientation,
+      } = await import("docx");
+
       const result = await refetch(); // Trigger API call
       const fetchedData: StudentData[] = result.data?.results || [];
 
