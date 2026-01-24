@@ -82,9 +82,8 @@ const MockFullResultsPdf: React.FC<PDFGeneratorProps> = ({
   const generatePDF = async () => {
     setIsFetching(true);
     try {
-      // Dynamic import of docx to avoid build issues
-      // Using string literal to prevent Vite from resolving during build
-      const docxModule = await import(/* @vite-ignore */ "docx");
+      // Dynamic import of docx - loaded only when needed
+      const docxModule = await import("docx");
       const {
         Document,
         Packer,

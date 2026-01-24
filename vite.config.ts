@@ -22,8 +22,14 @@ export default defineConfig({
       transformMixedEsModules: true,
     },
     rollupOptions: {
-      // Don't externalize docx - bundle it
-      // Vite will handle dynamic imports during build
+      output: {
+        manualChunks: (id) => {
+          // Put docx in a separate chunk to avoid build issues
+          if (id.includes("node_modules/docx")) {
+            return "docx";
+          }
+        },
+      },
     },
   },
   envDir: false, // Disable .env file loading
