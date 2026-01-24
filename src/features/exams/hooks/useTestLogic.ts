@@ -68,23 +68,18 @@ const useTestLogic = <T extends AllTestParts>(
       );
       setTimeLeft(secondsLeft);
 
-      // Vaqt tugaganda avtomatik submit qilish (faqat bir marta)
-      if (secondsLeft <= 0 && !isTestFinished && !hasSubmittedRef.current) {
+      // ⚠️ QAT'IY QOIDA: Vaqt tugaganda avtomatik submit qilish FAQAT timeLeft === 0 bo'lganda
+      // Hech qanday holatda 00:01, 01:00, 00:30 kabi holatlarda submit qilinmasligi kerak
+      // Faqat minutes === 0 && seconds === 0 bo'lganda, ya'ni timeLeft === 0 bo'lganda submit qilish
+      if (secondsLeft === 0 && !isTestFinished && !hasSubmittedRef.current) {
         clearTimer();
         hasSubmittedRef.current = true;
         setIsTestFinished(true);
         toastService.error("The time limit has expired.");
         // Avtomatik submit qilish
+        // onFinish() ni bu yerda chaqirmaymiz - faqat mutation onSuccess da chaqiriladi
+        // Bu shunday qilindi chunki o'zidan-o'zi testdan chiqib ketmasligi uchun
         onSubmit();
-        // Submit qilingandan keyin finish funksiyasini chaqirish (keyingi testga o'tkazish uchun)
-        // Bu mutation onSuccess callback'ida ham chaqiriladi, lekin bu yerda ham chaqirish kerak
-        // chunki mutation asinxron bo'lishi mumkin
-        if (onFinish) {
-          // Kichik kechikish bilan finish ni chaqirish (mutation muvaffaqiyatli bo'lishi uchun)
-          setTimeout(() => {
-            onFinish();
-          }, 100);
-        }
       }
     };
 

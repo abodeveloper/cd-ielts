@@ -73,12 +73,11 @@ export const usePreventPageLeave = (
   const shouldBlockPage = useCallback((): boolean => {
     if (!isStudent || !shouldBlock) return false;
     
-    // Check if timer is running - only block navigation when time is actively running
-    const timerRunning = checkTimerRunning();
-    
-    // Block if timer is running or if shouldBlock is true (test started)
-    return timerRunning || shouldBlock;
-  }, [isStudent, shouldBlock, timeLeft]);
+    // Test boshlangan bo'lsa, timer tugaganda ham bloklash davom etsin
+    // Faqat mutation muvaffaqiyatli bo'lgandan keyin shouldBlock false bo'ladi
+    // Bu o'zidan-o'zi testdan chiqib ketmasligini ta'minlaydi
+    return shouldBlock;
+  }, [isStudent, shouldBlock]);
 
   // Get appropriate warning message
   const getWarningMessage = (): string => {
@@ -165,14 +164,13 @@ export const usePreventPageLeave = (
   }, [isStudent, shouldBlock, audioRef, timeLeft, location.pathname, navigate, enterFullscreen]);
 
   // React Router navigation blocking using useBlocker if available
-  // Block navigation when: student is on test page AND timer is running AND test is active
+  // Block navigation when: student is on test page AND test is active (timer tugaganda ham)
   const blockNavigation = useCallback((): boolean => {
     if (!isStudent) return false;
     const currentIsTestPage = isTestPage(location.pathname);
-    const timerRunning = checkTimerRunning();
-    // Only block if on test page, timer is running, and test is active
-    return currentIsTestPage && timerRunning && shouldBlock;
-  }, [isStudent, location.pathname, timeLeft, shouldBlock, isTestPage, checkTimerRunning]);
+    // Timer tugaganda ham bloklash davom etsin - faqat mutation muvaffaqiyatli bo'lgandan keyin shouldBlock false bo'ladi
+    return currentIsTestPage && shouldBlock;
+  }, [isStudent, location.pathname, shouldBlock, isTestPage]);
 
   // Use useBlocker if available (React Router v6.4+) to block programmatic navigation
   const blocker = useBlocker ? useBlocker(blockNavigation) : null;
@@ -193,8 +191,8 @@ export const usePreventPageLeave = (
     if (!isStudent) return;
     
     const currentIsTestPage = isTestPage(location.pathname);
-    const timerRunning = checkTimerRunning();
-    const shouldBlockNav = currentIsTestPage && timerRunning && shouldBlock;
+    // Timer tugaganda ham bloklash davom etsin - faqat mutation muvaffaqiyatli bo'lgandan keyin shouldBlock false bo'ladi
+    const shouldBlockNav = currentIsTestPage && shouldBlock;
     
     if (!shouldBlockNav) return;
 
@@ -232,7 +230,7 @@ export const usePreventPageLeave = (
     return () => {
       document.removeEventListener("click", handleLinkClick, true);
     };
-  }, [isStudent, location.pathname, timeLeft, shouldBlock, isTestPage, checkTimerRunning, enterFullscreen]);
+  }, [isStudent, location.pathname, shouldBlock, isTestPage, enterFullscreen]);
 
   useEffect(() => {
     // Student emas bo‘lsa, hook ishlamasin
